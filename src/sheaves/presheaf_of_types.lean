@@ -1,30 +1,39 @@
-import analysis.topology.topological_space
+import topology.basic
 universe u 
 
-structure presheaf_of_types (α : Type u) [T : topological_space α] := 
-(F : Π {U : set α}, T.is_open U → Type u)
-(res : ∀ (U V : set α) (OU : T.is_open U) (OV : T.is_open V) (H : V ⊆ U), 
-  (F OU) → (F OV))
-(Hid : ∀ (U : set α) (OU : T.is_open U), (res U U OU _ (set.subset.refl U)) = id)  
-(Hcomp : ∀ (U V W : set α) (OU : T.is_open U) (OV : T.is_open V) (OW : T.is_open W)
-  (HUV : V ⊆ U) (HVW : W ⊆ V),
-  (res U W OU OW (set.subset.trans HVW HUV)) = (res V W OV _ HVW) ∘ (res U V _ _ HUV) )
+variables {α : Type u} [T : topological_space α]
 
-@[simp] lemma presheaf_of_types.Hcomp' {X : Type u} [TX : topological_space X]
-  (FPT : presheaf_of_types X) :
-∀ {U V W : set X} (OU : TX.is_open U) (OV : TX.is_open V) (OW : TX.is_open W)
+-- Lemmas about ⊆. TODO: Can this be automated better?
+
+@[simp, refl] lemma subset_refl {U : set α} : U ⊆ U := 
+  set.subset.refl U
+@[simp, trans] lemma subset_trans {U V W : set α} : W ⊆ V → V ⊆ U → W ⊆ U :=
+  set.subset.trans
+
+-- Definition of a presheaf.
+
+structure presheaf_of_types := 
+(F     : Π {U}, T.is_open U → Type u)
+(res   : ∀ {U V} (H : V ⊆ U) (OU : T.is_open U) (OV : T.is_open V), F OU → F OV)
+(Hid   : ∀ {U} (OU : T.is_open U), res (by refl) OU OU = id)
+(Hcomp : ∀ {U V W} (HUV : V ⊆ U) (HVW : W ⊆ V)
+  (OU : T.is_open U) (OV : T.is_open V) (OW : T.is_open W),
+  res (subset_trans HVW HUV) OU OW = res HVW OV OW ∘ res HUV OU OV)
+
+-- Simplification lemmas for Hid and Hcomp.
+
+@[simp] lemma presheaf_of_types.Hcomp' (FPT : presheaf_of_types) :
+∀ {U V W} (OU : T.is_open U) (OV : T.is_open V) (OW : T.is_open W)
   (HUV : V ⊆ U) (HVW : W ⊆ V) (s : FPT.F OU),
-  (FPT.res U W OU OW (set.subset.trans HVW HUV)) s = 
-    (FPT.res V W OV OW HVW) ((FPT.res U V OU OV HUV) s) := begin
-    intros U V W OU OV OW HUV HVW s,
-      show _ = ((FPT.res V W OV OW HVW) ∘ (FPT.res U V OU OV HUV)) s,
-      rw FPT.Hcomp,
-    end
+  (FPT.res (subset_trans HVW HUV) OU OW) s = (FPT.res HVW OV OW) ((FPT.res HUV OU OV) s) := 
+λ U V W OU OV OW HUV HVW s, by rw FPT.Hcomp HUV HVW OU OV OW
 
-@[simp] lemma presheaf_of_types.Hid' {X : Type u} [TX : topological_space X]
-  (FPT : presheaf_of_types X) :
-∀ {U : set X} (OU : TX.is_open U) (s : FPT.F OU),
-  (FPT.res U U OU OU (set.subset.refl U)) s = s := λ U OU s,by rw FPT.Hid U OU;simp
+@[simp] lemma presheaf_of_types.Hid' (FPT : presheaf_of_types) :
+∀ {U} (OU : T.is_open U) (s : FPT.F OU),
+  (FPT.res (by simp) OU OU) s = s := 
+λ U OU s, by rw FPT.Hid OU; simp
+
+-- Morphism of presheaves.
 
 structure morphism_of_presheaves_of_types {α : Type u} [Tα : topological_space α] 
   (FPT : presheaf_of_types α) (GPT : presheaf_of_types α) :=

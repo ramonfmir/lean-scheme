@@ -1,19 +1,24 @@
-import analysis.topology.topological_space data.set
-import analysis.topology.continuity 
-import Kenny_comm_alg.Zariski
-import tag00EJ
-import localization
-import localization_UMP
-import tag00E0
-import tag00DY
-import tag006E -- presheaf of types
-import tag006N -- presheaf of rings
-import tag006T -- sheaves of types
-import tag0072 -- sheaves of rings
-import Kenny_comm_alg.temp
-import mathlib_someday.topology
-import tag01HR
-import tag007N -- poor mans direct limit
+import topology.basic 
+import topology.continuity 
+import data.set
+
+import sheaves.presheaf_of_types
+
+--import analysis.topology.continuity 
+--import Kenny_comm_alg.Zariski
+-- import tag00EJ
+-- import localization
+-- import localization_UMP
+-- import tag00E0
+-- import tag00DY
+-- import tag006E -- presheaf of types
+-- import tag006N -- presheaf of rings
+-- import tag006T -- sheaves of types
+-- import tag0072 -- sheaves of rings
+-- import Kenny_comm_alg.temp
+-- import mathlib_someday.topology
+-- import tag01HR
+-- import tag007N -- poor mans direct limit
 
 universes u 
 
