@@ -1,22 +1,32 @@
-import tag006E -- presheaf of sets
-universe u
--- I only need rings at the minute.
+import sheaves.presheaf_of_types
 
-structure presheaf_of_rings (α : Type u) [T : topological_space α] extends presheaf_of_types α :=
+universe u
+
+-- Definition of a presheaf of rings.
+
+structure presheaf_of_rings (α : Type u) [T : topological_space α] 
+extends presheaf_of_types α :=
 [Fring : ∀ {U} (OU : T.is_open U), comm_ring (F OU)]
-(res_is_ring_morphism : ∀ (U V : set α) (OU : T.is_open U) (OV : T.is_open V) (H : V ⊆ U),
-  is_ring_hom (res U V OU OV H))
+(res_is_ring_hom : ∀ {U V} (HUV : V ⊆ U) (OU : T.is_open U) (OV : T.is_open V),
+  is_ring_hom (res HUV OU OV))
 
 attribute [instance] presheaf_of_rings.Fring
 
-structure morphism_of_presheaves_of_rings {α : Type u} [Tα : topological_space α]
-  (FPR : presheaf_of_rings α) (GPR : presheaf_of_rings α) :=
-(morphism : morphism_of_presheaves_of_types FPR.to_presheaf_of_types GPR.to_presheaf_of_types)
-(ring_homs : ∀ U : set α, ∀ HU : is_open U, 
-  @is_ring_hom _ _ _ _ (morphism.morphism U HU))
+namespace presheaf_of_rings
 
-def are_isomorphic_presheaves_of_rings {α : Type u} [Tα : topological_space α]
-  (FPR : presheaf_of_rings α) (GPR : presheaf_of_rings α) : Prop := 
-∃ (fg : morphism_of_presheaves_of_rings FPR GPR) (gf : morphism_of_presheaves_of_rings GPR FPR),
-  is_identity_morphism_of_presheaves_of_types (composition_of_morphisms_of_presheaves_of_types fg.morphism gf.morphism)
-  ∧ is_identity_morphism_of_presheaves_of_types( composition_of_morphisms_of_presheaves_of_types gf.morphism fg.morphism)
+-- Morphism of presheaf of rings
+
+structure morphism {α : Type u} [T : topological_space α]
+(FPR : presheaf_of_rings α) (GPR : presheaf_of_rings α) 
+extends presheaf_of_types.morphism FPR.to_presheaf_of_types GPR.to_presheaf_of_types  :=
+(ring_homs : ∀ (U : set α) (OU : is_open U), is_ring_hom (map OU))
+
+-- Isomorphic presheaves of rings.
+
+def are_isomorphic {α : Type u} [T : topological_space α]
+(FPR : presheaf_of_rings α) (GPR : presheaf_of_rings α) : Prop := 
+∃ (fg : morphism FPR GPR) (gf : morphism GPR FPR),
+    presheaf_of_types.morphism.is_identity (fg.to_morphism ⊚ gf.to_morphism)
+  ∧ presheaf_of_types.morphism.is_identity (gf.to_morphism ⊚ fg.to_morphism)
+
+end presheaf_of_rings
