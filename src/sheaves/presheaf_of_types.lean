@@ -1,75 +1,81 @@
 import topology.basic
-universe u 
 
+universes u v
 variables {α : Type u} [T : topological_space α]
 
--- Lemmas about ⊆. TODO: Can this be automated better?
+-- Lemmas about ⊆. TODO: Can this be automated?
 
 @[simp, refl] lemma subset_refl {U : set α} : U ⊆ U := 
   set.subset.refl U
+
 @[simp, trans] lemma subset_trans {U V W : set α} : W ⊆ V → V ⊆ U → W ⊆ U :=
   set.subset.trans
 
 -- Definition of a presheaf.
 
 structure presheaf_of_types := 
-(F     : Π {U}, T.is_open U → Type u)
+(F     : Π {U}, T.is_open U → Type v)
 (res   : ∀ {U V} (H : V ⊆ U) (OU : T.is_open U) (OV : T.is_open V), F OU → F OV)
-(Hid   : ∀ {U} (OU : T.is_open U), res (by refl) OU OU = id)
-(Hcomp : ∀ {U V W} (HUV : V ⊆ U) (HVW : W ⊆ V)
+(Hid   : ∀ {U} (OU : T.is_open U), res (subset_refl) OU OU = id)
+(Hcomp : ∀ {U V W} (HVW : W ⊆ V) (HUV : V ⊆ U)
   (OU : T.is_open U) (OV : T.is_open V) (OW : T.is_open W),
   res (subset_trans HVW HUV) OU OW = res HVW OV OW ∘ res HUV OU OV)
 
+namespace presheaf_of_types
+
 -- Simplification lemmas for Hid and Hcomp.
 
-@[simp] lemma presheaf_of_types.Hcomp' (FPT : presheaf_of_types) :
+@[simp] lemma Hcomp' (FPT : presheaf_of_types) :
 ∀ {U V W} (OU : T.is_open U) (OV : T.is_open V) (OW : T.is_open W)
-  (HUV : V ⊆ U) (HVW : W ⊆ V) (s : FPT.F OU),
-  (FPT.res (subset_trans HVW HUV) OU OW) s = (FPT.res HVW OV OW) ((FPT.res HUV OU OV) s) := 
-λ U V W OU OV OW HUV HVW s, by rw FPT.Hcomp HUV HVW OU OV OW
+  (HVW : W ⊆ V) (HUV : V ⊆ U) (s : FPT.F OU),
+  (FPT.res (subset_trans HVW HUV) OU OW) s = 
+  (FPT.res HVW OV OW) ((FPT.res HUV OU OV) s) :=
+λ U V W OU OV OW HVW HUV s, by rw FPT.Hcomp HVW HUV OU OV OW
 
-@[simp] lemma presheaf_of_types.Hid' (FPT : presheaf_of_types) :
+@[simp] lemma Hid' (FPT : presheaf_of_types) :
 ∀ {U} (OU : T.is_open U) (s : FPT.F OU),
-  (FPT.res (by simp) OU OU) s = s := 
+  (FPT.res (subset_refl) OU OU) s = s := 
 λ U OU s, by rw FPT.Hid OU; simp
 
--- Morphism of presheaves.
+-- Morphism of presheaves. TODO: Why do I have to write @presheaf_of_types α T?
 
-structure morphism_of_presheaves_of_types {α : Type u} [Tα : topological_space α] 
-  (FPT : presheaf_of_types α) (GPT : presheaf_of_types α) :=
-(morphism : ∀ U : set α, ∀ HU : Tα.is_open U, (FPT.F HU) → GPT.F HU)
-(commutes : ∀ U V : set α, ∀ HU : Tα.is_open U, ∀ HV : Tα.is_open V, ∀ Hsub : V ⊆ U,
-  (GPT.res U V HU HV Hsub) ∘ (morphism U HU) = (morphism V HV) ∘ (FPT.res U V HU HV Hsub))
+structure morphism (FPT GPT : @presheaf_of_types α T) :=
+(morphism : ∀ {U} (OU : T.is_open U), FPT.F OU → GPT.F OU)
+(commutes : ∀ {U V} (OU : T.is_open U) (OV : T.is_open V) (HUV : V ⊆ U),
+  (GPT.res HUV OU OV) ∘ (morphism OU) = (morphism OV) ∘ (FPT.res HUV OU OV))
 
+namespace morphism
 
-def composition_of_morphisms_of_presheaves_of_types {α : Type u} [Tα : topological_space α]
-  {FPT GPT HPT : presheaf_of_types α} (fg : morphism_of_presheaves_of_types FPT GPT)
-  (gh : morphism_of_presheaves_of_types GPT HPT) :
-morphism_of_presheaves_of_types FPT HPT :=
-{ morphism := λ U HU, gh.morphism U HU ∘ fg.morphism U HU,
-  commutes := λ U V HU HV Hsub, begin
-    show (HPT.res U V HU HV Hsub ∘ gh.morphism U HU) ∘ fg.morphism U HU =
-    gh.morphism V HV ∘ (fg.morphism V HV ∘ FPT.res U V HU HV Hsub),
-    rw gh.commutes U V HU HV Hsub,
-    rw ←fg.commutes U V HU HV Hsub,
-  end }
+def comp
+  {FPT GPT HPT : @presheaf_of_types α T} 
+  (fg : presheaf_of_types.morphism FPT GPT)
+  (gh : presheaf_of_types.morphism GPT HPT) : 
+  presheaf_of_types.morphism FPT HPT :=
+{ morphism := λ U OU, gh.morphism OU ∘ fg.morphism OU,
+  commutes := λ U V OU OV HUV,
+    begin
+      rw [←function.comp.assoc, gh.commutes OU OV HUV], symmetry,
+      rw [function.comp.assoc, ←fg.commutes OU OV HUV]
+    end
+}
 
-def is_identity_morphism_of_presheaves_of_types {α : Type u} [Tα : topological_space α]
-  {FPT : presheaf_of_types α} (phi: morphism_of_presheaves_of_types FPT FPT) :=
-  ∀ (U : set α) (OU : Tα.is_open U), phi.morphism U OU = id
+def is_identity
+  {FPT : @presheaf_of_types α T} (ff: presheaf_of_types.morphism FPT FPT) :=
+  ∀ {U} (OU : T.is_open U), ff.morphism OU = id
 
-def is_isomorphism_of_presheaves_of_types {α : Type u} [Tα : topological_space α]
-  {FPT : presheaf_of_types α} {GPT : presheaf_of_types α} (phi: morphism_of_presheaves_of_types FPT GPT) :=
-  ∃ psi : morphism_of_presheaves_of_types GPT FPT, 
-  is_identity_morphism_of_presheaves_of_types (composition_of_morphisms_of_presheaves_of_types phi psi)
-  ∧ is_identity_morphism_of_presheaves_of_types (composition_of_morphisms_of_presheaves_of_types psi phi)
+def is_isomorphism
+  {FPT GPT : @presheaf_of_types α T} (fg: presheaf_of_types.morphism FPT GPT) :=
+  ∃ gf : presheaf_of_types.morphism GPT FPT, 
+    presheaf_of_types.morphism.is_identity (presheaf_of_types.morphism.comp fg gf)
+  ∧ presheaf_of_types.morphism.is_identity (presheaf_of_types.morphism.comp gf fg)
 
-def are_isomorphic_presheaves_of_types {α : Type u} [Tα : topological_space α]
-(FPT : presheaf_of_types α) (GPT : presheaf_of_types α) : Prop :=
-∃ (fg : morphism_of_presheaves_of_types FPT GPT) (gf : morphism_of_presheaves_of_types GPT FPT),
-  is_identity_morphism_of_presheaves_of_types (composition_of_morphisms_of_presheaves_of_types fg gf)
-  ∧ is_identity_morphism_of_presheaves_of_types (composition_of_morphisms_of_presheaves_of_types gf fg)
+end morphism
 
--- Seems to me that stacks project implicitly claims presheaves form a category
--- so perhaps at some point one should check e.g. identity o phi = phi and
--- associativity of composition of morphisms. I didn't need these yet though.
+-- Isomorphic presheaves.
+
+def are_isomorphic (FPT GPT : @presheaf_of_types α T) : Prop :=
+∃ (fg : presheaf_of_types.morphism FPT GPT) (gf : presheaf_of_types.morphism GPT FPT),
+    presheaf_of_types.morphism.is_identity (presheaf_of_types.morphism.comp fg gf)
+  ∧ presheaf_of_types.morphism.is_identity (presheaf_of_types.morphism.comp gf fg)
+
+end presheaf_of_types
