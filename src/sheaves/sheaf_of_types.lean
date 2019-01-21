@@ -48,6 +48,14 @@ structure sheaf_of_types (α : Type u) [T : topological_space α] :=
 (locality : locality F)
 (gluing   : gluing F) 
 
+variables {β : Type u} [T : topological_space β]
+include T
+instance : has_coe (sheaf_of_types β) (presheaf_of_types β) := 
+⟨λ S, S.F⟩
+
+def is_sheaf_of_types {α : Type u} [T : topological_space α] (F : presheaf_of_types α) :=
+locality F ∧ gluing F
+
 -- Sanity checks.
 
 def bijective_gluing {α : Type u} [T : topological_space α] (F : presheaf_of_types α) :=

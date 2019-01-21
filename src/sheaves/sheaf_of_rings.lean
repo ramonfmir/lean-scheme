@@ -1,11 +1,20 @@
-import tag006T -- sheaves of types
-import tag006N -- presheaves of rings
+import sheaves.sheaf_of_types
+import sheaves.presheaf_of_rings
 
--- this should really be done for abstract categories; we "cheat" here because
--- equalizers in the category of commutative rings are the same as equalizers
--- in the underlying category of sets: see tag0073 (lemma 6.9.2)
+universes u
 
-def is_sheaf_of_rings {α : Type*} [T : topological_space α] 
-  (PR : presheaf_of_rings α) : Prop :=
-is_sheaf_of_types PR.to_presheaf_of_types
+-- A sheaf of rings is essentially a sheaf of types because we assume that the 
+-- category of commutative rings has limits (proved later). This is tag 0073.
 
+structure sheaf_of_rings (α : Type u) [T : topological_space α] :=
+(F        : presheaf_of_rings α)
+(locality : locality F.to_presheaf_of_types)
+(gluing   : gluing F.to_presheaf_of_types)
+
+variables {β : Type u} [T : topological_space β]
+include T
+instance : has_coe (sheaf_of_rings β) (presheaf_of_rings β) := 
+⟨λ S, S.F⟩
+
+def is_sheaf_of_rings {α : Type u} [T : topological_space α] (F : presheaf_of_rings α) :=
+locality F.to_presheaf_of_types ∧ gluing F.to_presheaf_of_types
