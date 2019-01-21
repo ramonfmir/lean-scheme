@@ -14,45 +14,49 @@ universes u v
 
 structure presheaf_of_types (α : Type u) [T : topological_space α] := 
 (F     : Π {U}, T.is_open U → Type v)
-(res   : ∀ {U V} (H : V ⊆ U) (OU : T.is_open U) (OV : T.is_open V), F OU → F OV)
-(Hid   : ∀ {U} (OU : T.is_open U), res (set.subset.refl U) OU OU = id)
+(res   : ∀ {U V} (OU : T.is_open U) (OV : T.is_open V) (HUV : V ⊆ U), F OU → F OV)
+(Hid   : ∀ {U} (OU : T.is_open U), res OU OU (set.subset.refl U)  = id)
 (Hcomp : ∀ {U V W} (HVW : W ⊆ V) (HUV : V ⊆ U)
   (OU : T.is_open U) (OV : T.is_open V) (OW : T.is_open W),
-  res (set.subset.trans HVW HUV) OU OW = res HVW OV OW ∘ res HUV OU OV)
+  res OU OW (set.subset.trans HVW HUV) = res OV OW HVW ∘ res OU OV HUV)
+
+variables (β : Type u) [T : topological_space β]
+instance : has_coe_to_fun (presheaf_of_types β) :=
+⟨λ_, Π {U}, T.is_open U → Type v, presheaf_of_types.F⟩
 
 namespace presheaf_of_types
 
 -- Simplification lemmas for Hid and Hcomp.
 
 @[simp] lemma Hcomp' {α : Type u} [T : topological_space α] 
-(FPT : presheaf_of_types α) :
+(F : presheaf_of_types α) :
 ∀ {U V W} (OU : T.is_open U) (OV : T.is_open V) (OW : T.is_open W)
-  (HVW : W ⊆ V) (HUV : V ⊆ U) (s : FPT.F OU),
-  (FPT.res (set.subset.trans HVW HUV) OU OW) s = 
-  (FPT.res HVW OV OW) ((FPT.res HUV OU OV) s) :=
-λ U V W OU OV OW HVW HUV s, by rw FPT.Hcomp HVW HUV OU OV OW
+  (HVW : W ⊆ V) (HUV : V ⊆ U) (s : F OU),
+  (F.res OU OW (set.subset.trans HVW HUV)) s = 
+  (F.res OV OW HVW) ((F.res OU OV HUV) s) :=
+λ U V W OU OV OW HVW HUV s, by rw F.Hcomp HVW HUV OU OV OW
 
 @[simp] lemma Hid' {α : Type u} [T : topological_space α] 
-(FPT : presheaf_of_types α) :
-∀ {U} (OU : T.is_open U) (s : FPT.F OU),
-  (FPT.res (set.subset.refl U) OU OU) s = s := 
-λ U OU s, by rw FPT.Hid OU; simp
+(F : presheaf_of_types α) :
+∀ {U} (OU : T.is_open U) (s : F OU),
+  (F.res OU OU (set.subset.refl U)) s = s := 
+λ U OU s, by rw F.Hid OU; simp
 
 -- Morphism of presheaves.
 
 structure morphism {α : Type u} [T : topological_space α] 
-(FPT GPT : presheaf_of_types α) :=
-(map      : ∀ {U} (OU : T.is_open U), FPT.F OU → GPT.F OU)
+(F G      : presheaf_of_types α) :=
+(map      : ∀ {U} (OU : T.is_open U), F OU → G OU)
 (commutes : ∀ {U V} (HUV : V ⊆ U) (OU : T.is_open U) (OV : T.is_open V),
-  (GPT.res HUV OU OV) ∘ (map OU) = (map OV) ∘ (FPT.res HUV OU OV))
+  (G.res OU OV HUV) ∘ (map OU) = (map OV) ∘ (F.res OU OV HUV))
 
 namespace morphism
 
 def comp {α : Type u} [T : topological_space α]
-  {FPT GPT HPT : presheaf_of_types α} 
-  (fg : morphism FPT GPT)
-  (gh : morphism GPT HPT) : 
-  morphism FPT HPT :=
+  {F G H : presheaf_of_types α} 
+  (fg : morphism F G)
+  (gh : morphism G H) : 
+  morphism F H :=
 { map := λ U OU, gh.map OU ∘ fg.map OU,
   commutes := λ U V OU OV HUV,
     begin
@@ -67,8 +71,8 @@ def is_identity {α : Type u} [T : topological_space α]
   ∀ {U} (OU : T.is_open U), ff.map OU = id
 
 def is_isomorphism {α : Type u} [T : topological_space α]
-  {FPT GPT : presheaf_of_types α} (fg : morphism FPT GPT) :=
-  ∃ gf : morphism GPT FPT, 
+  {F G : presheaf_of_types α} (fg : morphism F G) :=
+  ∃ gf : morphism G F, 
     is_identity (fg ⊚ gf)
   ∧ is_identity (gf ⊚ fg)
 
@@ -77,8 +81,8 @@ end morphism
 -- Isomorphic presheaves of types.
 
 def are_isomorphic {α : Type u} [T : topological_space α] 
-(FPT GPT : presheaf_of_types α) : Prop :=
-∃ (fg : morphism FPT GPT) (gf : morphism GPT FPT),
+(F G : presheaf_of_types α) : Prop :=
+∃ (fg : morphism F G) (gf : morphism G F),
     morphism.is_identity (fg ⊚ gf)
   ∧ morphism.is_identity (gf ⊚ fg)
 
