@@ -1,70 +1,81 @@
--- here we define a presheaf of types on a basis of a top space;
--- sections only defined on a basis
--- restriction maps are just from basis elt to basis elt
--- 
+import topology.basic
 
-import analysis.topology.topological_space
+universes u v
 
-universe u 
+open topological_space
 
-structure presheaf_of_types_on_basis {X : Type u} [TX : topological_space X] {B : set (set X)}
-  (HB : topological_space.is_topological_basis B) := 
-(F : Π {U : set X}, U ∈ B → Type u)
-(res : ∀ {U V : set X} (BU : U ∈ B) (BV : V ∈ B) (H : V ⊆ U), 
-  (F BU) → (F BV))
-(Hid : ∀ (U : set X) (BU : U ∈ B), (res BU BU (set.subset.refl U)) = id)  
-(Hcomp : ∀ (U V W : set X) (BU : U ∈ B) (BV : V ∈ B) (BW : W ∈ B)
-  (HUV : V ⊆ U) (HVW : W ⊆ V),
-  (res BU BW (set.subset.trans HVW HUV)) = (res BV BW HVW) ∘ (res BU BV HUV) )
+-- Presheaf of types where we only define sections on basis elements.
 
-@[simp] lemma presheaf_of_types_on_basis.Hcomp' {X : Type u} [TX : topological_space X] {B : set (set X)}
-  {HB : topological_space.is_topological_basis B} (FPTB : presheaf_of_types_on_basis HB) :
-∀ {U V W : set X} (BU : U ∈ B) (BV : V ∈ B) (BW : W ∈ B)
-  (HUV : V ⊆ U) (HVW : W ⊆ V) (s : FPTB.F BU),
-  (FPTB.res BU BW (set.subset.trans HVW HUV)) s = 
-    (FPTB.res BV BW HVW) ((FPTB.res BU BV HUV) s) := begin
-    intros U V W BU BV BW HUV HVW s,
-      show _ = ((FPTB.res BV BW HVW) ∘ (FPTB.res BU BV HUV)) s,
-      rw FPTB.Hcomp,
-    end
+structure presheaf_of_types_on_basis (α : Type u) [T : topological_space α] 
+{B : set (set α)} (HB : is_topological_basis B) := 
+(F     : Π {U}, U ∈ B → Type v)
+(res   : ∀ {U V} (BU : U ∈ B) (BV : V ∈ B) (HVU : V ⊆ U), F BU → F BV)
+(Hid   : ∀ {U} (BU : U ∈ B), (res BU BU (set.subset.refl U)) = id)  
+(Hcomp : ∀ {U V W} (BU : U ∈ B) (BV : V ∈ B) (BW : W ∈ B)
+  (HWV : W ⊆ V) (HVU : V ⊆ U),
+  res BU BW (set.subset.trans HWV HVU) = (res BV BW HWV) ∘ (res BU BV HVU))
 
+namespace presheaf_of_types_on_basis
 
-structure morphism_of_presheaves_of_types_on_basis {X : Type u} [TX : topological_space X] 
-  {B : set (set X)} {HB : topological_space.is_topological_basis B}
-  (FPT : presheaf_of_types_on_basis HB) 
-  (GPT : presheaf_of_types_on_basis HB) 
-  :=
-(morphism : ∀ {U} (HU : U ∈ B), (FPT.F HU) → GPT.F HU)
+variables {α : Type u} [T : topological_space α] 
+variables {B : set (set α)} {HB : is_topological_basis B}
+
+instance : has_coe_to_fun (presheaf_of_types_on_basis α HB) :=
+{ F := λ _, Π {U}, U ∈ B → Type v,
+  coe := presheaf_of_types_on_basis.F }
+
+-- Simplification lemmas.
+
+@[simp] lemma Hid' (F : presheaf_of_types_on_basis α HB) :
+∀ {U} (BU : U ∈ B) (s : F BU),
+  (F.res BU BU (set.subset.refl U)) s = s := 
+λ U OU s, by rw F.Hid OU; simp
+
+@[simp] lemma Hcomp' (F : presheaf_of_types_on_basis α HB) :
+∀ {U V W} (BU : U ∈ B) (BV : V ∈ B) (BW : W ∈ B)
+  (HWV : W ⊆ V) (HVU : V ⊆ U) (s : F BU),
+  (F.res BU BW (set.subset.trans HWV HVU)) s = 
+  (F.res BV BW HWV) ((F.res BU BV HVU) s) := 
+λ U V W OU OV OW HWV HVU s, by rw F.Hcomp OU OV OW HWV HVU
+
+-- Morphism of presheaves on a basis (same as presheaves).
+
+structure morphism (F G : presheaf_of_types_on_basis α HB) :=
+(map      : ∀ {U} (HU : U ∈ B), F HU → G HU)
 (commutes : ∀ {U V} (HU : U ∈ B) (HV : V ∈ B) (Hsub : V ⊆ U),
-  (GPT.res HU HV Hsub) ∘ (morphism HU) = (morphism HV) ∘ (FPT.res HU HV Hsub))
+  (G.res HU HV Hsub) ∘ (map HU) = (map HV) ∘ (F.res HU HV Hsub))
 
-definition composition_of_morphism_of_presheaves_of_types_on_basis
-{X : Type u} [TX : topological_space X] 
-  {B : set (set X)} {HB : topological_space.is_topological_basis B}
-  {FPT : presheaf_of_types_on_basis HB} 
-  {GPT : presheaf_of_types_on_basis HB} 
-  {HPT : presheaf_of_types_on_basis HB}
-  (phi : morphism_of_presheaves_of_types_on_basis FPT GPT)
-  (psi : morphism_of_presheaves_of_types_on_basis GPT HPT)
-  : morphism_of_presheaves_of_types_on_basis FPT HPT :=
-{
-  morphism := λ U HU, (psi.morphism HU) ∘ (phi.morphism HU),
-  commutes := λ U V HU HV Hsub,
-  by rw [←function.comp.assoc,psi.commutes,function.comp.assoc,phi.commutes],
-}
+namespace morphism
 
-definition is_identity_morphism_of_presheaves_of_types_on_basis {X : Type u} [TX : topological_space X] 
-  {B : set (set X)} {HB : topological_space.is_topological_basis B}
-  {FPT : presheaf_of_types_on_basis HB} (phi : morphism_of_presheaves_of_types_on_basis FPT FPT)
-  : Prop :=
-  ∀ U : set X, ∀ HU : U ∈ B, phi.morphism HU = id 
+definition comp
+  {F G H : presheaf_of_types_on_basis α HB}
+  (fg : morphism F G)
+  (gh : morphism G H) :
+  morphism F H :=
+{ map := λ U HU, gh.map HU ∘ fg.map HU,
+  commutes := λ U V BU BV HVU,
+    begin
+      rw [←function.comp.assoc, gh.commutes BU BV HVU], symmetry,
+      rw [function.comp.assoc, ←fg.commutes BU BV HVU]
+    end }
 
-definition is_isomorphism_of_presheaves_of_types_on_basis 
-{X : Type u} [TX : topological_space X] 
-  {B : set (set X)} {HB : topological_space.is_topological_basis B}
-  {FPT : presheaf_of_types_on_basis HB}
-  {GPT : presheaf_of_types_on_basis HB}
-  (phi : morphism_of_presheaves_of_types_on_basis FPT GPT) : Prop := 
-  ∃ psi :  morphism_of_presheaves_of_types_on_basis GPT FPT,
-  is_identity_morphism_of_presheaves_of_types_on_basis (composition_of_morphism_of_presheaves_of_types_on_basis phi psi)
-  ∧ is_identity_morphism_of_presheaves_of_types_on_basis (composition_of_morphism_of_presheaves_of_types_on_basis psi phi)
+infixl `⊚`:80 := comp
+
+definition is_identity {F : presheaf_of_types_on_basis α HB} (ff : morphism F F) :=
+  ∀ {U} (HU : U ∈ B), ff.map HU = id 
+
+definition is_isomorphism {F G : presheaf_of_types_on_basis α HB} (fg : morphism F G) := 
+  ∃ gf : morphism G F, 
+  is_identity (fg ⊚ gf)
+∧ is_identity (gf ⊚ fg)
+
+end morphism
+
+-- Isomorphic presheaves of types on a basis.
+
+def are_isomorphic (F G : presheaf_of_types_on_basis α HB) :=
+∃ (fg : morphism F G) (gf : morphism G F),
+    morphism.is_identity (fg ⊚ gf)
+  ∧ morphism.is_identity (gf ⊚ fg)
+
+end presheaf_of_types_on_basis

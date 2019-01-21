@@ -11,10 +11,14 @@ structure sheaf_of_rings (α : Type u) [T : topological_space α] :=
 (locality : locality F.to_presheaf_of_types)
 (gluing   : gluing F.to_presheaf_of_types)
 
-variables {β : Type u} [T : topological_space β]
+section sheaf_of_rings
+
+variables {α : Type u} [T : topological_space α]
 include T
-instance : has_coe (sheaf_of_rings β) (presheaf_of_rings β) := 
+instance : has_coe (sheaf_of_rings α) (presheaf_of_rings α) := 
 ⟨λ S, S.F⟩
 
-def is_sheaf_of_rings {α : Type u} [T : topological_space α] (F : presheaf_of_rings α) :=
+def is_sheaf_of_rings (F : presheaf_of_rings α) :=
 locality F.to_presheaf_of_types ∧ gluing F.to_presheaf_of_types
+
+end sheaf_of_rings

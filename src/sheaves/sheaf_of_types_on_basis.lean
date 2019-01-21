@@ -1,11 +1,17 @@
-import analysis.topology.topological_space tag009I  tag009J tag009H tag006E tag006T 
+import sheaves.presheaf_of_types_on_basis
 
-universe u
+universes u v w
+
 -- Kevin and Kenny
 
--- union of a bunch of sets U_i = U implies each U_i subset of U
-def helper1 {X : Type u} {γ : Type u} {U : set X} {Ui : γ → set X} {i : γ} :
-(⋃ (i' : γ), (Ui i')) = U → Ui i ⊆ U := λ H z hz, H ▸ ⟨_, ⟨_, rfl⟩, hz⟩
+open topological_space
+
+-- TODO: Rename this. helper1 will be useful for presheaves as well.
+
+-- If ⋃ Ui = U then for all i U_i ⊆ U
+def helper1 {α : Type u} {γ : Type u} {U : set α} {Ui : γ → set α} {i : γ} :
+(⋃ (i' : γ), (Ui i')) = U → Ui i ⊆ U := 
+λ Hcov z HzUi, Hcov ▸ ⟨_, ⟨_, rfl⟩, HzUi⟩
 
 -- union of a bunch of sets U_{ijk} = U_i intersect U_j implies U_{ijk} sub U_i
 def helper2 {X : Type u} {γ : Type u}  {Ui : γ → set X}
@@ -23,26 +29,60 @@ def helper3 {X : Type u} {γ : Type u} {Ui : γ → set X}
 from λ z hz, H ▸ ⟨_, ⟨_, rfl⟩, hz⟩,
 set.subset.trans H1 (set.inter_subset_right _ _)
 
--- This is the correct definition of sheaf of types on a basis, with no assumption that
--- intersection of two basis elements is a basis element. I prove it for O_X
--- in tag01HR
-definition is_sheaf_of_types_on_basis {X : Type u} [T : topological_space X] 
-  {B : set (set X)}
-  {HB : topological_space.is_topological_basis B}
-  (FPTB : presheaf_of_types_on_basis HB) : Prop :=
-∀ {{U : set X}} (BU : B U) {γ : Type u} (Ui : γ → set X) (BUi : ∀ i : γ, B (Ui i))
-  (Hcov : (⋃ (x : γ), (Ui x)) = U)
-  { β : γ → γ → Type u} (Uijk : Π (i j : γ), β i j → set X)
-  (BUijk : ∀ i j : γ, ∀ k : β i j, B (Uijk i j k) )
-  (Hcov2 : ∀ i j : γ, (⋃ (k : β i j), Uijk i j k )= Ui i ∩ Ui j)
-  (si : Π (i : γ), FPTB.F (BUi i))-- sections on the cover
-  -- if they agree on overlaps
-  (Hagree : ∀ i j : γ, ∀ k : β i j, 
-    FPTB.res (BUi i) (BUijk i j k) (helper2 (Hcov2 i j): Uijk i j k ⊆ Ui i) (si i)
-    = FPTB.res (BUi j) (BUijk i j k) (helper3 (Hcov2 i j) : Uijk i j k ⊆ Ui j) (si j)),
-  -- then there's a unique global section which agrees with all of them.
-  ∃! s : FPTB.F BU, ∀ i : γ, FPTB.res BU (BUi i) ((helper1 Hcov) : Ui i ⊆ U) s = si i
-   
+section preliminaries
+
+-- Sheaf condition.
+
+parameters {α : Type u} [T : topological_space α]
+parameters {B : set (set α)} [HB : is_topological_basis B]
+
+structure covering (U : set α) := 
+{γ    : Type u} -- TODO: should this be v?
+(Ui   : γ → set α)
+(BUi  : ∀ i, (Ui i) ∈ B)
+(Hcov : (⋃ i : γ, Ui i) = U)
+
+structure covering_inter {U : set α} (CU : covering U) :=
+(Iij       : CU.γ → CU.γ → Type u) -- TODO: should this be w?
+(Uijk      : ∀ i j, Iij i j → set α)
+(BUijk     : ∀ i j, ∀ (k : Iij i j), (Uijk i j k) ∈ B)
+(Hintercov : ∀ i j, (⋃ (k : Iij i j), Uijk i j k) = CU.Ui i ∩ CU.Ui j)
+
+definition is_sheaf_of_types_on_basis (F : presheaf_of_types_on_basis α HB) :=
+∀ {U} (BU : U ∈ B) (OC : covering U) (OCI : covering_inter OC),
+∀ (s : Π (i : OC.γ), F (OC.BUi i)) (i j : OC.γ) (k : OCI.Iij i j),
+F.res (OC.BUi i) (OCI.BUijk i j k) (helper2 (OCI.Hintercov i j)) (s i) =
+F.res (OC.BUi j) (OCI.BUijk i j k) (helper3 (OCI.Hintercov i j)) (s j) → 
+∃! (S : F BU), ∀ (i : OC.γ), 
+  F.res BU (OC.BUi i) (helper1 OC.Hcov) S = s i  
+
+end preliminaries
+
+-- -- This is the correct definition of sheaf of types on a basis, with no assumption that
+-- -- intersection of two basis elements is a basis element. I prove it for O_X
+-- -- in tag01HR
+-- definition is_sheaf_of_types_on_basis 
+--   (F : presheaf_of_types_on_basis α HB) : Prop :=
+
+-- ∀ {U} (BU : U ∈ B) {γ : Type u} (Ui : γ → set α) (BUi : ∀ i, (Ui i) ∈ B)
+--   (Hcov : (⋃ (x : γ), (Ui x)) = U)
+
+--   {β : γ → γ → Type u} (Uijk : Π (i j : γ), β i j → set X)
+  
+--   (BUijk : ∀ i j : γ, ∀ k : β i j, B (Uijk i j k) )
+  
+--   (Hcov2 : ∀ i j : γ, (⋃ (k : β i j), Uijk i j k )= Ui i ∩ Ui j)
+  
+--   (si : Π (i : γ), F (BUi i))-- sections on the cover
+--   -- if they agree on overlaps
+--   (Hagree : ∀ i j : γ, ∀ k : β i j, 
+--     FPTB.res (BUi i) (BUijk i j k) (helper2 (Hcov2 i j): Uijk i j k ⊆ Ui i) (si i)
+--     = FPTB.res (BUi j) (BUijk i j k) (helper3 (Hcov2 i j) : Uijk i j k ⊆ Ui j) (si j)),
+
+
+--   -- then there's a unique global section which agrees with all of them.
+--   ∃! s : FPTB.F BU, ∀ i : γ, FPTB.res BU (BUi i) ((helper1 Hcov) : Ui i ⊆ U) s = si i
+
 -- tag 009N
 
 theorem basis_element_is_open {X : Type u} [T : topological_space X]
