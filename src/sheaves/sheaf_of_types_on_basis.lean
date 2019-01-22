@@ -1,4 +1,6 @@
+import sheaves.presheaf_of_types
 import sheaves.presheaf_of_types_on_basis
+import sheaves.stalk_on_basis
 
 universes u v w
 
@@ -15,7 +17,7 @@ def helper1 {α : Type u} {γ : Type u} {U : set α} {Ui : γ → set α} {i : �
 
 -- union of a bunch of sets U_{ijk} = U_i intersect U_j implies U_{ijk} sub U_i
 def helper2 {X : Type u} {γ : Type u}  {Ui : γ → set X}
-{ β : γ → γ → Type*} {Uijk : Π (i j : γ), β i j → set X} {i j : γ} {k : β i j}
+{β : γ → γ → Type*} {Uijk : Π (i j : γ), β i j → set X} {i j : γ} {k : β i j}
 : (⋃ (k' : β i j), Uijk i j k') = Ui i ∩ Ui j → Uijk i j k ⊆ Ui i :=
 λ H, have H1 : Uijk i j k ⊆ Ui i ∩ Ui j,
 from λ z hz, H ▸ ⟨_, ⟨_, rfl⟩, hz⟩,
@@ -23,7 +25,7 @@ set.subset.trans H1 (set.inter_subset_left _ _)
 
 -- union of a bunch of sets U_{ijk} = U_i intersect U_j implies U_{ijk} sub U_j
 def helper3 {X : Type u} {γ : Type u} {Ui : γ → set X}
-{ β : γ → γ → Type*} {Uijk : Π (i j : γ), β i j → set X} {i j : γ} {k : β i j}
+{β : γ → γ → Type*} {Uijk : Π (i j : γ), β i j → set X} {i j : γ} {k : β i j}
 : (⋃ (k' : β i j), Uijk i j k') = Ui i ∩ Ui j → Uijk i j k ⊆ Ui j :=
 λ H, have H1 : Uijk i j k ⊆ Ui i ∩ Ui j,
 from λ z hz, H ▸ ⟨_, ⟨_, rfl⟩, hz⟩,
@@ -56,8 +58,6 @@ F.res (OC.BUi j) (OCI.BUijk i j k) (helper3 (OCI.Hintercov i j)) (s j) →
 ∃! (S : F BU), ∀ (i : OC.γ), 
   F.res BU (OC.BUi i) (helper1 OC.Hcov) S = s i  
 
-end preliminaries
-
 -- -- This is the correct definition of sheaf of types on a basis, with no assumption that
 -- -- intersection of two basis elements is a basis element. I prove it for O_X
 -- -- in tag01HR
@@ -85,25 +85,26 @@ end preliminaries
 
 -- tag 009N
 
-theorem basis_element_is_open {X : Type u} [T : topological_space X]
- {B : set (set X)} (HB : topological_space.is_topological_basis B)
- {U : set X} (BU : B U) : T.is_open U := 
- begin
- have : T = topological_space.generate_from B := HB.2.2,
- rw this,
-show topological_space.generate_open B U,
-refine topological_space.generate_open.basic U BU,
-end 
+include HB -- TODO: why is this not included?
 
- definition restriction_of_presheaf_to_basis {X : Type u} [T : topological_space X]
- {B : set (set X)} {HB : topological_space.is_topological_basis B}
- (FP : presheaf_of_types X) : presheaf_of_types_on_basis HB :=
- { F := λ U BU, FP.F (basis_element_is_open HB BU),
-   res := λ {U V} BU BV H, FP.res U V (basis_element_is_open HB BU) (basis_element_is_open HB BV) H,
-   Hid := λ U BU, FP.Hid U (basis_element_is_open HB BU),
-   Hcomp := λ U V W BU BV BW,FP.Hcomp U V W (basis_element_is_open HB BU)
-   (basis_element_is_open HB BV) (basis_element_is_open HB BW)
- }
+lemma open_basis_elem {U : set α} (BU : U ∈ B) : T.is_open U := 
+HB.2.2.symm ▸ generate_open.basic U BU
+
+definition presheaf_of_types_to_presheaf_of_types_on_basis 
+(F : presheaf_of_types α) : presheaf_of_types_on_basis α HB :=
+{ F := λ U BU, F (open_basis_elem BU),
+  res := λ U V BU BV HVU, F.res (open_basis_elem BU) (open_basis_elem BV) HVU,
+  Hid := λ U BU, F.Hid (open_basis_elem BU),
+  Hcomp := λ U V W BU BV BW, F.Hcomp (open_basis_elem BU) (open_basis_elem BV) (open_basis_elem BW) }
+
+definition presheaf_of_types_on_basis_to_presheaf_of_types
+(F : presheaf_of_types_on_basis α HB) : presheaf_of_types α :=
+{ F := λ U OU, sorry, 
+  res := sorry,
+  Hid := sorry,
+  Hcomp := sorry}
+
+end preliminaries
 
 definition extend_off_basis {X : Type u} [T : topological_space X] {B : set (set X)} 
   {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
@@ -111,8 +112,8 @@ definition extend_off_basis {X : Type u} [T : topological_space X] {B : set (set
   : presheaf_of_types X := 
   { F := λ U OU, { s : Π (x ∈ U), presheaf_on_basis_stalk FB x //
       -- s is locally a section -- condition (*) of tag 009M
-      ∀ (x ∈ U), ∃ (V : set X) ( BV : V ∈ B) (Hx : x ∈ V) (sigma : FB.F BV), 
-        ∀ (y ∈ U ∩ V), s y = λ _,⟦{U := V, BU := BV, Hx := H.2, s := sigma}⟧  
+      ∀ (x ∈ U), ∃ (V : set X) ( BV : V ∈ B) (Hx : x ∈ V) (σ : F BV), 
+        ∀ (y ∈ U ∩ V), s y = λ _,⟦{U := V, BU := BV, Hx := H.2, s := σ}⟧  
     },
     res := λ U W OU OW HWU ssub,⟨λ x HxW,(ssub.val x $ HWU HxW),
       λ x HxW,begin
