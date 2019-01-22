@@ -1,5 +1,6 @@
 import sheaves.presheaf_of_types
 import sheaves.presheaf_of_types_on_basis
+import sheaves.sheaf_of_types
 import sheaves.stalk_on_basis
 
 universes u v w
@@ -99,45 +100,81 @@ definition presheaf_of_types_to_presheaf_of_types_on_basis
 
 definition presheaf_of_types_on_basis_to_presheaf_of_types
 (F : presheaf_of_types_on_basis α HB) : presheaf_of_types α :=
-{ F := λ U OU, sorry, 
-  res := sorry,
-  Hid := sorry,
-  Hcomp := sorry}
+{ F := λ U OU, {s : Π (x ∈ U), presheaf_on_basis_stalk F x //
+        ∀ (x ∈ U), ∃ (V) (BV : V ∈ B) (Hx : x ∈ V) (σ : F BV),
+        ∀ (y ∈ U ∩ V), s y = λ _, ⟦{U := V, BU := BV, Hx := H.2, s := σ}⟧},
+  res := λ U W OU OW HWU FU, 
+        { val := λ x HxW, (FU.val x $ HWU HxW),
+          property := λ x HxW,
+            begin
+              rcases (FU.property x (HWU HxW)) with ⟨V, ⟨BV, ⟨HxV, ⟨σ, HFV⟩⟩⟩⟩,
+              use [V, BV, HxV, σ],
+              rintros y ⟨HyW, HyV⟩,
+              rw (HFV y ⟨HWU HyW, HyV⟩),
+            end },
+  Hid := λ U OU, funext $ λ x, subtype.eq rfl,
+  Hcomp := λ U V W OU OV OW HWV HVU, funext $ λ x, subtype.eq rfl}
+
+#check has_coe 
+
+instance coe1 : has_coe (presheaf_of_types_on_basis α HB) (presheaf_of_types α) :=
+⟨presheaf_of_types_on_basis_to_presheaf_of_types⟩
+ 
+-- end preliminaries
+
+
+-- --  #print subtype.mk_eq_mk -- this is a simp lemma so why can't
+-- -- I use simp?
+
+-- --variables {X : Type*} [T : topological_space X] {B : set (set X)} 
+-- --  {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
+-- --  (HF : is_sheaf_of_types_on_basis FB)
+
+-- --set_option pp.notation false 
+-- -- set_option pp.proofs true 
+
+-- section extension
+
+-- parameters {α : Type u} [T : topological_space α]
+-- parameters {B : set (set α)} [HB : is_topological_basis B]
+
+-- include HB
+
+/-
+def locality (F : presheaf_of_types α) :=
+∀ {U} (OU : T.is_open U) (OC : covering) (OCU : covers OC U) (s t : F OU), 
+(∀ (i : OC.γ),
+F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) s =
+F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) t) → 
+s = t
+
+def gluing (F : presheaf_of_types α) :=
+∀ {U} (OU : T.is_open U) (OC : covering) (OCU : covers OC U),
+∀ (s : Π (i : OC.γ), F (OC.OUi i)) (i j : OC.γ),
+res_to_inter_left F (OC.OUi i) (OC.OUi j) (s i) = 
+res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j) → 
+∃ (S : F OU), ∀ (i : OC.γ),
+  F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) S = s i
+
+-/
+
+theorem extension_is_sheaf
+  (F : presheaf_of_types_on_basis α HB) 
+  (HF : is_sheaf_of_types_on_basis F)
+  : is_sheaf_of_types (presheaf_of_types_on_basis_to_presheaf_of_types F) := 
+begin
+  split, 
+  -- Locality.
+  { intros U OU OC OCU s t Hst,
+    rcases OC with ⟨γ, Ui, OUi⟩,
+     },
+  -- Gluing.
+  {}
+end
 
 end preliminaries
 
-definition extend_off_basis {X : Type u} [T : topological_space X] {B : set (set X)} 
-  {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
-  (HF : is_sheaf_of_types_on_basis FB)
-  : presheaf_of_types X := 
-  { F := λ U OU, { s : Π (x ∈ U), presheaf_on_basis_stalk FB x //
-      -- s is locally a section -- condition (*) of tag 009M
-      ∀ (x ∈ U), ∃ (V : set X) ( BV : V ∈ B) (Hx : x ∈ V) (σ : F BV), 
-        ∀ (y ∈ U ∩ V), s y = λ _,⟦{U := V, BU := BV, Hx := H.2, s := σ}⟧  
-    },
-    res := λ U W OU OW HWU ssub,⟨λ x HxW,(ssub.val x $ HWU HxW),
-      λ x HxW,begin
-        cases (ssub.property x (HWU HxW)) with V HV,
-        cases HV with BV H2,
-        cases H2 with HxV H3,
-        cases H3 with sigma H4,
-        existsi V, existsi BV, existsi HxV,existsi sigma,
-        intros y Hy,
-        rw (H4 y ⟨HWU Hy.1,Hy.2⟩)
-      end⟩,
-    Hid := λ U OU,funext (λ x,subtype.eq rfl),
-    Hcomp := λ U V W OU OV OW HUV HVW,funext (λ x, subtype.eq rfl)
-  }
-
---  #print subtype.mk_eq_mk -- this is a simp lemma so why can't
--- I use simp?
-
---variables {X : Type*} [T : topological_space X] {B : set (set X)} 
---  {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
---  (HF : is_sheaf_of_types_on_basis FB)
-
---set_option pp.notation false 
--- set_option pp.proofs true 
+#exit
 
 theorem extension_is_sheaf {X : Type u} [T : topological_space X] {B : set (set X)} 
   {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)

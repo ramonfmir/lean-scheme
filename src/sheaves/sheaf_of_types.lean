@@ -2,7 +2,7 @@ import sheaves.presheaf_of_types
 
 universes u v
 
-section preliminaries
+namespace presheaf_of_types
 
 variables {α : Type u} [T : topological_space α]
 include T
@@ -46,14 +46,14 @@ res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j) →
 ∃ (S : F OU), ∀ (i : OC.γ),
   F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) S = s i
 
-end preliminaries
+end presheaf_of_types
 
 -- Definition of a sheaf of types.
 
 structure sheaf_of_types (α : Type u) [T : topological_space α] :=
 (F        : presheaf_of_types α)
-(locality : locality F)
-(gluing   : gluing F) 
+(locality : presheaf_of_types.locality F)
+(gluing   : presheaf_of_types.gluing F) 
 
 section sheaf_of_types
 
@@ -64,20 +64,21 @@ instance : has_coe (sheaf_of_types α) (presheaf_of_types α) :=
 ⟨λ S, S.F⟩
 
 def is_sheaf_of_types (F : presheaf_of_types α) :=
-locality F ∧ gluing F
+presheaf_of_types.locality F ∧ presheaf_of_types.gluing F
 
 -- Sanity checks.
 
 def bijective_gluing (F : presheaf_of_types α) :=
-∀ {U} (OU : T.is_open U) (OC : covering) (OCU : covers OC U),
+∀ {U} (OU : T.is_open U) (OC : presheaf_of_types.covering) 
+(OCU : presheaf_of_types.covers OC U),
 ∀ (s : Π (i : OC.γ), F (OC.OUi i)) (i j : OC.γ),
-res_to_inter_left F (OC.OUi i) (OC.OUi j) (s i) = 
-res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j) → 
+presheaf_of_types.res_to_inter_left F (OC.OUi i) (OC.OUi j) (s i) = 
+presheaf_of_types.res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j) → 
 ∃! (S : F OU), ∀ (i : OC.γ),
   F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) S = s i
 
 lemma sheaf_condition_bijective_gluing (F : presheaf_of_types α) :
-locality F ∧ gluing F → bijective_gluing F :=
+presheaf_of_types.locality F ∧ presheaf_of_types.gluing F → bijective_gluing F :=
 begin
   intros H,
   rcases H with ⟨HL, HG⟩,
