@@ -31,27 +31,32 @@ lemma stalk.relation.symmetric : symmetric (stalk.relation F x) :=
 λ Us Vt ⟨W, OW, HxW, HWU, HWV, Hres⟩, ⟨W, OW, HxW, HWV, HWU, Hres.symm⟩
 
 lemma stalk.relation.transitive : transitive (stalk.relation F x) :=
-sorry
+λ ⟨U, OU, HxU, sU⟩ ⟨V, OV, HxV, sV⟩ ⟨W, OW, HxW, sW⟩,
+λ ⟨R, OR, HxR, HRU, HRV, HresR⟩ ⟨S, OS, HxS, HSV, HSW, HresS⟩,
+⟨R ∩ S, is_open_inter OR OS, ⟨HxR, HxS⟩,
+λ y ⟨HyR, _⟩, HRU HyR, λ y ⟨_, HyS⟩, HSW HyS,
+have ORS : _ := is_open_inter OR OS,
+have HURRS : _ := F.Hcomp OU OR ORS (set.inter_subset_left _ _) HRU,
+have HVRRS : _ := F.Hcomp OV OR ORS (set.inter_subset_left _ _) HRV,
+have HVSRS : _ := F.Hcomp OV OS ORS (set.inter_subset_right _ _) HSV,
+have HWSRS : _ := F.Hcomp OW OS ORS (set.inter_subset_right _ _) HSW,
+calc  F.res OU ORS _ sU 
+    = F.res OR ORS _ (F.res OU OR _ sU) : congr_fun HURRS sU 
+... = F.res OR ORS _ (F.res OV OR _ sV) : congr_arg _ HresR
+... = F.res OV ORS _ sV                 : congr_fun HVRRS.symm sV
+... = F.res OS ORS _ (F.res OV OS _ sV) : congr_fun HVSRS sV
+... = F.res OS ORS _ (F.res OW OS _ sW) : congr_arg _ HresS
+... = F.res OW ORS _ sW                 : congr_fun HWSRS.symm sW⟩
 
---     λ ⟨U, HU1, HU2, s⟩ ⟨V, HV1, HV2, t⟩ ⟨W, HW1, HW2, u⟩ ⟨W1, H1, H2, H3, H4, H5⟩ ⟨W2, H6, H7, H8, H9, H0⟩,
---     ⟨W1 ∩ W2, is_open_inter H1 H6, ⟨H2, H7⟩, λ z hz, H3 hz.1, λ z hz, H9 hz.2,
---     have h1 : _ := FPT.Hcomp U W1 (W1 ∩ W2) HU2 H1 (is_open_inter H1 H6) H3 (set.inter_subset_left _ _),
---     have h2 : _ := FPT.Hcomp V W1 (W1 ∩ W2) HV2 H1 (is_open_inter H1 H6) H4 (set.inter_subset_left _ _),
---     have h3 : _ := FPT.Hcomp V W2 (W1 ∩ W2) HV2 H6 (is_open_inter H1 H6) H8 (set.inter_subset_right _ _),
---     have h4 : _ := FPT.Hcomp W W2 (W1 ∩ W2) HW2 H6 (is_open_inter H1 H6) H9 (set.inter_subset_right _ _),
---     calc FPT.res U (W1 ∩ W2) HU2 _ _ s
---           = FPT.res W1 (W1 ∩ W2) H1 _ _ (FPT.res U W1 HU2 H1 H3 s) : congr_fun h1 s
---       ... = FPT.res W1 (W1 ∩ W2) H1 _ _ (FPT.res V W1 HV2 H1 H4 t) : congr_arg _ H5
---       ... = FPT.res V (W1 ∩ W2) HV2 _ _ t : (congr_fun h2 t).symm
---       ... = FPT.res W2 (W1 ∩ W2) H6 _ _ (FPT.res V W2 HV2 H6 H8 t) : congr_fun h3 t
---       ... = FPT.res W2 (W1 ∩ W2) H6 _ _ (FPT.res W W2 HW2 H6 H9 u) : congr_arg _ H0
---       ... = FPT.res W (W1 ∩ W2) HW2 _ _ u : (congr_fun h4 u).symm⟩⟩ 
+lemma stalk.relation.equivalence : equivalence (stalk.relation F x) :=
+⟨stalk.relation.reflexive F x, 
+stalk.relation.symmetric F x,
+stalk.relation.transitive F x⟩
 
 instance stalk.setoid : setoid (stalk.elem F x) :=
 { r := stalk.relation F x,
-  iseqv := ⟨stalk.relation.reflexive F x, 
-            stalk.relation.symmetric F x,
-            stalk.relation.transitive F x⟩
-      }
+  iseqv := stalk.relation.equivalence F x }
+
+-- We define a stalk as the set of stalk elements under the defined relation.
 
 definition stalk := quotient (stalk.setoid F x)
