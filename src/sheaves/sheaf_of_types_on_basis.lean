@@ -156,6 +156,8 @@ res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j) →
 
 -/
 
+#check classical.indefinite_description
+
 theorem extension_is_sheaf
   (F : presheaf_of_types_on_basis α HB) 
   (HF : is_sheaf_of_types_on_basis F)
@@ -164,7 +166,6 @@ begin
   split, 
   -- Locality.
   { intros U OU OC OCU s t Hst,
-    rcases OC with ⟨γ, Ui, OUi⟩,
     apply subtype.eq, 
     apply funext,
     intros x,
@@ -174,13 +175,24 @@ begin
     rcases HxU with ⟨Uj, ⟨⟨j, HUj⟩, HxUj⟩⟩,
     rw ←HUj at HxUj,
     have Hstj := congr_fun (subtype.mk_eq_mk.1 (Hst j)),
-    have Hstjx := Hstj x,
-    have HstjxU := congr_fun Hstjx HxUj,
-    exact HstjxU,
+    have Hstjx := congr_fun (Hstj x) HxUj,
+    exact Hstjx,
   },
   -- Gluing.
   { intros U OU OC OCU s i j Hij,
-    sorry, }
+    existsi _, swap,
+    -- Define the section s. 
+    { refine ⟨_, _⟩,
+      { intros x HxU,
+        rw OCU.symm at HxU,
+        sorry,
+        --rcases HxU with ⟨Uj, ⟨⟨j, HUj⟩, HxUj⟩⟩, },
+      },
+      { sorry, },
+    },
+    -- Prove s|i = s_i for all i.
+    { sorry,
+    }, }
 end
 
 end preliminaries
