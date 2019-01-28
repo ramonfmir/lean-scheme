@@ -23,7 +23,7 @@ def stalk.relation : stalk.elem F x → stalk.elem F x → Prop :=
 λ Us Vt,
     ∃ W (OW : T.is_open W) (HxW : x ∈ W) (HWU : W ⊆ Us.U) (HWV : W ⊆ Vt.U),
     F.res Us.OU OW HWU Us.s = F.res Vt.OU OW HWV Vt.s
-
+    
 lemma stalk.relation.reflexive : reflexive (stalk.relation F x) :=
 λ ⟨U, OU, HxU, s⟩, ⟨U, OU, HxU, set.subset.refl _, set.subset.refl _, rfl⟩
 

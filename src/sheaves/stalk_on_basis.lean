@@ -1,58 +1,60 @@
--- stuff mentioned in section "Bases and sheaves" (6.30; tag 009H)
--- but not in any definition etc
-
 import sheaves.presheaf_of_types_on_basis
+
 universe u 
--- definition after 6.30.1 and before 6.30.2
 
-section presheaf_on_basis_stalk 
+variables {α : Type u} [T : topological_space α] 
+variables {B : set (set α )} {HB : topological_space.is_topological_basis B}
+variables (F : presheaf_of_types_on_basis α HB) (x : α)
 
-parameters {α : Type u} [TX : topological_space α] 
-  {B : set (set α )}
-  {HB : topological_space.is_topological_basis B}
-  (FPTB : presheaf_of_types_on_basis α HB) (x : α)
-
-structure presheaf_on_basis_stalk.aux :=
+structure stalk_on_basis.elem :=
 (U : set α)
 (BU : U ∈ B)
 (Hx : x ∈ U)
-(s : FPTB.F BU)
+(s : F BU)
 
-instance presheaf_on_basis_stalk.setoid  :
-   setoid (presheaf_on_basis_stalk.aux) := sorry
--- { r := λ Us Vt, ∃ (W : set X) (Hx : x ∈ W) (BW : W ∈ B) (HWU : W ⊆ Us.U) (HWV : W ⊆ Vt.U), 
---    FPTB.res Us.BU BW HWU Us.s = FPTB.res Vt.BU BW HWV Vt.s,
---   iseqv := ⟨
---     -- reflexive
---     λ Us,⟨Us.U,Us.Hx,Us.BU,set.subset.refl _,set.subset.refl _,rfl⟩,
---     -- symmetric
---     λ ⟨U,BU,Hx,s⟩ ⟨V,BV,HVx,t⟩ ⟨W,Hx,BW,HWU,HWV,H⟩,⟨W,Hx,BW,HWV,HWU,H.symm⟩,
---     -- transitive
---     λ ⟨U,BU,Hx,s⟩ ⟨V,BV,HVx,t⟩ ⟨W,BW,HWx,u⟩ ⟨W1,Hx1,BW1,HWU1,HWV1,H1⟩ ⟨W2,Hx2,BW2,HWU2,HWV2,H2⟩,
---     let ⟨W3,BW3,Hx3,H3⟩ := HB.1 W1 BW1 W2 BW2 x ⟨Hx1, Hx2⟩ in
---     have h1 : _ := FPTB.Hcomp U W1 W3 BU BW1 BW3 HWU1 (λ z hz, (H3 hz).1),
---     have h2 : _ := FPTB.Hcomp V W1 W3 BV BW1 BW3 HWV1 (λ z hz, (H3 hz).1),
---     have h3 : _ := FPTB.Hcomp V W2 W3 BV BW2 BW3 HWU2 (λ z hz, (H3 hz).2),
---     have h4 : _ := FPTB.Hcomp W W2 W3 BW BW2 BW3 HWV2 (λ z hz, (H3 hz).2),
---     ⟨W3,Hx3,BW3,λ z hz,HWU1 (H3 hz).1,λ z hz,HWV2 (H3 hz).2, calc
---             FPTB.res BU BW3 _ s
---           = FPTB.res BW1 BW3 _ (FPTB.res BU BW1 _ s) : congr_fun h1 s
---       ... = FPTB.res BW1 BW3 _ (FPTB.res BV BW1 _ t) : congr_arg _ H1
---       ... = FPTB.res BV BW3 _ t : (congr_fun h2 t).symm
---       ... = FPTB.res BW2 BW3 _ (FPTB.res BV BW2 _ t) : congr_fun h3 t
---       ... = FPTB.res BW2 BW3 _ (FPTB.res BW BW2 _ u) : congr_arg _ H2
---       ... = FPTB.res BW BW3 _ u : (congr_fun h4 u).symm⟩⟩
--- }
+-- Equivalence relation on the set of pairs. (U,s) ~ (V,t) iff there exists W 
+-- open s.t. x ∈ W ⊆ U ∩ V, and s|W = t|W.
 
-definition presheaf_on_basis_stalk :=
-quotient (presheaf_on_basis_stalk.setoid)
+def stalk_on_basis.relation : stalk_on_basis.elem F x → stalk_on_basis.elem F x → Prop :=
+λ Us Vt,
+    ∃ W (BW : W ∈ B) (HxW : x ∈ W) (HWU : W ⊆ Us.U) (HWV : W ⊆ Vt.U),
+    F.res Us.BU BW HWU Us.s = F.res Vt.BU BW HWV Vt.s
 
--- 
--- set Z is pairs (U,s) with U in B and x in U and s in FPTB.F(U)
--- equiv reln on Z : (U,s) tilde (V,t) iff there exists W in B 
--- such that x in W, W in U, W in V, and FPT.res (U to W) s = FPT.res (V to W) t
--- note basis axiom HB.1:
--- (∀t₁∈s, ∀t₂∈s, ∀ x ∈ t₁ ∩ t₂, ∃ t₃∈s, x ∈ t₃ ∧ t₃ ⊆ t₁ ∩ t₂)
--- Will need this for transitivity
+-- TODO: CHANGE THIS
 
-end presheaf_on_basis_stalk
+lemma stalk_on_basis.relation.reflexive : reflexive (stalk_on_basis.relation F x) :=
+λ ⟨U, OU, HxU, s⟩, ⟨U, OU, HxU, set.subset.refl _, set.subset.refl _, rfl⟩
+
+lemma stalk_on_basis.relation.symmetric : symmetric (stalk_on_basis.relation F x) :=
+λ Us Vt ⟨W, OW, HxW, HWU, HWV, Hres⟩, ⟨W, OW, HxW, HWV, HWU, Hres.symm⟩
+
+lemma stalk_on_basis.relation.transitive : transitive (stalk_on_basis.relation F x) :=
+λ ⟨U, OU, HxU, sU⟩ ⟨V, OV, HxV, sV⟩ ⟨W, OW, HxW, sW⟩,
+λ ⟨R, OR, HxR, HRU, HRV, HresR⟩ ⟨S, OS, HxS, HSV, HSW, HresS⟩,
+⟨R ∩ S, is_open_inter OR OS, ⟨HxR, HxS⟩,
+λ y ⟨HyR, _⟩, HRU HyR, λ y ⟨_, HyS⟩, HSW HyS,
+have ORS : _ := is_open_inter OR OS,
+have HURRS : _ := F.Hcomp OU OR ORS (set.inter_subset_left _ _) HRU,
+have HVRRS : _ := F.Hcomp OV OR ORS (set.inter_subset_left _ _) HRV,
+have HVSRS : _ := F.Hcomp OV OS ORS (set.inter_subset_right _ _) HSV,
+have HWSRS : _ := F.Hcomp OW OS ORS (set.inter_subset_right _ _) HSW,
+calc  F.res OU ORS _ sU 
+    = F.res OR ORS _ (F.res OU OR _ sU) : congr_fun HURRS sU 
+... = F.res OR ORS _ (F.res OV OR _ sV) : congr_arg _ HresR
+... = F.res OV ORS _ sV                 : congr_fun HVRRS.symm sV
+... = F.res OS ORS _ (F.res OV OS _ sV) : congr_fun HVSRS sV
+... = F.res OS ORS _ (F.res OW OS _ sW) : congr_arg _ HresS
+... = F.res OW ORS _ sW                 : congr_fun HWSRS.symm sW⟩
+
+lemma stalk_on_basis.relation.equivalence : equivalence (stalk.relation F x) :=
+⟨stalk_on_basis.relation.reflexive F x, 
+stalk_on_basis.relation.symmetric F x,
+stalk_on_basis.relation.transitive F x⟩
+
+instance stalk_on_basis.setoid : setoid (stalk_on_basis.elem F x) :=
+{ r := stalk_on_basis.relation F x,
+  iseqv := stalk_on_basis.relation.equivalence F x }
+
+-- We define a stalk as the set of stalk elements under the defined relation.
+
+definition stalk_on_basis := quotient (stalk_on_basis.setoid F x)
