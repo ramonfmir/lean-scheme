@@ -40,13 +40,13 @@ parameters {α : Type u} [T : topological_space α]
 parameters {B : set (set α)} [HB : is_topological_basis B]
 
 structure covering (U : set α) := 
-{γ    : Type u} -- TODO: should this be v?
+{γ    : Type u}
 (Ui   : γ → set α)
 (BUi  : ∀ i, (Ui i) ∈ B)
 (Hcov : (⋃ i : γ, Ui i) = U)
 
 structure covering_inter {U : set α} (CU : covering U) :=
-(Iij       : CU.γ → CU.γ → Type u) -- TODO: should this be w?
+(Iij       : CU.γ → CU.γ → Type u)
 (Uijk      : ∀ i j, Iij i j → set α)
 (BUijk     : ∀ i j, ∀ (k : Iij i j), (Uijk i j k) ∈ B)
 (Hintercov : ∀ i j, (⋃ (k : Iij i j), Uijk i j k) = CU.Ui i ∩ CU.Ui j)
@@ -100,7 +100,7 @@ definition presheaf_of_types_to_presheaf_of_types_on_basis
 
 definition presheaf_of_types_on_basis_to_presheaf_of_types
 (F : presheaf_of_types_on_basis α HB) : presheaf_of_types α :=
-{ F := λ U OU, {s : Π (x ∈ U), presheaf_on_basis_stalk F x //
+{ F := λ U OU, {s : Π (x ∈ U), stalk_on_basis F x //
         ∀ (x ∈ U), ∃ (V) (BV : V ∈ B) (Hx : x ∈ V) (σ : F BV),
         ∀ (y ∈ U ∩ V), s y = λ _, ⟦{U := V, BU := BV, Hx := H.2, s := σ}⟧},
   res := λ U W OU OW HWU FU, 
@@ -115,9 +115,7 @@ definition presheaf_of_types_on_basis_to_presheaf_of_types
   Hid := λ U OU, funext $ λ x, subtype.eq rfl,
   Hcomp := λ U V W OU OV OW HWV HVU, funext $ λ x, subtype.eq rfl}
 
-#check has_coe 
-
-instance coe1 : has_coe (presheaf_of_types_on_basis α HB) (presheaf_of_types α) :=
+instance forget_basis : has_coe (presheaf_of_types_on_basis α HB) (presheaf_of_types α) :=
 ⟨presheaf_of_types_on_basis_to_presheaf_of_types⟩
  
 -- end preliminaries
@@ -167,9 +165,22 @@ begin
   -- Locality.
   { intros U OU OC OCU s t Hst,
     rcases OC with ⟨γ, Ui, OUi⟩,
-     },
+    apply subtype.eq, 
+    apply funext,
+    intros x,
+    apply funext,
+    intros HxU,
+    rw OCU.symm at HxU,
+    rcases HxU with ⟨Uj, ⟨⟨j, HUj⟩, HxUj⟩⟩,
+    rw ←HUj at HxUj,
+    have Hstj := congr_fun (subtype.mk_eq_mk.1 (Hst j)),
+    have Hstjx := Hstj x,
+    have HstjxU := congr_fun Hstjx HxUj,
+    exact HstjxU,
+  },
   -- Gluing.
-  {}
+  { intros U OU OC OCU s i j Hij,
+    sorry, }
 end
 
 end preliminaries
@@ -182,23 +193,7 @@ theorem extension_is_sheaf {X : Type u} [T : topological_space X] {B : set (set 
   : is_sheaf_of_types (extend_off_basis FB HF) := begin
   intros U OU γ Ui UiO Hcov,
   split,
-  { intros b c Hbc,
-    apply subtype.eq,
-    apply funext,
-    intro x,
-    apply funext,
-    intro HxU,
-    rw ←Hcov at HxU,
-    cases HxU with Uig HUig,
-    cases HUig with H2 HUigx,
-    cases H2 with g Hg,
-    rw Hg at HUigx,
-    -- Hbc is the assumption that b and c are locally equal.
-    have Hig := congr_fun (subtype.mk_eq_mk.1 Hbc) g,
-    have H := congr_fun (subtype.mk_eq_mk.1 Hig) x,
-    --exact (congr_fun H HUigx),
-    have H2 := congr_fun H HUigx,
-    exact H2,
+  { -- Done
   },
   { intro s,
     existsi _,swap,
