@@ -1,11 +1,8 @@
 [package]
 name = "lean-scheme"
 version = "0.1"
-lean_version = "3.4.1"
+lean_version = "3.4.2"
 path = "src"
 
 [dependencies]
-mathlib = {
-    git = "https://github.com/leanprover/mathlib", 
-    rev = "eb1253fe08b878e959e884392ee08b4111c67709"
-}
+mathlib = {git = "https://github.com/leanprover/mathlib", rev = "042c290dac25b5f1c77255f1039fae301774d6cf"}
