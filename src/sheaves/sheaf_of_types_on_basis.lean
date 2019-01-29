@@ -125,13 +125,13 @@ begin
         cases (classical.indefinite_description _ HxU) with Uk HUk,
         cases (classical.indefinite_description _ HUk) with HUk HxUk,
         cases (classical.indefinite_description _ HUk) with k HUk,
-        rw HUk.symm at HxUk,
+        rw ←HUk at HxUk,
         exact (s.val k).val x HxUk,
       },
       { intros x HxU,
-        rw OCU.symm at HxU,
+        erw OCU.symm at HxU,
         rcases HxU with ⟨Uk, ⟨⟨k, HUk⟩, HxUk⟩⟩,
-        rw HUk.symm at HxUk,
+        erw ←HUk at HxUk,
         rcases (s.val k).property x HxUk with ⟨V, ⟨BV, ⟨HxV, ⟨σ, Hσ⟩⟩⟩⟩,
         -- We find W ∈ B such that x ∈ W and W ⊆ V ∩ Ui k.
         have HxVUik : x ∈ (V ∩ OC.Ui k) := ⟨HxV, HxUk⟩,
@@ -183,37 +183,37 @@ begin
       },
     },
     { -- S|i = s_i for all i.
-      intros i; simp, 
+      intros i, simp,
       apply subtype.eq; dsimp,
       apply funext,
       intros x,
       apply funext,
       intros HxUi,
       have HxU : x ∈ U := OCU ▸ (set.subset_Union OC.Ui i) HxUi,
-      suffices Hsuff : 
-      (subtype.rec
-        (λ Uk (HUk : ∃ (H : Uk ∈ set.range (OC.Ui)), x ∈ Uk),
-          subtype.rec
-            (λ (HUk : Uk ∈ set.range OC.Ui) (HxUk : x ∈ Uk),
-              subtype.rec (λ k (HUk : Uk = OC.Ui k), (s.val k).val x (HUk ▸ HxUi))
-                (classical.indefinite_description (λ y, OC.Ui y = Uk) HUk))
-            (classical.indefinite_description (λ (H : Uk ∈ set.range (OC.Ui)), x ∈ Uk) HUk))
-        (classical.indefinite_description (λ (t : set α), ∃ (H : t ∈ set.range (OC.Ui)), x ∈ t)) 
-        ⟨OC.Ui i, _, HxUi⟩)
-        = (s.val i).val x HxUi,
-      
-      -- let HyUi := λ t, ∃ (H : t ∈ set.range OC.Ui), x ∈ t,
-      -- cases (classical.indefinite_description HyUi _) with S HS; dsimp,
-      -- let HyS := λ H : S ∈ set.range OC.Ui, y ∈ S,
-      -- cases (classical.indefinite_description HyS HS) with HSUiR HySUiR; dsimp,
-      -- let HSUi := λ i, OC.Ui i = S,
-      -- cases (classical.indefinite_description HSUi HSUiR) with l HSUil; dsimp,
-      sorry, }
+      let HyUi := λ t, ∃ (H : t ∈ set.range OC.Ui), x ∈ t,
+      dunfold presheaf_of_types_on_basis_to_presheaf_of_types,
+      dsimp,
+      cases (classical.indefinite_description HyUi _) with S HS,dsimp,
+      let HyS := λ H : S ∈ set.range OC.Ui, x ∈ S,
+      cases (classical.indefinite_description HyS HS) with HSUiR HySUiR; dsimp,
+      let HSUi := λ i, OC.Ui i = S,
+      cases (classical.indefinite_description HSUi HSUiR) with l HSUil; dsimp,
+      have HxUlUi : x ∈ OC.Ui i ∩ OC.Ui l := ⟨HxUi, HSUil.symm ▸ HySUiR⟩,
+      have X := s.property i l,
+      dunfold presheaf_of_types_on_basis_to_presheaf_of_types at X,
+      dunfold presheaf_of_types.res_to_inter_left at X,
+      dunfold presheaf_of_types.res_to_inter_right at X,
+      dsimp at X,
+      rw subtype.ext at X,
+      dsimp at X,
+      replace X := congr_fun X x,
+      dsimp at X,
+      replace X := congr_fun X,
+      exact (X HxUlUi).symm, }
   },
 end 
 
 end preliminaries
-
 
 #exit
 
