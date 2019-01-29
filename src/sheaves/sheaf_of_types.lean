@@ -40,11 +40,11 @@ s = t
 
 def gluing (F : presheaf_of_types α) :=
 ∀ {U} (OU : T.is_open U) (OC : covering) (OCU : covers OC U),
-∀ (s : Π (i : OC.γ), F (OC.OUi i)) (i j : OC.γ),
+∀ (s' : {s : (Π (i : OC.γ), F (OC.OUi i)) // ∀ (i j : OC.γ),
 res_to_inter_left F (OC.OUi i) (OC.OUi j) (s i) = 
-res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j) → 
+res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j)}), 
 ∃ (S : F OU), ∀ (i : OC.γ),
-  F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) S = s i
+  F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) S = s'.val i
 
 end presheaf_of_types
 
@@ -68,33 +68,33 @@ presheaf_of_types.locality F ∧ presheaf_of_types.gluing F
 
 -- Sanity checks.
 
-def bijective_gluing (F : presheaf_of_types α) :=
-∀ {U} (OU : T.is_open U) (OC : presheaf_of_types.covering) 
-(OCU : presheaf_of_types.covers OC U),
-∀ (s : Π (i : OC.γ), F (OC.OUi i)) (i j : OC.γ),
-presheaf_of_types.res_to_inter_left F (OC.OUi i) (OC.OUi j) (s i) = 
-presheaf_of_types.res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j) → 
-∃! (S : F OU), ∀ (i : OC.γ),
-  F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) S = s i
+-- def bijective_gluing (F : presheaf_of_types α) :=
+-- ∀ {U} (OU : T.is_open U) (OC : presheaf_of_types.covering) 
+-- (OCU : presheaf_of_types.covers OC U),
+-- ∀ (s : Π (i : OC.γ), F (OC.OUi i)) (i j : OC.γ),
+-- presheaf_of_types.res_to_inter_left F (OC.OUi i) (OC.OUi j) (s i) = 
+-- presheaf_of_types.res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j) → 
+-- ∃! (S : F OU), ∀ (i : OC.γ),
+--   F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) S = s i
 
-lemma sheaf_condition_bijective_gluing (F : presheaf_of_types α) :
-presheaf_of_types.locality F ∧ presheaf_of_types.gluing F → bijective_gluing F :=
-begin
-  intros H,
-  rcases H with ⟨HL, HG⟩,
-  intros U OU OC OCU s i j Heq,
-  have HS : ∃ (S : F OU), ∀ (i : OC.γ), F.res OU _ _ S = s i,
-    apply HG OU OC OCU s i j Heq,
-  rcases HS with ⟨S, HS⟩,
-  have HU : ∀ (S' : F OU), (∀ (i : OC.γ), F.res OU _ _ S' = s i) → S' = S,
-    intros S' HS',
-    apply HL OU OC OCU S' S,
-    intros k,
-    rw HS k,
-    rw HS' k,
-  existsi S,
-  simp,
-  apply and.intro HS HU,
-end
+-- lemma sheaf_condition_bijective_gluing (F : presheaf_of_types α) :
+-- presheaf_of_types.locality F ∧ presheaf_of_types.gluing F → bijective_gluing F :=
+-- begin
+--   intros H,
+--   rcases H with ⟨HL, HG⟩,
+--   intros U OU OC OCU s i j Heq,
+--   have HS : ∃ (S : F OU), ∀ (i : OC.γ), F.res OU _ _ S = s i,
+--     apply HG OU OC OCU s i j Heq,
+--   rcases HS with ⟨S, HS⟩,
+--   have HU : ∀ (S' : F OU), (∀ (i : OC.γ), F.res OU _ _ S' = s i) → S' = S,
+--     intros S' HS',
+--     apply HL OU OC OCU S' S,
+--     intros k,
+--     rw HS k,
+--     rw HS' k,
+--   existsi S,
+--   simp,
+--   apply and.intro HS HU,
+-- end
 
 end sheaf_of_types
