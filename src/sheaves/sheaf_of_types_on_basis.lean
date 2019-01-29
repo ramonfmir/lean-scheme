@@ -156,7 +156,8 @@ res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j) →
 
 -/
 
-#check classical.indefinite_description
+#print nhds
+#check (mem_nhds_of_is_topological_basis HB).1
 
 theorem extension_is_sheaf
   (F : presheaf_of_types_on_basis α HB) 
@@ -185,6 +186,7 @@ begin
     { refine ⟨_, _⟩,
       { intros x HxU,
         rw OCU.symm at HxU,
+        -- TODO: Is there a way around this?
         cases (classical.indefinite_description _ HxU) with Uj HUj,
         cases (classical.indefinite_description _ HUj) with HUj HxUj,
         cases (classical.indefinite_description _ HUj) with j HUj,
@@ -195,6 +197,19 @@ begin
         rw OCU.symm at HxU,
         rcases HxU with ⟨Uj, ⟨⟨j, HUj⟩, HxUj⟩⟩,
         rw HUj.symm at HxUj,
+        rcases (s j).property x HxUj with ⟨V, ⟨BV, ⟨HxV, ⟨σ, Hσ⟩⟩⟩⟩,
+        -- We find W ∈ B such that x ∈ W and W ⊆ V ∩ Ui j.
+        have HxVUij : x ∈ (V ∩ OC.Ui j) := ⟨HxV, HxUj⟩,
+        have OVUij := T.is_open_inter V (OC.Ui j) (open_basis_elem BV) (OC.OUi j),
+        have HVUij := mem_nhds_sets OVUij HxVUij,
+        have HW := (mem_nhds_of_is_topological_basis HB).1 HVUij,
+        rcases HW with ⟨W, BW, ⟨HxW, HWVUij⟩⟩,
+        -- We now find the right σ' ∈ F(W).
+        have HWV := (set.subset.trans HWVUij $ set.inter_subset_left _ _),
+        have σ' := F.res BV BW HWV σ,
+        -- Exists (W, σ') and proceed. 
+        use [W, BW, HxW, σ'],
+        intros y HyUW,
         sorry, },
     },
     -- Prove s|i = s_i for all i.
@@ -217,14 +232,7 @@ theorem extension_is_sheaf {X : Type u} [T : topological_space X] {B : set (set 
   { intro s,
     existsi _,swap,
     { refine ⟨_,_⟩,
-      { intros x HxU,
-        rw ←Hcov at HxU,
-        cases (classical.indefinite_description _ HxU) with Uig HUig,
-        cases (classical.indefinite_description _ HUig) with H2 HUigx,
-        cases (classical.indefinite_description _ H2) with g Hg,
-        rw Hg at HUigx,
-        have t := (s.val g),
-        exact t.val x HUigx,
+      { -- Done
       },
       intros x HxU,
       rw ←Hcov at HxU,
@@ -248,6 +256,7 @@ theorem extension_is_sheaf {X : Type u} [T : topological_space X] {B : set (set 
         exact topological_space.generate_open.basic V BV,
       cases H with W HW,
       cases HW with HWB HW,
+
       existsi W,
       existsi HWB,
       existsi HW.1,
