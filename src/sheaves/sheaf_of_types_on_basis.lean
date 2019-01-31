@@ -9,29 +9,6 @@ universes u v w
 
 open topological_space
 
--- TODO: Rename this. helper1 will be useful for presheaves as well.
-
--- If ⋃ Ui = U then for all i U_i ⊆ U
-def helper1 {α : Type u} {γ : Type u} {U : set α} {Ui : γ → set α} {i : γ} :
-(⋃ (i' : γ), (Ui i')) = U → Ui i ⊆ U := 
-λ Hcov z HzUi, Hcov ▸ ⟨_, ⟨_, rfl⟩, HzUi⟩
-
--- union of a bunch of sets U_{ijk} = U_i intersect U_j implies U_{ijk} sub U_i
-def helper2 {X : Type u} {γ : Type u}  {Ui : γ → set X}
-{β : γ → γ → Type*} {Uijk : Π (i j : γ), β i j → set X} {i j : γ} {k : β i j}
-: (⋃ (k' : β i j), Uijk i j k') = Ui i ∩ Ui j → Uijk i j k ⊆ Ui i :=
-λ H, have H1 : Uijk i j k ⊆ Ui i ∩ Ui j,
-from λ z hz, H ▸ ⟨_, ⟨_, rfl⟩, hz⟩,
-set.subset.trans H1 (set.inter_subset_left _ _)
-
--- union of a bunch of sets U_{ijk} = U_i intersect U_j implies U_{ijk} sub U_j
-def helper3 {X : Type u} {γ : Type u} {Ui : γ → set X}
-{β : γ → γ → Type*} {Uijk : Π (i j : γ), β i j → set X} {i j : γ} {k : β i j}
-: (⋃ (k' : β i j), Uijk i j k') = Ui i ∩ Ui j → Uijk i j k ⊆ Ui j :=
-λ H, have H1 : Uijk i j k ⊆ Ui i ∩ Ui j,
-from λ z hz, H ▸ ⟨_, ⟨_, rfl⟩, hz⟩,
-set.subset.trans H1 (set.inter_subset_right _ _)
-
 section preliminaries
 
 -- Sheaf condition.
@@ -51,13 +28,31 @@ structure covering_inter {U : set α} (CU : covering U) :=
 (BUijk     : ∀ i j, ∀ (k : Iij i j), (Uijk i j k) ∈ B)
 (Hintercov : ∀ i j, (⋃ (k : Iij i j), Uijk i j k) = CU.Ui i ∩ CU.Ui j)
 
+-- If ⋃ Ui = U then for all i, Ui ⊆ U.
+
+lemma subset_cover {U : set α} {OC : covering U} : ∀ j, OC.Ui j ⊆ U := 
+λ j x HxUj, OC.Hcov ▸ ⟨_, ⟨_, rfl⟩, HxUj⟩
+
+lemma subset_basis_cover_inter {U : set α} {OC : covering U} {OCI : covering_inter OC}
+: ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui i ∩ OC.Ui j :=
+λ i j k x HxUijk, (OCI.Hintercov i j) ▸ ⟨_, ⟨_, rfl⟩, HxUijk⟩
+
+lemma subset_basis_cover_left {U : set α} {OC : covering U} {OCI : covering_inter OC}
+: ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui i :=
+λ i j k, set.subset.trans (subset_basis_cover_inter i j k) (set.inter_subset_left _ _) 
+
+lemma subset_basis_cover_right {U : set α} {OC : covering U} {OCI : covering_inter OC}
+: ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui j :=
+λ i j k, set.subset.trans (subset_basis_cover_inter i j k) (set.inter_subset_right _ _) 
+
+
 definition is_sheaf_of_types_on_basis (F : presheaf_of_types_on_basis α HB) :=
 ∀ {U} (BU : U ∈ B) (OC : covering U) (OCI : covering_inter OC),
 ∀ (s : Π (i : OC.γ), F (OC.BUi i)) (i j : OC.γ) (k : OCI.Iij i j),
-F.res (OC.BUi i) (OCI.BUijk i j k) (helper2 (OCI.Hintercov i j)) (s i) =
-F.res (OC.BUi j) (OCI.BUijk i j k) (helper3 (OCI.Hintercov i j)) (s j) → 
+F.res (OC.BUi i) (OCI.BUijk i j k) (subset_basis_cover_left i j k) (s i) =
+F.res (OC.BUi j) (OCI.BUijk i j k) (subset_basis_cover_right i j k) (s j) → 
 ∃! (S : F BU), ∀ (i : OC.γ), 
-  F.res BU (OC.BUi i) (helper1 OC.Hcov) S = s i  
+  F.res BU (OC.BUi i) (subset_cover i) S = s i  
 
 -- tag 009N
 
