@@ -12,13 +12,16 @@ universes u v
 
 -- Definition of a presheaf.
 
+open topological_space
+
+#check opens
+
 structure presheaf_of_types (α : Type u) [T : topological_space α] := 
-(F     : Π {U}, T.is_open U → Type v)
-(res   : ∀ {U V} (OU : T.is_open U) (OV : T.is_open V) (HVU : V ⊆ U), F OU → F OV)
-(Hid   : ∀ {U} (OU : T.is_open U), res OU OU (set.subset.refl U)  = id)
-(Hcomp : ∀ {U V W} (OU : T.is_open U) (OV : T.is_open V) (OW : T.is_open W)
-  (HWV : W ⊆ V) (HVU : V ⊆ U),
-  res OU OW (set.subset.trans HWV HVU) = res OV OW HWV ∘ res OU OV HVU)
+(F     : opens α → Type v)
+(res   : ∀ (U V) (HVU : V ⊆ U), F U → F V)
+(Hid   : ∀ (U), res U U (set.subset.refl U)  = id)
+(Hcomp : ∀ (U V W) (HWV : W ⊆ V) (HVU : V ⊆ U),
+  res U W (set.subset.trans HWV HVU) = res V W HWV ∘ res U V HVU)
 
 namespace presheaf_of_types
 
@@ -28,29 +31,28 @@ include T
 -- Coercing presheaves to F : U → Type.
 
 instance : has_coe_to_fun (presheaf_of_types α) :=
-{ F := λ _, Π {U}, T.is_open U → Type v,
+{ F := λ _, Π (U : opens α), Type v,
   coe := presheaf_of_types.F }
 
 -- Simplification lemmas for Hid and Hcomp.
 
 @[simp] lemma Hcomp' (F : presheaf_of_types α) :
-∀ {U V W} (OU : T.is_open U) (OV : T.is_open V) (OW : T.is_open W)
-  (HWV : W ⊆ V) (HVU : V ⊆ U) (s : F OU),
-  (F.res OU OW (set.subset.trans HWV HVU)) s = 
-  (F.res OV OW HWV) ((F.res OU OV HVU) s) :=
-λ U V W OU OV OW HWV HVU s, by rw F.Hcomp OU OV OW HWV HVU
+∀ (U V W) (HWV : W ⊆ V) (HVU : V ⊆ U) (s : F U),
+  (F.res U W (set.subset.trans HWV HVU)) s = 
+  (F.res V W HWV) ((F.res U V HVU) s) :=
+λ U V W HWV HVU s, by rw F.Hcomp U V W HWV HVU
 
 @[simp] lemma Hid' (F : presheaf_of_types α) :
-∀ {U} (OU : T.is_open U) (s : F OU),
-  (F.res OU OU (set.subset.refl U)) s = s := 
-λ U OU s, by rw F.Hid OU; simp
+∀ (U) (s : F U),
+  (F.res U U (set.subset.refl U)) s = s := 
+λ U s, by rw F.Hid U; simp
 
 -- Morphism of presheaves.
 
 structure morphism (F G : presheaf_of_types α) :=
-(map      : ∀ {U} (OU : T.is_open U), F OU → G OU)
-(commutes : ∀ {U V} (OU : T.is_open U) (OV : T.is_open V) (HVU : V ⊆ U),
-  (G.res OU OV HVU) ∘ (map OU) = (map OV) ∘ (F.res OU OV HVU))
+(map      : ∀ (U), F U → G U)
+(commutes : ∀ (U V) (HVU : V ⊆ U),
+  (G.res U V HVU) ∘ (map U) = (map V) ∘ (F.res U V HVU))
 
 namespace morphism
 
@@ -59,17 +61,17 @@ def comp
   (fg : morphism F G)
   (gh : morphism G H) : 
   morphism F H :=
-{ map := λ U OU, gh.map OU ∘ fg.map OU,
-  commutes := λ U V OU OV HVU,
+{ map := λ U, gh.map U ∘ fg.map U,
+  commutes := λ U V HVU,
     begin
-      rw [←function.comp.assoc, gh.commutes OU OV HVU], symmetry,
-      rw [function.comp.assoc, ←fg.commutes OU OV HVU]
+      rw [←function.comp.assoc, gh.commutes U V HVU], symmetry,
+      rw [function.comp.assoc, ←fg.commutes U V HVU]
     end }
 
 infixl `⊚`:80 := comp
 
 def is_identity {F : presheaf_of_types α} (ff : morphism F F) :=
-  ∀ {U} (OU : T.is_open U), ff.map OU = id
+  ∀ (U), ff.map U = id
 
 def is_isomorphism {F G : presheaf_of_types α} (fg : morphism F G) :=
   ∃ gf : morphism G F, 
