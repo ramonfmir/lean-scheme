@@ -1,3 +1,5 @@
+-- tag 009N
+
 import sheaves.presheaf_of_types
 import sheaves.presheaf_of_types_on_basis
 import sheaves.sheaf_of_types
@@ -5,22 +7,24 @@ import sheaves.stalk_on_basis
 
 universes u v w
 
--- Kevin and Kenny
-
 open topological_space
 
-section preliminaries
-
--- Sheaf condition.
+section sheaf_of_types_on_basis
 
 parameters {α : Type u} [T : topological_space α]
 parameters {B : set (set α)} [HB : is_topological_basis B]
+
+section preliminaries
+
+-- Open cover.
 
 structure covering (U : set α) := 
 {γ    : Type u}
 (Ui   : γ → set α)
 (BUi  : ∀ i, (Ui i) ∈ B)
 (Hcov : (⋃ i : γ, Ui i) = U)
+
+-- Open cover for basis.
 
 structure covering_inter {U : set α} (CU : covering U) :=
 (Iij       : CU.γ → CU.γ → Type u)
@@ -33,18 +37,34 @@ structure covering_inter {U : set α} (CU : covering U) :=
 lemma subset_cover {U : set α} {OC : covering U} : ∀ j, OC.Ui j ⊆ U := 
 λ j x HxUj, OC.Hcov ▸ ⟨_, ⟨_, rfl⟩, HxUj⟩
 
+-- If ⋃ Uijk = Ui ∩ Uj then for all k, Uijk ⊆ Ui ∩ Uj.
+
 lemma subset_basis_cover_inter {U : set α} {OC : covering U} {OCI : covering_inter OC}
 : ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui i ∩ OC.Ui j :=
 λ i j k x HxUijk, (OCI.Hintercov i j) ▸ ⟨_, ⟨_, rfl⟩, HxUijk⟩
+
+-- If ⋃ Uijk = Ui ∩ Uj then for all k, Uijk ⊆ Ui.
 
 lemma subset_basis_cover_left {U : set α} {OC : covering U} {OCI : covering_inter OC}
 : ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui i :=
 λ i j k, set.subset.trans (subset_basis_cover_inter i j k) (set.inter_subset_left _ _) 
 
+-- If ⋃ Uijk = Ui ∩ Uj then for all k, Uijk ⊆ Uj.
+
 lemma subset_basis_cover_right {U : set α} {OC : covering U} {OCI : covering_inter OC}
 : ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui j :=
 λ i j k, set.subset.trans (subset_basis_cover_inter i j k) (set.inter_subset_right _ _) 
 
+-- Elements in the basis are open.
+
+lemma open_basis_elem {U : set α} (BU : U ∈ B) : T.is_open U := 
+HB.2.2.symm ▸ generate_open.basic U BU
+
+end preliminaries
+
+section presheaf_extension
+
+-- Sheaf condition.
 
 definition is_sheaf_of_types_on_basis (F : presheaf_of_types_on_basis α HB) :=
 ∀ {U} (BU : U ∈ B) (OC : covering U) (OCI : covering_inter OC),
@@ -54,12 +74,7 @@ F.res (OC.BUi j) (OCI.BUijk i j k) (subset_basis_cover_right i j k) (s j) →
 ∃! (S : F BU), ∀ (i : OC.γ), 
   F.res BU (OC.BUi i) (subset_cover i) S = s i  
 
--- tag 009N
-
-include HB
-
-lemma open_basis_elem {U : set α} (BU : U ∈ B) : T.is_open U := 
-HB.2.2.symm ▸ generate_open.basic U BU
+-- F defined in the whole space to F defined on the basis.
 
 definition presheaf_of_types_to_presheaf_of_types_on_basis 
 (F : presheaf_of_types α) : presheaf_of_types_on_basis α HB :=
@@ -67,6 +82,8 @@ definition presheaf_of_types_to_presheaf_of_types_on_basis
   res := λ U V BU BV HVU, F.res (open_basis_elem BU) (open_basis_elem BV) HVU,
   Hid := λ U BU, F.Hid (open_basis_elem BU),
   Hcomp := λ U V W BU BV BW, F.Hcomp (open_basis_elem BU) (open_basis_elem BV) (open_basis_elem BW) }
+
+-- F defined on the bases extended to the whole space.
 
 definition presheaf_of_types_on_basis_to_presheaf_of_types
 (F : presheaf_of_types_on_basis α HB) : presheaf_of_types α :=
@@ -88,7 +105,8 @@ definition presheaf_of_types_on_basis_to_presheaf_of_types
 instance forget_basis : has_coe (presheaf_of_types_on_basis α HB) (presheaf_of_types α) :=
 ⟨presheaf_of_types_on_basis_to_presheaf_of_types⟩
  
--- end preliminaries
+-- Presheaf extension preserves sheaf condition.
+-- TODO: Factor out all of the classical indefinite decription stuff.
 
 theorem extension_is_sheaf
   (F : presheaf_of_types_on_basis α HB) 
@@ -110,13 +128,12 @@ begin
     have Hstjx := congr_fun (Hstj x) HxUj,
     exact Hstjx,
   },
-  -- Gluing
+  -- Gluing.
   { intros U OU OC OCU s,
     existsi _, swap,
     { refine ⟨_, _⟩,
       { intros x HxU,
         rw OCU.symm at HxU,
-        -- TODO: Is there a way around this?
         cases (classical.indefinite_description _ HxU) with Uk HUk,
         cases (classical.indefinite_description _ HUk) with HUk HxUk,
         cases (classical.indefinite_description _ HUk) with k HUk,
@@ -208,26 +225,26 @@ begin
   },
 end 
 
-end preliminaries
+end presheaf_extension
 
-#exit
+end sheaf_of_types_on_basis
 
-definition extend_off_basis_map {X : Type*} [T : topological_space X] {B : set (set X)} 
-  {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
-  (HF : is_sheaf_of_types_on_basis FB) :
-  morphism_of_presheaves_of_types_on_basis FB (restriction_of_presheaf_to_basis (extend_off_basis FB HF)) := sorry
+-- definition extend_off_basis_map {X : Type*} [T : topological_space X] {B : set (set X)} 
+--   {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
+--   (HF : is_sheaf_of_types_on_basis FB) :
+--   morphism_of_presheaves_of_types_on_basis FB (restriction_of_presheaf_to_basis (extend_off_basis FB HF)) := sorry
 
-theorem extension_extends {X : Type*} [T : topological_space X] {B : set (set X)} 
-  {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
-  (HF : is_sheaf_of_types_on_basis FB) : 
-  is_isomorphism_of_presheaves_of_types_on_basis (extend_off_basis_map FB HF) := sorry 
+-- theorem extension_extends {X : Type*} [T : topological_space X] {B : set (set X)} 
+--   {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
+--   (HF : is_sheaf_of_types_on_basis FB) : 
+--   is_isomorphism_of_presheaves_of_types_on_basis (extend_off_basis_map FB HF) := sorry 
 
-theorem extension_unique {X : Type*} [T : topological_space X] {B : set (set X)} 
-  {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
-  (HF : is_sheaf_of_types_on_basis FB) (G : presheaf_of_types X)
-  (HG : is_sheaf_of_types G) (psi : morphism_of_presheaves_of_types_on_basis FB (restriction_of_presheaf_to_basis G))
-  (HI : is_isomorphism_of_presheaves_of_types_on_basis psi) -- we have an extension which agrees with FB on B
-  : ∃ rho : morphism_of_presheaves_of_types (extend_off_basis FB HF) G, -- I would happily change the direction of the iso rho
-    is_isomorphism_of_presheaves_of_types rho ∧ 
-    ∀ (U : set X) (BU : B U), 
-      (rho.morphism U (basis_element_is_open HB BU)) ∘ ((extend_off_basis_map FB HF).morphism BU) = (psi.morphism BU) := sorry
+-- theorem extension_unique {X : Type*} [T : topological_space X] {B : set (set X)} 
+--   {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
+--   (HF : is_sheaf_of_types_on_basis FB) (G : presheaf_of_types X)
+--   (HG : is_sheaf_of_types G) (psi : morphism_of_presheaves_of_types_on_basis FB (restriction_of_presheaf_to_basis G))
+--   (HI : is_isomorphism_of_presheaves_of_types_on_basis psi) -- we have an extension which agrees with FB on B
+--   : ∃ rho : morphism_of_presheaves_of_types (extend_off_basis FB HF) G, -- I would happily change the direction of the iso rho
+--     is_isomorphism_of_presheaves_of_types rho ∧ 
+--     ∀ (U : set X) (BU : B U), 
+--       (rho.morphism U (basis_element_is_open HB BU)) ∘ ((extend_off_basis_map FB HF).morphism BU) = (psi.morphism BU) := sorry
