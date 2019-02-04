@@ -6,9 +6,8 @@ universe u
 
 structure presheaf_of_rings (α : Type u) [T : topological_space α] 
 extends presheaf_of_types α :=
-(Fring           : ∀ {U} (OU : T.is_open U), comm_ring (F OU))
-(res_is_ring_hom : ∀ {U V} (OU : T.is_open U) (OV : T.is_open V) (HVU : V ⊆ U),
-  is_ring_hom (res OU OV HVU))
+(Fring           : ∀ (U), comm_ring (F U))
+(res_is_ring_hom : ∀ (U V) (HVU : V ⊆ U), is_ring_hom (res U V HVU))
 
 attribute [instance] presheaf_of_rings.Fring
 attribute [instance] presheaf_of_rings.res_is_ring_hom
@@ -22,7 +21,7 @@ include T
 
 structure morphism (F G : presheaf_of_rings α)
 extends presheaf_of_types.morphism F.to_presheaf_of_types G.to_presheaf_of_types :=
-(ring_homs : ∀ {U} (OU : is_open U), is_ring_hom (map OU))
+(ring_homs : ∀ (U), is_ring_hom (map U))
 
 -- Isomorphic presheaves of rings.
 

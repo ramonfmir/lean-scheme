@@ -2,6 +2,8 @@ import sheaves.presheaf_of_types
 
 universes u v
 
+open topological_space
+
 namespace presheaf_of_types
 
 variables {α : Type u} [T : topological_space α]
@@ -9,33 +11,28 @@ include T
 
 -- Restriction map from U to U ∩ V.
 
-def res_to_inter_left (F : presheaf_of_types α)
-  {U V} (OU : T.is_open U) (OV : T.is_open V) :
-  (F OU) → (F (T.is_open_inter U V OU OV)) :=
-F.res OU (T.is_open_inter U V OU OV) (set.inter_subset_left U V)
+def res_to_inter_left (F : presheaf_of_types α) (U V : opens α) :
+  (F U) → (F ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩) :=
+F.res U ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩ (set.inter_subset_left U V)
 
 -- Restriction map from V to U ∩ V.
 
-def res_to_inter_right (F : presheaf_of_types α)
-  {U V} (OU : T.is_open U) (OV : T.is_open V) :
-  (F OV) → (F (T.is_open_inter U V OU OV)) :=
-F.res OV (T.is_open_inter U V OU OV) (set.inter_subset_right U V)
+def res_to_inter_right (F : presheaf_of_types α) (U V : opens α) :
+  (F V) → (F ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩) :=
+F.res V ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩ (set.inter_subset_right U V)
 
 -- Sheaf condition.
 
-structure covering := 
-{γ   : Type u} -- TODO: should this be v?
-(Ui  : γ → set α)
-(OUi : ∀ i, T.is_open (Ui i))
-
-def covers (OC : covering) (U : set α) :=
-(⋃ i : OC.γ, OC.Ui i) = U
+structure covering (U : opens α) := 
+{γ    : Type u}
+(Ui   : γ → opens α)
+(Hcov : (⋃ i, (Ui i).1) = U.1)
 
 def locality (F : presheaf_of_types α) :=
-∀ {U} (OU : T.is_open U) (OC : covering) (OCU : covers OC U) (s t : F OU), 
+∀ (U : opens α) (OC : covering U) (s t : F U), 
 (∀ (i : OC.γ),
-F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) s =
-F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) t) → 
+F.res U (OC.Hcov ▸ set.subset_Union OC.Ui i) s =
+F.res U (OC.Hcov ▸ set.subset_Union OC.Ui i) t) → 
 s = t
 
 def gluing (F : presheaf_of_types α) :=

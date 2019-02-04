@@ -14,8 +14,6 @@ universes u v
 
 open topological_space
 
-#check opens
-
 structure presheaf_of_types (α : Type u) [T : topological_space α] := 
 (F     : opens α → Type v)
 (res   : ∀ (U V) (HVU : V ⊆ U), F U → F V)
