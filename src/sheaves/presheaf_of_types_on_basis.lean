@@ -7,7 +7,7 @@ open topological_space
 -- Presheaf of types where we only define sections on basis elements.
 
 structure presheaf_of_types_on_basis (α : Type u) [T : topological_space α] 
-{B : set (set α)} (HB : is_topological_basis B) := 
+{B : set (opens α)} (HB : opens.is_basis B) := 
 (F     : Π {U}, U ∈ B → Type v)
 (res   : ∀ {U V} (BU : U ∈ B) (BV : V ∈ B) (HVU : V ⊆ U), F BU → F BV)
 (Hid   : ∀ {U} (BU : U ∈ B), (res BU BU (set.subset.refl U)) = id)  
@@ -18,7 +18,7 @@ structure presheaf_of_types_on_basis (α : Type u) [T : topological_space α]
 namespace presheaf_of_types_on_basis
 
 variables {α : Type u} [T : topological_space α] 
-variables {B : set (set α)} {HB : is_topological_basis B}
+variables {B : set (opens α)} {HB : opens.is_basis B}
 
 instance : has_coe_to_fun (presheaf_of_types_on_basis α HB) :=
 { F := λ _, Π {U}, U ∈ B → Type v,

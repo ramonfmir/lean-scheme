@@ -5,14 +5,20 @@ open topological_space
 universe u 
 
 variables {α : Type u} [T : topological_space α] 
-variables {B : set (set α )} {HB : is_topological_basis B}
+variables {B : set (opens α )} {HB : opens.is_basis B}
 variables (F : presheaf_of_types_on_basis α HB) (x : α)
 
 structure stalk_on_basis.elem :=
-(U : set α)
+(U  : opens α)
 (BU : U ∈ B)
 (Hx : x ∈ U)
-(s : F BU)
+(s  : F BU)
+
+-- TODO: move somewhere else
+
+include T
+instance : has_inter (opens α) :=
+{ inter := λ U V, ⟨U.1 ∩ V.1, T.is_open_inter U.1 V.1 U.2 V.2⟩ }
 
 -- Equivalence relation on the set of pairs. (U,s) ~ (V,t) iff there exists W 
 -- open s.t. x ∈ W ⊆ U ∩ V, and s|W = t|W.
@@ -31,7 +37,8 @@ lemma stalk_on_basis.relation.symmetric : symmetric (stalk_on_basis.relation F x
 lemma stalk_on_basis.relation.transitive : transitive (stalk_on_basis.relation F x) :=
 λ ⟨U, BU, HxU, sU⟩ ⟨V, BV, HxV, sV⟩ ⟨W, BW, HxW, sW⟩,
 λ ⟨R, BR, HxR, HRU, HRV, HresR⟩ ⟨S, BS, HxS, HSV, HSW, HresS⟩,
-let ⟨T, BT, HxT, HTRS⟩ := HB.1 R BR S BS x ⟨HxR, HxS⟩ in
+have HxRS : x ∈ R ∩ S := ⟨HxR, HxS⟩,
+let ⟨T, BT, HxT, HTRS⟩ := opens.is_basis_iff_nbhd.1 HB HxRS in
 ⟨T, BT, HxT, λ y Hy, HRU (HTRS Hy).1, λ y Hy, HSW (HTRS Hy).2,
 have HTR : T ⊆ R := λ y Hy, (HTRS Hy).1,
 have HTS : T ⊆ S := λ y Hy, (HTRS Hy).2,

@@ -11,35 +11,40 @@ open topological_space
 
 section sheaf_of_types_on_basis
 
-parameters {α : Type u} [T : topological_space α]
-parameters {B : set (set α)} [HB : is_topological_basis B]
-
 section preliminaries
+
+parameters {α : Type u} [topological_space α]
+parameters {B : set (opens α)} [HB : opens.is_basis B]
 
 -- Open cover.
 
-structure covering (U : set α) := 
+instance : has_union (opens α) :=
+{ union := λ U V, ⟨U.1 ∪ V.1, is_open_union U.2 V.2⟩ }
+
+structure covering (U : opens α) := 
 {γ    : Type u}
-(Ui   : γ → set α)
-(BUi  : ∀ i, (Ui i) ∈ B)
-(Hcov : (⋃ i : γ, Ui i) = U)
+(Ui   : γ → opens α)
+(BUi  : ∀ i, Ui i ∈ B)
+(Hcov : (⋃ i, (Ui i).1) = U) -- TODO: change to lattice.Sup (set.range Ui) = U
+(Hsub : ∀ i, Ui i ⊆ U)
 
 -- Open cover for basis.
 
-structure covering_inter {U : set α} (CU : covering U) :=
+structure covering_inter {U : opens α} (CU : covering U) :=
 (Iij       : CU.γ → CU.γ → Type u)
-(Uijk      : ∀ i j, Iij i j → set α)
+(Uijk      : ∀ i j, Iij i j → opens α)
 (BUijk     : ∀ i j, ∀ (k : Iij i j), (Uijk i j k) ∈ B)
-(Hintercov : ∀ i j, (⋃ (k : Iij i j), Uijk i j k) = CU.Ui i ∩ CU.Ui j)
+(Hintercov : ∀ i j, (⋃ (k : Iij i j), (Uijk i j k).1) = CU.Ui i ∩ CU.Ui j)
+()
 
 -- If ⋃ Ui = U then for all i, Ui ⊆ U.
 
-lemma subset_cover {U : set α} {OC : covering U} : ∀ j, OC.Ui j ⊆ U := 
+lemma subset_cover {U : opens α} {OC : covering U} : ∀ j, OC.Ui j ⊆ U := 
 λ j x HxUj, OC.Hcov ▸ ⟨_, ⟨_, rfl⟩, HxUj⟩
 
 -- If ⋃ Uijk = Ui ∩ Uj then for all k, Uijk ⊆ Ui ∩ Uj.
 
-lemma subset_basis_cover_inter {U : set α} {OC : covering U} {OCI : covering_inter OC}
+lemma subset_basis_cover_inter {U : opens α} {OC : covering U} {OCI : covering_inter OC}
 : ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui i ∩ OC.Ui j :=
 λ i j k x HxUijk, (OCI.Hintercov i j) ▸ ⟨_, ⟨_, rfl⟩, HxUijk⟩
 
@@ -78,8 +83,8 @@ F.res (OC.BUi j) (OCI.BUijk i j k) (subset_basis_cover_right i j k) (s j) →
 
 definition presheaf_of_types_to_presheaf_of_types_on_basis 
 (F : presheaf_of_types α) : presheaf_of_types_on_basis α HB :=
-{ F := λ U BU, F (open_basis_elem BU),
-  res := λ U V BU BV HVU, F.res (open_basis_elem BU) (open_basis_elem BV) HVU,
+{ F := λ U BU, F U,
+  res := λ U V BU BV HVU, F.res U V HVU,
   Hid := λ U BU, F.Hid (open_basis_elem BU),
   Hcomp := λ U V W BU BV BW, F.Hcomp (open_basis_elem BU) (open_basis_elem BV) (open_basis_elem BW) }
 

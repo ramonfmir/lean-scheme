@@ -26,22 +26,23 @@ F.res V ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩ (set.inter_subset_right U V)
 structure covering (U : opens α) := 
 {γ    : Type u}
 (Ui   : γ → opens α)
-(Hcov : (⋃ i, (Ui i).1) = U.1)
+(Hcov : (⋃ i, (Ui i).1) = U) -- Todo probelm with coes.
+(Hsub : ∀ i, (Ui i) ⊆ U)
 
 def locality (F : presheaf_of_types α) :=
 ∀ (U : opens α) (OC : covering U) (s t : F U), 
 (∀ (i : OC.γ),
-F.res U (OC.Hcov ▸ set.subset_Union OC.Ui i) s =
-F.res U (OC.Hcov ▸ set.subset_Union OC.Ui i) t) → 
+F.res U (OC.Ui i) (OC.Hsub i) s =
+F.res U (OC.Ui i) (OC.Hsub i) t) → 
 s = t
 
 def gluing (F : presheaf_of_types α) :=
-∀ {U} (OU : T.is_open U) (OC : covering) (OCU : covers OC U),
-∀ (s' : {s : (Π (i : OC.γ), F (OC.OUi i)) // ∀ (i j : OC.γ),
-res_to_inter_left F (OC.OUi i) (OC.OUi j) (s i) = 
-res_to_inter_right F (OC.OUi i) (OC.OUi j) (s j)}), 
-∃ (S : F OU), ∀ (i : OC.γ),
-  F.res OU (OC.OUi i) (OCU ▸ set.subset_Union OC.Ui i) S = s'.val i
+∀ (U : opens α) (OC : covering U),
+∀ (s' : {s : (Π (i : OC.γ), F (OC.Ui i)) // ∀ (i j : OC.γ),
+res_to_inter_left F (OC.Ui i) (OC.Ui j) (s i) = 
+res_to_inter_right F (OC.Ui i) (OC.Ui j) (s j)}), 
+∃ (S : F U), ∀ (i : OC.γ),
+  F.res U (OC.Ui i) (OC.Hsub i) S = s'.val i
 
 end presheaf_of_types
 

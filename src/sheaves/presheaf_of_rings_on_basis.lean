@@ -5,7 +5,7 @@ universe u
 open topological_space
 
 structure presheaf_of_rings_on_basis (α : Type u) [TX : topological_space α] 
-{B : set (set α)} (HB : topological_space.is_topological_basis B) 
+{B : set (opens α)} (HB : opens.is_basis B) 
 extends presheaf_of_types_on_basis α HB :=
 (Fring           : ∀ {U} (BU : U ∈ B), comm_ring (F BU))
 (res_is_ring_hom : ∀ {U V} (BU : U ∈ B) (BV : V ∈ B) (HVU : V ⊆ U),
@@ -17,7 +17,7 @@ attribute [instance] presheaf_of_rings_on_basis.res_is_ring_hom
 namespace presheaf_of_rings_on_basis
 
 variables {α : Type u} [T : topological_space α]
-variables {B : set (set α)} {HB : is_topological_basis B}
+variables {B : set (opens α)} {HB : opens.is_basis B}
 include T
 
 -- Morphism of presheaf of rings on basis.

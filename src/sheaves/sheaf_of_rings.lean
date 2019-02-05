@@ -8,8 +8,8 @@ universes u
 
 structure sheaf_of_rings (α : Type u) [T : topological_space α] :=
 (F        : presheaf_of_rings α)
-(locality : locality F.to_presheaf_of_types)
-(gluing   : gluing F.to_presheaf_of_types)
+(locality : presheaf_of_types.locality F.to_presheaf_of_types)
+(gluing   : presheaf_of_types.gluing F.to_presheaf_of_types)
 
 section sheaf_of_rings
 
@@ -19,6 +19,7 @@ instance : has_coe (sheaf_of_rings α) (presheaf_of_rings α) :=
 ⟨λ S, S.F⟩
 
 def is_sheaf_of_rings (F : presheaf_of_rings α) :=
-locality F.to_presheaf_of_types ∧ gluing F.to_presheaf_of_types
+  presheaf_of_types.locality F.to_presheaf_of_types 
+∧ presheaf_of_types.gluing F.to_presheaf_of_types
 
 end sheaf_of_rings
