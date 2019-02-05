@@ -26,7 +26,8 @@ F.res V ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩ (set.inter_subset_right U V)
 structure covering (U : opens α) := 
 {γ    : Type u}
 (Ui   : γ → opens α)
-(Hcov : (⋃ i, (Ui i).1) = U) -- Todo probelm with coes.
+(Hcov : (⋃ i, (Ui i).1) = U) -- TODO: probelm with coes.
+(Hcov': lattice.Sup (set.range Ui) = U)
 (Hsub : ∀ i, (Ui i) ⊆ U)
 
 def locality (F : presheaf_of_types α) :=
