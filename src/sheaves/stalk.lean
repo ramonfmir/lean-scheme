@@ -3,6 +3,8 @@ import sheaves.presheaf_of_types
 
 universe u 
 
+section stalk
+
 variables {α : Type u} [T : topological_space α] 
 variables (F : presheaf_of_types α) (x : α)
 
@@ -65,3 +67,5 @@ instance stalk.setoid : setoid (stalk.elem F x) :=
 -- We define a stalk as the set of stalk elements under the defined relation.
 
 definition stalk := quotient (stalk.setoid F x)
+
+end stalk
