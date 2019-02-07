@@ -1,3 +1,4 @@
+import preliminaries.opens
 import sheaves.presheaf_of_types_on_basis
 
 open topological_space

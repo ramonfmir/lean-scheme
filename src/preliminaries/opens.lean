@@ -21,9 +21,13 @@ prefix `⋃` := supr
 -- Some useful lemmas. Maybe versions of them are already somewhere.
 
 lemma opens_supr_mem {γ : Type u} (X : γ → opens α) 
-: ∀ x i, x ∈ (X i).val → x ∈ (⋃ X).val :=
-λ x i Hx, let Xi := X i in 
+: ∀ i x, x ∈ (X i).val → x ∈ (⋃ X).val :=
+λ i x Hx, let Xi := X i in 
 begin
     unfold supr; simp,
     exact ⟨Xi.1, ⟨⟨Xi.2, i, by simp⟩, Hx⟩⟩,
 end
+
+lemma opens_supr_subset {γ : Type u} (X : γ → opens α) 
+: ∀ i, X i ⊆ ⋃ X :=
+λ i x, opens_supr_mem X i x

@@ -2,14 +2,6 @@ import topology.basic
 
 universes u v
 
--- -- Lemmas about ⊆. TODO: Can this be automated?
-
--- @[simp, refl] lemma subset_refl {U : set α} : U ⊆ U := 
---   set.subset.refl U
-
--- @[simp, trans] lemma subset_trans {U V W : set α} : W ⊆ V → V ⊆ U → W ⊆ U :=
---   set.subset.trans
-
 -- Definition of a presheaf.
 
 open topological_space

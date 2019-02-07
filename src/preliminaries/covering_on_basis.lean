@@ -23,7 +23,7 @@ structure covering_basis (U : opens α) extends covering U :=
 
 lemma subset_covering_basis {U : opens α} {OC : covering_basis U}
 : ∀ i j k, OC.Uijks i j k ⊆ OC.Uis i ∩ OC.Uis j := 
-λ i j k x, (OC.Hintercov i j) ▸ opens_supr_mem (OC.Uijks i j) x k
+λ i j k x, (OC.Hintercov i j) ▸ opens_supr_mem (OC.Uijks i j) k x
 
 -- If ⋃ Uijk = Ui ∩ Uj then for all k, Uijk ⊆ Ui.
 
