@@ -14,12 +14,6 @@ structure stalk_on_basis.elem :=
 (Hx : x ∈ U)
 (s  : F BU)
 
--- TODO: move somewhere else
-
-include T
-instance : has_inter (opens α) :=
-{ inter := λ U V, ⟨U.1 ∩ V.1, T.is_open_inter U.1 V.1 U.2 V.2⟩ }
-
 -- Equivalence relation on the set of pairs. (U,s) ~ (V,t) iff there exists W 
 -- open s.t. x ∈ W ⊆ U ∩ V, and s|W = t|W.
 

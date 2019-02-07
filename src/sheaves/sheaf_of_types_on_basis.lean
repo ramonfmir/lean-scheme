@@ -1,4 +1,5 @@
 -- tag 009N
+import preliminaries.covering
 import sheaves.presheaf_of_types
 import sheaves.presheaf_of_types_on_basis
 import sheaves.sheaf_of_types
@@ -8,58 +9,9 @@ universes u v w
 
 open topological_space
 open lattice
+open covering
 
 section sheaf_of_types_on_basis
-
-section preliminaries
-
-parameters {α : Type u} [topological_space α]
-parameters {B : set (opens α)} [HB : opens.is_basis B]
-
--- Open cover.
-
-structure covering (U : opens α) := 
-(Ui   : set (opens α))
-(BUi  : Ui ⊆ B)
-(Hcov : Sup Ui = U)
-
--- Open cover for basis.
-
-structure covering_inter {U : opens α} (OC : covering U) :=
-(Uijk      : opens α → opens α → set (opens α))
-(BUijk     : ∀ (Uj Uk ∈ OC.Ui), Uijk Uj Uk ⊆ OC.Ui)
-(Hintercov : ∀ (Uj Uk ∈ OC.Ui), Sup (Uijk Uj Uk) = Uj ∩ Uk)
-
--- If ⋃ Ui = U then for all i, Ui ⊆ U.
-
-lemma subset_cover {U : opens α} {OC : covering U} : ∀ (Uj ∈ OC.Ui), Uj ⊆ U := 
-λ ⟨Uj, OUj⟩ OCUj x HxUj, OC.Hcov ▸ begin simp; exact ⟨Uj, ⟨⟨OUj, OCUj⟩, HxUj⟩⟩, end
-
--- If ⋃ Uijk = Ui ∩ Uj then for all k, Uijk ⊆ Ui ∩ Uj.
-
-lemma subset_basis_cover_inter {U : opens α} {OC : covering U} {OCI : covering_inter OC}
-: ∀ (Uj Uk ∈ OC.Ui) (V ∈ OCI.Uijk Uj Uk), V ⊆ Uj ∩ Uk := 
-λ Uj Uk OUj OUk ⟨V, OV⟩ VOUijk x HxV, (OCI.Hintercov Uj Uk OUj OUk) ▸ 
-begin simp; exact ⟨V, ⟨⟨OV, VOUijk⟩, HxV⟩⟩, end
-
-#exit
-
--- ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui i ∩ OC.Ui j :=
--- λ i j k x HxUijk, (OCI.Hintercov i j) ▸ ⟨_, ⟨_, rfl⟩, HxUijk⟩
-
--- If ⋃ Uijk = Ui ∩ Uj then for all k, Uijk ⊆ Ui.
-
-lemma subset_basis_cover_left {U : opens α} {OC : covering U} {OCI : covering_inter OC}
-: ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui i :=
-λ i j k, set.subset.trans (subset_basis_cover_inter i j k) (set.inter_subset_left _ _) 
-
--- If ⋃ Uijk = Ui ∩ Uj then for all k, Uijk ⊆ Uj.
-
-lemma subset_basis_cover_right {U : opens α} {OC : covering U} {OCI : covering_inter OC}
-: ∀ i j k, OCI.Uijk i j k ⊆ OC.Ui j :=
-λ i j k, set.subset.trans (subset_basis_cover_inter i j k) (set.inter_subset_right _ _) 
-
-end preliminaries
 
 section presheaf_extension
 
@@ -71,8 +23,8 @@ parameters {B : set (opens α)} [HB : opens.is_basis B]
 definition is_sheaf_of_types_on_basis (F : presheaf_of_types_on_basis α HB) :=
 ∀ {U} (BU : U ∈ B) (OC : covering U) (OCI : covering_inter OC),
 ∀ (s : Π (i : OC.γ), F (OC.BUi i)) (i j : OC.γ) (k : OCI.Iij i j),
-F.res (OC.BUi i) (OCI.BUijk i j k) (subset_basis_cover_left i j k) (s i) =
-F.res (OC.BUi j) (OCI.BUijk i j k) (subset_basis_cover_right i j k) (s j) → 
+F.res (OC.BUi i) (OCI.BUijk i j k) (subset_basis_cover_inter_left i j k) (s i) =
+F.res (OC.BUi j) (OCI.BUijk i j k) (subset_basis_cover_inter_right i j k) (s j) → 
 ∃! (S : F BU), ∀ (i : OC.γ), 
   F.res BU (OC.BUi i) (OC.Hsub i) S = s i  
 

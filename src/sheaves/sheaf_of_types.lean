@@ -1,58 +1,67 @@
+import preliminaries.covering
 import sheaves.presheaf_of_types
 
 universes u v
 
 open topological_space
+open lattice
 
-namespace presheaf_of_types
+namespace presheaf_of_types'
 
-variables {α : Type u} [T : topological_space α]
-include T
+variables {α : Type u} [topological_space α]
 
 -- Restriction map from U to U ∩ V.
 
-def res_to_inter_left (F : presheaf_of_types α) (U V : opens α) :
-  (F U) → (F ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩) :=
-F.res U ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩ (set.inter_subset_left U V)
+def res_to_inter_left (F : presheaf_of_types α) (U V : opens α) 
+: (F U) → (F (U ∩ V)) :=
+F.res U (U ∩ V) (set.inter_subset_left U V)
 
 -- Restriction map from V to U ∩ V.
 
-def res_to_inter_right (F : presheaf_of_types α) (U V : opens α) :
-  (F V) → (F ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩) :=
-F.res V ⟨U ∩ V, T.is_open_inter U V U.2 V.2⟩ (set.inter_subset_right U V)
+def res_to_inter_right (F : presheaf_of_types α) (U V : opens α) 
+: (F V) → (F (U ∩ V)) :=
+F.res V (U ∩ V) (set.inter_subset_right U V)
 
 -- Sheaf condition.
 
-structure covering (U : opens α) := 
-{γ    : Type u}
-(Ui   : γ → opens α)
-(Hcov : (⋃ i, (Ui i).1) = U) -- TODO: probelm with coes.
-(Hcov': lattice.Sup (set.range Ui) = U)
-(Hsub : ∀ i, (Ui i) ⊆ U)
-
 def locality (F : presheaf_of_types α) :=
-∀ (U : opens α) (OC : covering U) (s t : F U), 
-(∀ (i : OC.γ),
-F.res U (OC.Ui i) (OC.Hsub i) s =
-F.res U (OC.Ui i) (OC.Hsub i) t) → 
+∀ {U} (OC : covering U) (s t : F U), 
+(∀ {Ui} (OUi : Ui ∈ OC.Uis),
+F.res U Ui (subset_cover OUi) s =
+F.res U Ui (subset_cover OUi) t) → 
 s = t
 
+-- def gluing' (F : presheaf_of_types α) :=
+-- ∀ (U : opens α) (OC : covering U),
+-- ∀ (s' : {s : (Π (i : OC.γ), F (OC.Ui i)) // ∀ (i j : OC.γ),
+-- res_to_inter_left F (OC.Ui i) (OC.Ui j) (s i) = 
+-- res_to_inter_right F (OC.Ui i) (OC.Ui j) (s j)}), 
+-- ∃ (S : F U), ∀ (i : OC.γ),
+--   F.res U (OC.Ui i) (OC.Hsub i) S = s'.val i
+
 def gluing (F : presheaf_of_types α) :=
-∀ (U : opens α) (OC : covering U),
+∀ {U} (OC : covering U),
+∀ (s : Π (Ui) {H : Ui ∈ OC.Uis}, F Ui),
+(∀ (Uj Uk ∈ OC.Uis),
+res_to_inter_left F Uj Uk (s Uj) = 
+res_to_inter_right F Uj Uk (s Uk)) → 
+∀ (Ui ∈ OC.Uis), F.res U Ui (subset_cover U Ui) 
+
 ∀ (s' : {s : (Π (i : OC.γ), F (OC.Ui i)) // ∀ (i j : OC.γ),
 res_to_inter_left F (OC.Ui i) (OC.Ui j) (s i) = 
 res_to_inter_right F (OC.Ui i) (OC.Ui j) (s j)}), 
 ∃ (S : F U), ∀ (i : OC.γ),
   F.res U (OC.Ui i) (OC.Hsub i) S = s'.val i
 
-end presheaf_of_types
 
 -- Definition of a sheaf of types.
 
-structure sheaf_of_types (α : Type u) [T : topological_space α] :=
-(F        : presheaf_of_types α)
-(locality : presheaf_of_types.locality F)
-(gluing   : presheaf_of_types.gluing F) 
+structure sheaf_of_types (α : Type u) [T : topological_space α] 
+extends presheaf_of_types α :=
+(locality : locality F)
+(gluing   : gluing ↑F) 
+
+end presheaf_of_types'
 
 section sheaf_of_types
 
