@@ -2,8 +2,9 @@ import topology.basic
 
 universes u
 
-open topological_space
-open lattice lattice.lattice
+open topological_space lattice lattice.lattice
+
+section opens
 
 variables {α : Type u} [topological_space α]
 
@@ -31,3 +32,5 @@ end
 lemma opens_supr_subset {γ : Type u} (X : γ → opens α) 
 : ∀ i, X i ⊆ ⋃ X :=
 λ i x, opens_supr_mem X i x
+
+end opens

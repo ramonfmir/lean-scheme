@@ -1,13 +1,19 @@
+/-
+    Stalk (of types) on basis.
+
+    https://stacks.math.columbia.edu/tag/009H
+-/
+
 import preliminaries.opens
-import sheaves.presheaf_of_types_on_basis
+import sheaves.presheaf_on_basis
 
 open topological_space
 
 universe u 
 
-variables {α : Type u} [T : topological_space α] 
+variables {α : Type u} [topological_space α] 
 variables {B : set (opens α )} {HB : opens.is_basis B}
-variables (F : presheaf_of_types_on_basis α HB) (x : α)
+variables (F : presheaf_on_basis α HB) (x : α)
 
 structure stalk_on_basis.elem :=
 (U  : opens α)

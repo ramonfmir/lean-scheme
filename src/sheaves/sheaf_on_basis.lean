@@ -1,8 +1,14 @@
--- tag 009N
+/-
+  Sheaf (of types) on basis and extension.
+
+  https://stacks.math.columbia.edu/tag/009J
+  https://stacks.math.columbia.edu/tag/009N
+-/
+
 import preliminaries.covering_on_basis
-import sheaves.presheaf_of_types
-import sheaves.presheaf_of_types_on_basis
-import sheaves.sheaf_of_types
+import sheaves.presheaf
+import sheaves.presheaf_on_basis
+import sheaves.sheaf
 import sheaves.stalk_on_basis
 
 universes u v w
@@ -11,16 +17,14 @@ open topological_space
 open lattice
 open covering
 
-section sheaf_of_types_on_basis
-
-section presheaf_extension
+section sheaf_on_basis
 
 parameters {α : Type u} [topological_space α]
 parameters {B : set (opens α)} [HB : opens.is_basis B]
 
 -- Sheaf condition.
 
-definition is_sheaf_of_types_on_basis (F : presheaf_of_types_on_basis α HB) :=
+definition is_sheaf_on_basis (F : presheaf_on_basis α HB) :=
 ∀ {U} (BU : U ∈ B) (OC : covering_basis U),
 ∀ (s : Π i, F (OC.BUis i)),
 (∀ i j k, F.res (OC.BUis i) (OC.BUijks i j k) (subset_covering_basis_inter_left i j k) (s i) =
@@ -29,8 +33,8 @@ definition is_sheaf_of_types_on_basis (F : presheaf_of_types_on_basis α HB) :=
 
 -- F defined in the whole space to F defined on the basis.
 
-definition presheaf_of_types_to_presheaf_of_types_on_basis 
-(F : presheaf_of_types α) : presheaf_of_types_on_basis α HB :=
+definition presheaf_to_presheaf_on_basis 
+(F : presheaf α) : presheaf_on_basis α HB :=
 { F := λ U BU, F U,
   res := λ U V BU BV HVU, F.res U V HVU,
   Hid := λ U BU, F.Hid U,
@@ -38,8 +42,8 @@ definition presheaf_of_types_to_presheaf_of_types_on_basis
 
 -- F defined on the bases extended to the whole space.
 
-definition presheaf_of_types_on_basis_to_presheaf_of_types
-(F : presheaf_of_types_on_basis α HB) : presheaf_of_types α :=
+definition presheaf_on_basis_to_presheaf
+(F : presheaf_on_basis α HB) : presheaf α :=
 { F := λ U, {s : Π (x ∈ U), stalk_on_basis F x //
         ∀ (x ∈ U), ∃ (V) (BV : V ∈ B) (Hx : x ∈ V) (σ : F BV),
         ∀ (y ∈ U ∩ V), s y = λ _, ⟦{U := V, BU := BV, Hx := H.2, s := σ}⟧},
@@ -55,17 +59,14 @@ definition presheaf_of_types_on_basis_to_presheaf_of_types
   Hid := λ U, funext $ λ x, subtype.eq rfl,
   Hcomp := λ U V W HWV HVU, funext $ λ x, subtype.eq rfl}
 
-local notation F `ₑₓₜ`:1 := 
-presheaf_of_types_on_basis_to_presheaf_of_types F
+local notation F `ₑₓₜ`:1 := presheaf_on_basis_to_presheaf F
 
-instance forget_basis : has_coe (presheaf_of_types_on_basis α HB) (presheaf_of_types α) :=
-⟨presheaf_of_types_on_basis_to_presheaf_of_types⟩
-
+section presheaf_extension
 
 -- Presheaf extension preserves sheaf condition.
 
 noncomputable def global_section 
-(F : presheaf_of_types_on_basis α HB) (U : opens α) (OC : covering U) 
+(F : presheaf_on_basis α HB) (U : opens α) (OC : covering U) 
 (s : Π i, (F ₑₓₜ) (OC.Uis i))
 (Hsec : ∀ (j k : OC.γ),
   res_to_inter_left (F ₑₓₜ) (OC.Uis j) (OC.Uis k) (s j) =
@@ -114,7 +115,7 @@ refine ⟨_, _⟩,
   let HyUi := λ t, ∃ (H : t ∈ subtype.val '' set.range OC.Uis), y ∈ t,
   rcases (classical.indefinite_description HyUi _) with ⟨S, HS⟩; dsimp,
   let HyS := λ H : S ∈ subtype.val '' set.range OC.Uis, y ∈ S,
-  rcases (classical.indefinite_description HyS HS) with ⟨HSUiR, HySUiR⟩; dsimp,
+  rcases (classical.indefinite_description HyS _) with ⟨HSUiR, HySUiR⟩; dsimp,
   let HOUksub := λ t : subtype is_open, t ∈ set.range (OC.Uis) ∧ t.val = S,
   rcases (classical.indefinite_description HOUksub _) with ⟨OUl, ⟨HOUl, HOUleq⟩⟩; dsimp,
   let HSUi := λ i, OC.Uis i = OUl,
@@ -124,15 +125,12 @@ refine ⟨_, _⟩,
   have HyUil : y ∈ OC.Uis l := HSUil.symm ▸ HyOUk,
   have HyUik : y ∈ OC.Uis k := HyVUik.2,
   suffices Hsuff : (s l).val y HyUil = (s k).val y HyUik,
-    erw Hsuff,
-    rw Hsk,
+    erw [Hsuff, Hsk],
     apply quotient.sound,
-    use [⟨W, OW⟩, BW, HyW, HWV],
-    existsi (set.subset.refl _),
-    simp,
+    use [⟨W, OW⟩, BW, HyW, HWV, (set.subset.refl _)]; simp,
     apply F.Hcomp',
   -- Proving Hsuff.
-  let F' := presheaf_of_types_on_basis_to_presheaf_of_types F,
+  let F' := presheaf_on_basis_to_presheaf F,
   let UkUl := OC.Uis k ∩ OC.Uis l,
   have Hslres : (s l).val y HyUil = 
     (F'.res (OC.Uis l) UkUl (set.inter_subset_right _ _) (s l)).val y ⟨HyUik, HyUil⟩ := rfl,
@@ -142,14 +140,11 @@ refine ⟨_, _⟩,
   unfold res_to_inter_left at Hs,
   unfold res_to_inter_right at Hs,
   erw [Hslres, Hskres, Hs],
-  apply congr_arg, 
-  simp }
+  apply congr_arg; simp }
 end
 
-theorem extension_is_sheaf
-  (F : presheaf_of_types_on_basis α HB) 
-  (HF : is_sheaf_of_types_on_basis F)
-  : is_sheaf_of_types (F ₑₓₜ) := 
+theorem extension_is_sheaf (F : presheaf_on_basis α HB) (HF : is_sheaf_on_basis F)
+: is_sheaf_of_types (F ₑₓₜ) := 
 begin
   split,
   -- Locality.
@@ -163,75 +158,50 @@ begin
     rcases HxU with ⟨Uj1, ⟨⟨⟨Uj2, OUj⟩, ⟨⟨j, HUj⟩, Heq⟩⟩, HxUj⟩⟩,
     rcases Heq, rcases Heq,
     have Hstj := congr_fun (subtype.mk_eq_mk.1 (Hst j)),
-    have HxUj1 : x ∈ OC.Uis j,
-      rw HUj,
-      exact HxUj,
+    have HxUj1 : x ∈ OC.Uis j := HUj.symm ▸ HxUj,
     have Hstjx := congr_fun (Hstj x) HxUj1,
     exact Hstjx,
   },
   -- Gluing.
   { intros U OC s Hsec,
     existsi (global_section F U OC s Hsec),
-    { -- S|i = s_i for all i.
-      intros i,
-      apply subtype.eq,
-      apply funext,
-      intros x,
-      apply funext,
-      intros HxUi,
-      have HxU : x ∈ U := OC.Hcov ▸ (opens_supr_subset OC.Uis i) HxUi,
-      let HyUi := λ t, ∃ (H : t ∈ set.range OC.Uis), x ∈ t,
-      dunfold presheaf_of_types_on_basis_to_presheaf_of_types,
-      dsimp,
-      dunfold global_section,
-      dsimp,
-      let HyUi := λ t, ∃ (H : t ∈ subtype.val '' set.range OC.Uis), x ∈ t,
-      rcases (classical.indefinite_description HyUi _) with ⟨S, HS⟩; dsimp,
-      let HyS := λ H : S ∈ subtype.val '' set.range OC.Uis, x ∈ S,
-      rcases (classical.indefinite_description HyS HS) with ⟨HSUiR, HySUiR⟩; dsimp,
-      let HOUksub := λ t : subtype is_open, t ∈ set.range (OC.Uis) ∧ t.val = S,
-      rcases (classical.indefinite_description HOUksub _) with ⟨OUl, ⟨HOUl, HOUleq⟩⟩; dsimp,
-      let HSUi := λ i, OC.Uis i = OUl,
-      cases (classical.indefinite_description HSUi _) with l HSUil; dsimp,
-
-      dunfold presheaf_of_types_on_basis_to_presheaf_of_types at Hsec,
-      dunfold res_to_inter_left at Hsec,
-      dunfold res_to_inter_right at Hsec,
-      dsimp at Hsec,
-      replace Hsec := Hsec i l,
-      rw subtype.ext at Hsec,
-      dsimp at Hsec,
-      replace Hsec := congr_fun Hsec x,
-      dsimp at Hsec,
-      replace Hsec := congr_fun Hsec,
-
-      have HxOUk : x ∈ OUl.val := HOUleq.symm ▸ HySUiR,
-      have HxUl : x ∈ OC.Uis l := HSUil.symm ▸ HxOUk,
-      
-      exact (Hsec ⟨HxUi, HxUl⟩).symm }
+    -- To show: S|i = s_i for all i.
+    intros i,
+    apply subtype.eq,
+    apply funext,
+    intros x,
+    apply funext,
+    intros HxUi,
+    have HxU : x ∈ U := OC.Hcov ▸ (opens_supr_subset OC.Uis i) HxUi,
+    let HyUi := λ t, ∃ (H : t ∈ set.range OC.Uis), x ∈ t,
+    dunfold presheaf_on_basis_to_presheaf; dsimp,
+    dunfold global_section; dsimp,
+    -- Same process of dealing with subtype.rec.
+    let HyUi := λ t, ∃ (H : t ∈ subtype.val '' set.range OC.Uis), x ∈ t,
+    rcases (classical.indefinite_description HyUi _) with ⟨S, HS⟩; dsimp,
+    let HyS := λ H : S ∈ subtype.val '' set.range OC.Uis, x ∈ S,
+    rcases (classical.indefinite_description HyS HS) with ⟨HSUiR, HySUiR⟩; dsimp,
+    let HOUksub := λ t : subtype is_open, t ∈ set.range (OC.Uis) ∧ t.val = S,
+    rcases (classical.indefinite_description HOUksub _) with ⟨OUl, ⟨HOUl, HOUleq⟩⟩; dsimp,
+    let HSUi := λ i, OC.Uis i = OUl,
+    cases (classical.indefinite_description HSUi _) with l HSUil; dsimp,
+    -- Now we just need to apply Hsec in the right way.
+    dunfold presheaf_on_basis_to_presheaf at Hsec,
+    dunfold res_to_inter_left at Hsec,
+    dunfold res_to_inter_right at Hsec,
+    dsimp at Hsec,
+    replace Hsec := Hsec i l,
+    rw subtype.ext at Hsec,
+    dsimp at Hsec,
+    replace Hsec := congr_fun Hsec x,
+    dsimp at Hsec,
+    replace Hsec := congr_fun Hsec,
+    have HxOUk : x ∈ OUl.val := HOUleq.symm ▸ HySUiR,
+    have HxUl : x ∈ OC.Uis l := HSUil.symm ▸ HxOUk,
+    exact (Hsec ⟨HxUi, HxUl⟩).symm
   },
 end 
 
 end presheaf_extension
 
-end sheaf_of_types_on_basis
-
--- definition extend_off_basis_map {X : Type*} [T : topological_space X] {B : set (set X)} 
---   {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
---   (HF : is_sheaf_of_types_on_basis FB) :
---   morphism_of_presheaves_of_types_on_basis FB (restriction_of_presheaf_to_basis (extend_off_basis FB HF)) := sorry
-
--- theorem extension_extends {X : Type*} [T : topological_space X] {B : set (set X)} 
---   {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
---   (HF : is_sheaf_of_types_on_basis FB) : 
---   is_isomorphism_of_presheaves_of_types_on_basis (extend_off_basis_map FB HF) := sorry 
-
--- theorem extension_unique {X : Type*} [T : topological_space X] {B : set (set X)} 
---   {HB : topological_space.is_topological_basis B} (FB : presheaf_of_types_on_basis HB)
---   (HF : is_sheaf_of_types_on_basis FB) (G : presheaf_of_types X)
---   (HG : is_sheaf_of_types G) (psi : morphism_of_presheaves_of_types_on_basis FB (restriction_of_presheaf_to_basis G))
---   (HI : is_isomorphism_of_presheaves_of_types_on_basis psi) -- we have an extension which agrees with FB on B
---   : ∃ rho : morphism_of_presheaves_of_types (extend_off_basis FB HF) G, -- I would happily change the direction of the iso rho
---     is_isomorphism_of_presheaves_of_types rho ∧ 
---     ∀ (U : set X) (BU : B U), 
---       (rho.morphism U (basis_element_is_open HB BU)) ∘ ((extend_off_basis_map FB HF).morphism BU) = (psi.morphism BU) := sorry
+end sheaf_on_basis

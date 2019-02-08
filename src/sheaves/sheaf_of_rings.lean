@@ -1,4 +1,10 @@
-import sheaves.sheaf_of_types
+/-
+  Sheaf of rings.
+  
+  https://stacks.math.columbia.edu/tag/0071
+-/
+
+import sheaves.sheaf
 import sheaves.presheaf_of_rings
 
 universes u
@@ -8,8 +14,8 @@ universes u
 
 structure sheaf_of_rings (α : Type u) [T : topological_space α] :=
 (F        : presheaf_of_rings α)
-(locality : locality F.to_presheaf_of_types)
-(gluing   : gluing F.to_presheaf_of_types)
+(locality : locality F.to_presheaf)
+(gluing   : gluing F.to_presheaf)
 
 section sheaf_of_rings
 
@@ -19,7 +25,7 @@ instance : has_coe (sheaf_of_rings α) (presheaf_of_rings α) :=
 ⟨λ S, S.F⟩
 
 def is_sheaf_of_rings (F : presheaf_of_rings α) :=
-  locality F.to_presheaf_of_types 
-∧ gluing F.to_presheaf_of_types
+  locality F.to_presheaf 
+∧ gluing F.to_presheaf
 
 end sheaf_of_rings

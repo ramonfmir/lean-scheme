@@ -1,3 +1,9 @@
+/-
+  Presheaf (of types) on basis.
+
+  https://stacks.math.columbia.edu/tag/009I
+-/
+
 import topology.basic
 
 universes u v
@@ -6,7 +12,7 @@ open topological_space
 
 -- Presheaf of types where we only define sections on basis elements.
 
-structure presheaf_of_types_on_basis (α : Type u) [T : topological_space α] 
+structure presheaf_on_basis (α : Type u) [T : topological_space α] 
 {B : set (opens α)} (HB : opens.is_basis B) := 
 (F     : Π {U}, U ∈ B → Type v)
 (res   : ∀ {U V} (BU : U ∈ B) (BV : V ∈ B) (HVU : V ⊆ U), F BU → F BV)
@@ -15,23 +21,23 @@ structure presheaf_of_types_on_basis (α : Type u) [T : topological_space α]
   (HWV : W ⊆ V) (HVU : V ⊆ U),
   res BU BW (set.subset.trans HWV HVU) = (res BV BW HWV) ∘ (res BU BV HVU))
 
-namespace presheaf_of_types_on_basis
+namespace presheaf_on_basis
 
 variables {α : Type u} [T : topological_space α] 
 variables {B : set (opens α)} {HB : opens.is_basis B}
 
-instance : has_coe_to_fun (presheaf_of_types_on_basis α HB) :=
+instance : has_coe_to_fun (presheaf_on_basis α HB) :=
 { F := λ _, Π {U}, U ∈ B → Type v,
-  coe := presheaf_of_types_on_basis.F }
+  coe := presheaf_on_basis.F }
 
 -- Simplification lemmas.
 
-@[simp] lemma Hid' (F : presheaf_of_types_on_basis α HB) :
+@[simp] lemma Hid' (F : presheaf_on_basis α HB) :
 ∀ {U} (BU : U ∈ B) (s : F BU),
   (F.res BU BU (set.subset.refl U)) s = s := 
 λ U OU s, by rw F.Hid OU; simp
 
-@[simp] lemma Hcomp' (F : presheaf_of_types_on_basis α HB) :
+@[simp] lemma Hcomp' (F : presheaf_on_basis α HB) :
 ∀ {U V W} (BU : U ∈ B) (BV : V ∈ B) (BW : W ∈ B)
   (HWV : W ⊆ V) (HVU : V ⊆ U) (s : F BU),
   (F.res BU BW (set.subset.trans HWV HVU)) s = 
@@ -40,7 +46,7 @@ instance : has_coe_to_fun (presheaf_of_types_on_basis α HB) :=
 
 -- Morphism of presheaves on a basis (same as presheaves).
 
-structure morphism (F G : presheaf_of_types_on_basis α HB) :=
+structure morphism (F G : presheaf_on_basis α HB) :=
 (map      : ∀ {U} (HU : U ∈ B), F HU → G HU)
 (commutes : ∀ {U V} (HU : U ∈ B) (HV : V ∈ B) (Hsub : V ⊆ U),
   (G.res HU HV Hsub) ∘ (map HU) = (map HV) ∘ (F.res HU HV Hsub))
@@ -48,7 +54,7 @@ structure morphism (F G : presheaf_of_types_on_basis α HB) :=
 namespace morphism
 
 definition comp
-  {F G H : presheaf_of_types_on_basis α HB}
+  {F G H : presheaf_on_basis α HB}
   (fg : morphism F G)
   (gh : morphism G H) :
   morphism F H :=
@@ -61,10 +67,10 @@ definition comp
 
 infixl `⊚`:80 := comp
 
-definition is_identity {F : presheaf_of_types_on_basis α HB} (ff : morphism F F) :=
+definition is_identity {F : presheaf_on_basis α HB} (ff : morphism F F) :=
   ∀ {U} (HU : U ∈ B), ff.map HU = id 
 
-definition is_isomorphism {F G : presheaf_of_types_on_basis α HB} (fg : morphism F G) := 
+definition is_isomorphism {F G : presheaf_on_basis α HB} (fg : morphism F G) := 
   ∃ gf : morphism G F, 
   is_identity (fg ⊚ gf)
 ∧ is_identity (gf ⊚ fg)
@@ -73,9 +79,9 @@ end morphism
 
 -- Isomorphic presheaves of types on a basis.
 
-def are_isomorphic (F G : presheaf_of_types_on_basis α HB) :=
+def are_isomorphic (F G : presheaf_on_basis α HB) :=
 ∃ (fg : morphism F G) (gf : morphism G F),
     morphism.is_identity (fg ⊚ gf)
   ∧ morphism.is_identity (gf ⊚ fg)
 
-end presheaf_of_types_on_basis
+end presheaf_on_basis

@@ -1,21 +1,21 @@
+/-
+    Stalk (of types).
+
+    https://stacks.math.columbia.edu/tag/0078
+-/
+
+import preliminaries.opens
 import topology.basic
-import sheaves.presheaf_of_types 
+import sheaves.presheaf
 
 universe u 
 
 section stalk
 
-variables {α : Type u} [T : topological_space α] 
-variables (F : presheaf_of_types α) (x : α)
+variables {α : Type u} [topological_space α] 
+variables (F : presheaf α) (x : α)
 
 open topological_space
-
-
--- TODO: move somewhere else
-
-include T
-instance : has_inter (opens α) :=
-{ inter := λ U V, ⟨U.1 ∩ V.1, T.is_open_inter U.1 V.1 U.2 V.2⟩ }
 
 -- An element in the stalk is a pair (U, s) under an equivalence relation 
 
