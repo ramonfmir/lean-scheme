@@ -64,15 +64,12 @@ s := F.res s.BU _ (set.inter_subset_left _ _) s.s +
      F.res t.BU _ (set.inter_subset_right _ _) t.s}⟧
 
 instance stalk_of_rings_has_add : has_add (stalk_of_rings_on_standard_basis F x) := 
-{add := quotient.lift₂ 
-(stalk_of_rings_add_aux Bstandard F x) 
-(λ a1 a2 b1 b2 H1 H2, 
-let F' := F.to_presheaf_on_basis in
-let U1 := classical.some H1 in
-let U2 := classical.some H2 in
+{add := quotient.lift₂ (stalk_of_rings_add_aux Bstandard F x) $
 begin
-    rcases (classical.some_spec H1) with ⟨BU1, ⟨HxU1, ⟨HU1a1U, HU1b1U, HresU1⟩⟩⟩,
-    rcases (classical.some_spec H2) with ⟨BU2, ⟨HxU2, ⟨HU2a2U, HU2b2U, HresU2⟩⟩⟩,
+    intros a1 a2 b1 b2 H1 H2, 
+    let F' := F.to_presheaf_on_basis,
+    rcases H1 with ⟨U1, ⟨BU1, ⟨HxU1, ⟨HU1a1U, HU1b1U, HresU1⟩⟩⟩⟩,
+    rcases H2 with ⟨U2, ⟨BU2, ⟨HxU2, ⟨HU2a2U, HU2b2U, HresU2⟩⟩⟩⟩,
     have BU1U2 := Bstandard.2 BU1 BU2,
     apply quotient.sound,
     use [U1 ∩ U2, BU1U2, ⟨HxU1, HxU2⟩],
@@ -90,18 +87,27 @@ begin
     repeat { rw ←(presheaf_on_basis.Hcomp' F') at HresU2' },
     repeat { rw ←(presheaf_on_basis.Hcomp' F') },
     rw [HresU1', HresU2'],
-end)}
+end}
 
--- Sub.
+-- Neg.
 
 private def stalk_sub_aux : 
 stalk_on_basis.elem F.to_presheaf_on_basis x → 
 stalk_on_basis F.to_presheaf_on_basis x :=
 λ s, ⟦{U := s.U, BU := s.BU, Hx := s.Hx, s := -s.s}⟧
 
-instance stalk_of_rings_has_sub : has_sub (stalk_of_rings_on_basis F x) := sorry
+instance stalk_of_rings_has_neg : has_neg (stalk_of_rings_on_standard_basis F x) :=
+{neg := quotient.lift (stalk_sub_aux F x) $ 
+begin
+    intros a b H,
+    rcases H with ⟨U, ⟨BU, ⟨HxU, ⟨HUaU, HUbU, HresU⟩⟩⟩⟩,
+    apply quotient.sound,
+    use [U, BU, HxU, HUaU, HUbU],
+    repeat { rw @is_ring_hom.map_neg _ _ _ _ _ (F.res_is_ring_hom _ _ _) },
+    rw HresU,
+end}
 
--- Mul.
+-- Mul. TODO: Basically the same as add, what can be done about this?
 
 private def stalk_of_rings_mul_aux : 
 stalk_on_basis.elem F.to_presheaf_on_basis x → 
@@ -109,12 +115,36 @@ stalk_on_basis.elem F.to_presheaf_on_basis x →
 stalk_on_basis F.to_presheaf_on_basis x :=
 λ s t, 
 ⟦{U := s.U ∩ t.U, 
-BU := sorry, -- We need to assume standard basis?
+BU := Bstandard.2 s.BU t.BU,
 Hx := ⟨s.Hx, t.Hx⟩, 
 s := F.res s.BU _ (set.inter_subset_left _ _) s.s * 
      F.res t.BU _ (set.inter_subset_right _ _) t.s}⟧
 
-instance stalk_of_rings_has_mul : has_mul (stalk_of_rings_on_basis F x) := sorry
+instance stalk_of_rings_has_mul : has_mul (stalk_of_rings_on_standard_basis F x) := 
+{mul := quotient.lift₂ (stalk_of_rings_mul_aux Bstandard F x) $ 
+begin
+    intros a1 a2 b1 b2 H1 H2, 
+    let F' := F.to_presheaf_on_basis,
+    rcases H1 with ⟨U1, ⟨BU1, ⟨HxU1, ⟨HU1a1U, HU1b1U, HresU1⟩⟩⟩⟩,
+    rcases H2 with ⟨U2, ⟨BU2, ⟨HxU2, ⟨HU2a2U, HU2b2U, HresU2⟩⟩⟩⟩,
+    have BU1U2 := Bstandard.2 BU1 BU2,
+    apply quotient.sound,
+    use [U1 ∩ U2, BU1U2, ⟨HxU1, HxU2⟩],
+    use [set.inter_subset_inter HU1a1U HU2a2U, set.inter_subset_inter HU1b1U HU2b2U],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
+    have HresU1' : 
+        (F'.res BU1 BU1U2 (set.inter_subset_left _ _) ((F'.res a1.BU BU1 HU1a1U) (a1.s))) =
+        (F'.res BU1 BU1U2 (set.inter_subset_left _ _) ((F'.res b1.BU BU1 HU1b1U) (b1.s)))
+    := by rw HresU1,
+    have HresU2' :
+        (F'.res BU2 BU1U2 (set.inter_subset_right _ _) ((F'.res a2.BU BU2 HU2a2U) (a2.s))) =
+        (F'.res BU2 BU1U2 (set.inter_subset_right _ _) ((F'.res b2.BU BU2 HU2b2U) (b2.s)))
+    := by rw HresU2,
+    repeat { rw ←(presheaf_on_basis.Hcomp' F') at HresU1' },
+    repeat { rw ←(presheaf_on_basis.Hcomp' F') at HresU2' },
+    repeat { rw ←(presheaf_on_basis.Hcomp' F') },
+    rw [HresU1', HresU2'],
+end}
 
 -- Assoc, comm, distr...
 
