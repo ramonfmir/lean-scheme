@@ -5,6 +5,7 @@
     (just says that the category of rings is a type of algebraic structure)
 -/
 
+import preliminaries.opens
 import topology.basic
 import sheaves.stalk_on_basis
 import sheaves.presheaf_of_rings_on_basis
@@ -28,10 +29,6 @@ variables (F : presheaf_of_rings_on_basis α HB) (x : α)
 definition stalk_of_rings_on_standard_basis := 
 stalk_on_basis F.to_presheaf_on_basis x
 
---------------
--- tag 007N --
---------------
-
 section stalk_is_ring
 
 -- Zero.
@@ -39,7 +36,7 @@ section stalk_is_ring
 private def stalk_of_rings_zero : stalk_of_rings_on_standard_basis F x := 
 ⟦{U := opens.univ, BU := Bstandard.1, Hx := trivial, s:= 0}⟧
 
-instance ring_stalk_has_zero : has_zero (stalk_of_rings_on_standard_basis F x) := 
+instance stalk_of_rings_has_zero : has_zero (stalk_of_rings_on_standard_basis F x) := 
 {zero := stalk_of_rings_zero Bstandard F x}
 
 -- One.
@@ -47,7 +44,7 @@ instance ring_stalk_has_zero : has_zero (stalk_of_rings_on_standard_basis F x) :
 private def stalk_of_rings_one : stalk_of_rings_on_standard_basis F x := 
 ⟦{U := opens.univ, BU := Bstandard.1, Hx := trivial, s:= 0}⟧
 
-instance ring_stalk_has_one : has_one (stalk_of_rings_on_standard_basis F x) := 
+instance stalk_of_rings_has_one : has_one (stalk_of_rings_on_standard_basis F x) := 
 {one := stalk_of_rings_one Bstandard F x}
 
 -- Add.
@@ -146,7 +143,70 @@ begin
     rw [HresU1', HresU2'],
 end}
 
--- Assoc, comm, distr...
+-- Stalks are rings.
+
+instance stalk_of_rings_is_ring : comm_ring (stalk_of_rings_on_standard_basis F x) :=
+{   add := (stalk_of_rings_has_add Bstandard F x).add,
+    add_assoc := 
+    begin
+        intros a b c,
+        refine quotient.induction_on₃ a b c _,
+        rintros ⟨U, BU, HxU, sU⟩ ⟨V, BV, HxV, sV⟩ ⟨W, BW, HxW, sW⟩,
+        have BUVW := Bstandard.2 (Bstandard.2 BU BV) BW,
+        have HUVWsub : U ∩ V ∩ W ⊆ U ∩ (V ∩ W) 
+        := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨HxU, ⟨HxV, HxW⟩⟩,
+        apply quotient.sound,
+        use [U ∩ V ∩ W, BUVW, ⟨⟨HxU, HxV⟩, HxW⟩],
+        use [set.subset.refl _, HUVWsub],
+        dsimp,
+        repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+        repeat { rw ←presheaf_on_basis.Hcomp' },
+        rw add_assoc,
+    end,
+    zero := (stalk_of_rings_has_zero Bstandard F x).zero,
+    zero_add := 
+    begin
+        intros a,
+        refine quotient.induction_on a _,
+        rintros ⟨U, BU, HxU, sU⟩,
+        apply quotient.sound,
+        have HUsub : U ⊆ opens.univ ∩ U := λ x HxU, ⟨by simpa, HxU⟩,
+        use [U, BU, HxU, HUsub, set.subset.refl U],
+        repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+        repeat { rw ←presheaf_on_basis.Hcomp' },
+        erw (is_ring_hom.map_zero ((F.to_presheaf_on_basis).res _ _ _));
+        try { apply_instance },
+        rw zero_add,
+        refl,
+    end,
+    add_zero :=
+    begin
+        intros a,
+        refine quotient.induction_on a _,
+        rintros ⟨U, BU, HxU, sU⟩,
+        apply quotient.sound,
+        have HUsub : U ⊆ U ∩ opens.univ := λ x HxU, ⟨HxU, by simpa⟩,
+        use [U, BU, HxU, HUsub, set.subset.refl U],
+        repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+        repeat { rw ←presheaf_on_basis.Hcomp' },
+        dsimp,
+        erw (is_ring_hom.map_zero ((F.to_presheaf_on_basis).res _ _ _));
+        try { apply_instance },
+        rw add_zero,
+        refl,
+    end,
+    neg := has_neg.neg,
+    add_left_neg := sorry,
+    add_comm := sorry,
+    mul := (stalk_of_rings_has_mul Bstandard F x).mul,
+    mul_assoc := sorry,
+    mul_one := sorry,
+    one := (stalk_of_rings_has_one Bstandard F x).one,
+    one_mul := sorry,
+    left_distrib := sorry,
+    right_distrib := sorry,
+    mul_comm := sorry,
+}
 
 end stalk_is_ring
 
