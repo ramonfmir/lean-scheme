@@ -1,4 +1,9 @@
--- 009L
+/-
+  Sheaf (of types) on standard basis.
+
+  https://stacks.math.columbia.edu/tag/009L
+-/
+
 
 -- /- The lemma in this tag says that if we have a top space
 -- and a basis with the property that the intersection of two
@@ -9,6 +14,41 @@
 -- finite covers of basic opens by basic opens, noting that
 -- the intersection of two basis opens is a basic open.
 -- -/
+
+import preliminaries.opens
+import preliminaries.covering
+import topology.basic
+import sheaves.stalk_on_basis
+import sheaves.presheaf_of_rings_on_basis
+
+universe u 
+
+open topological_space
+
+section sheaf_on_standard_basis
+
+variables {α : Type u} [topological_space α] 
+variables {B : set (opens α )} {HB : opens.is_basis B}
+
+-- Standard basis. TODO: Move somewhere else?
+
+def opens.univ : opens α := ⟨set.univ, is_open_univ⟩
+variables (Bstd : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ V ∈ B)
+
+variables (F : presheaf_on_basis α HB) (x : α)
+
+section properties
+
+-- Compactness definition.
+-- TODO : Finite subcover stuff can be moved to preliminaries.
+
+definition basis_is_compact : Prop := 
+∀ (U) (OC : covering U) (BOC : ∀ i, OC.Uis i ∈ B),
+∃ γ (Hfin : fintype γ) (f : γ → OC.γ), (⋃ (OC.Uis ∘ f)) = U
+
+end properties
+
+end sheaf_on_standard_basis
 
 -- import tag009J 
 
