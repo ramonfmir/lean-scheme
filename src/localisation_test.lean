@@ -1,3 +1,6 @@
+import data.set data.equiv.basic
+import algebra.group ring_theory.algebra
+
 import preliminaries.localisation
 
 -- Define localisation on a set of generators.
@@ -26,6 +29,6 @@ end localisation_on_generators
 
  In the proof, they use Lemma 10.23.1/2 https://stacks.math.columbia.edu/tag/00EI
  which is when the "canonical isomorphism nonsense" was used.
+
+ We should start testing this new API with the lemmas on localisation_UMP.
 -/
-
-
