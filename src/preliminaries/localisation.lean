@@ -30,6 +30,25 @@ def ker : ideal A :=
 ideal.mk {x | f x = 0} (ideal.comap f ⊥) $
 set.ext $ λ x, by simp
 
+-- def ker : ideal A := 
+-- {
+--   carrier := λ a, f a = 0,
+--   zero := is_ring_hom.map_zero f,
+--   add := begin
+--    intros a1 a2 fa1z fa2z, 
+--    change f a1 = 0 at fa1z,
+--    change f a2 = 0 at fa2z,
+--    show f (a1 + a2) = 0,
+--    simp[is_ring_hom.map_add f,fa1z,fa2z]
+--   end,
+--   smul := begin
+--    intros a1 a2 fa2z,
+--    change f a2 = 0 at fa2z,
+--    show f (a1 * a2) = 0,
+--    simp[is_ring_hom.map_mul f,fa2z],
+--   end
+-- }
+
 def inverts_data (S : set A) (f : A → B) : Type* :=
 Π s : S, {si : B // (f s) * si = 1}
 

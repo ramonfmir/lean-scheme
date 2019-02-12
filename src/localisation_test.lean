@@ -43,8 +43,17 @@ parameters (a b : R)
 
 -- Generic result.
 
+-- Definitely true...
+
 lemma closure_mem {S : set R} :
 ∀ {x y : R}, x ∈ monoid.closure S → y ∈ monoid.closure S → (x * y) ∈ monoid.closure S :=
+sorry
+
+lemma closure_mem2 :
+∀ {x y : R}, 
+x ∈ monoid.closure ({a} : set R) → 
+y ∈ monoid.closure ({b} : set R) → 
+(x * y) ∈ monoid.closure ({a, b} : set R) :=
 sorry
 
 lemma powers_closure_eq : ∀ x : R, powers x = monoid.closure {x} :=
@@ -172,7 +181,7 @@ end
 
 -- h : A --> A[1/ab]
 
-def h : R → Rab := λ x, ⟦⟨⟦⟨x, 1, one_powers_a⟩⟧, 1, one_powers_b'⟩⟧
+@[reducible] def h : R → Rab := λ x, ⟦⟨⟦⟨x, 1, one_powers_a⟩⟧, 1, one_powers_b'⟩⟧
 instance is_ring_hom_h : is_ring_hom h :=
 { map_one := rfl,
   map_add := λ x y,
@@ -256,12 +265,53 @@ begin
   simp,
 end
 
-lemma loc_ker_ann : localization_alt.ker h = localization_alt.submonoid_ann (S {a, b}) :=
+-- Kernel is monoid annihilator.
+-- TODO: Clena this up this is quite bad.
+
+lemma loc_ker_ann : localization_alt.ker h ≤ localization_alt.submonoid_ann (monoid.closure {a, b}) :=
+λ x Hx,
+begin
+  unfold localization_alt.submonoid_ann,
+  unfold localization_alt.ker at *,
+  unfold localization_alt.ideal.mk at *,
+  have Hx : x ∈ {x : R | h x = 0} := Hx,
+  have H : h x = 0 := by apply_assumption,
+  dsimp,
+  dunfold localization_alt.ann_aux,
+  unfold set.range,
+  simp,
+  show ∃ (a_1 x_1 : R), x_1 ∈ monoid.closure (insert b {a}) ∧ a_1 * x_1 = 0 ∧ a_1 = x,
+    existsi x,
+    dunfold h at H,
+    dsimp at H,
+    have H4 := quotient.exact H,
+    rcases H4 with ⟨q, ⟨w, e⟩⟩,
+    simp at e,
+    have H5 := (elem_powers_b' q).1 w,
+    rcases H5 with ⟨r, t, y⟩,
+    rw y at e,
+    have H6 := quotient.exact e,
+    rcases H6 with ⟨u,i,o⟩,
+    simp at o,
+    existsi (r * u),
+    split,
+      rw powers_closure_eq at t,
+      rw powers_closure_eq at i,
+      have G := closure_mem2 i t,
+      rw mul_comm,
+      exact G,
+
+      split,
+      rw ←mul_assoc,
+      exact o,
+
+      refl,
+end
+
+lemma loc_ker_ann' : localization_alt.ker h = localization_alt.submonoid_ann (monoid.closure {a, b}) :=
 sorry
 
 lemma loc_Afg : is_localization' {a, b} h :=
-begin
-  split,
-end
+⟨loc_inverts, loc_has_denom, loc_ker_ann'⟩
 
 end
