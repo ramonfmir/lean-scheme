@@ -53,7 +53,7 @@ lemma closure_mem2 :
 ∀ {x y : R}, 
 x ∈ monoid.closure ({a} : set R) → 
 y ∈ monoid.closure ({b} : set R) → 
-(x * y) ∈ monoid.closure ({a, b} : set R) :=
+(x * y) ∈ monoid.closure ({a * b} : set R) :=
 sorry
 
 lemma powers_closure_eq : ∀ x : R, powers x = monoid.closure {x} :=
@@ -90,28 +90,6 @@ begin
       rw [←Hx, ←Hy],
       rw ←pow_add,
       exact ⟨n + m, by simp⟩, } }
-end
-
-lemma powers_closure_two_subset : ∀ (x y : R), powers x ⊆ monoid.closure {x, y} :=
-begin
-  intros x y,
-  rw powers_closure_eq,
-  apply monoid.closure_mono,
-  intros z Hz,
-  cases Hz,
-  { rw Hz, simp, },
-  { cases Hz, }
-end
-
-lemma powers_closure_two_subset' : ∀ (x y : R), powers y ⊆ monoid.closure {x, y} :=
-begin
-  intros x y,
-  rw powers_closure_eq,
-  apply monoid.closure_mono,
-  intros z Hz,
-  cases Hz,
-  { rw Hz, simp, },
-  { cases Hz, }
 end
 
 -- R[1/a]
@@ -204,21 +182,17 @@ instance is_ring_hom_h : is_ring_hom h :=
 def binv_Rab : Rab := ⟦⟨⟦⟨1, 1, one_powers_a⟩⟧, b', ⟨1, by simp⟩⟩⟧
 def ainv_Rab : Rab := ⟦⟨⟦⟨1, a, ⟨1, by simp⟩⟩⟧, 1, one_powers_b'⟩⟧
 
-lemma loc_inverts : localization_alt.inverts (S {a, b}) h :=
+lemma loc_inverts : localization_alt.inverts (S {a * b}) h :=
 begin
   rintros ⟨x, Hx⟩,
   induction Hx,
   case monoid.in_closure.basic : y Hy 
   { rcases Hy with ⟨Hya, Hyb⟩,
-    { existsi binv_Rab,
+    { existsi (ainv_Rab * binv_Rab),
       apply quotient.sound; use [1, one_powers_b']; simp,
-      apply quotient.sound; use [1, one_powers_a]; simp, },
-    { cases Hy,
-      { existsi ainv_Rab,
-        apply quotient.sound; use [1, one_powers_b']; simp,
-        apply quotient.sound; use [1, one_powers_a]; simp,
-        rw Hy, simp, },
-      { cases Hy, } } },
+      apply quotient.sound; use [1, one_powers_a]; simp,
+      rw Hy; simp, },
+    { cases Hy, } },
   case monoid.in_closure.one
   { existsi one_Rab,
     simp, rw is_ring_hom_h.map_one, },
@@ -234,7 +208,7 @@ end
 
 -- Denoms.
 
-lemma loc_has_denom : localization_alt.has_denom (monoid.closure {a, b}) h :=
+lemma loc_has_denom : localization_alt.has_denom (monoid.closure {a * b}) h :=
 begin
   intros x,
   refine quotient.induction_on x _,
@@ -245,24 +219,32 @@ begin
   rcases xdenRab with ⟨w, Hw⟩,
   have Hb := (elem_powers_b' w).1 Hw,
   rcases Hb with ⟨z, Hz, Hweq⟩,
-  have HySab : y ∈ monoid.closure {a, b} := (powers_closure_two_subset a b) Hy,
-  have HzSab : z ∈ monoid.closure {a, b} := (powers_closure_two_subset' a b) Hz,
-  have HyzSab := closure_mem HySab HzSab,
-  dsimp,
-  use (⟨(y * z), HyzSab⟩, xR),
-  dsimp,
-  apply quotient.sound,
-  dsimp,
-  use [w, Hw],
-  simp,
-  rw Hweq,
-  apply quotient.sound,
-  simp,
-  use [y, Hy],
-  simp,
-  rw mul_assoc y,
-  rw add_right_neg,
-  simp,
+  have Hy' := Hy,
+  rcases Hy with ⟨n, Hy⟩,
+  rcases Hz with ⟨m, Hz⟩,
+  cases (classical.em (n ≤ m)),
+  { have HyzkSab : (a * b)^m ∈ powers (a * b) := ⟨m, rfl⟩,
+    have Habk : (a * b)^m = a^m * b^m := by rw mul_pow,
+    rw powers_closure_eq at HyzkSab,
+    use (⟨(a * b)^m, HyzkSab⟩, xR * a ^ (m - n) ); apply quotient.sound,
+    use [w, Hw]; simp,
+    rw Hweq,
+    apply quotient.sound; simp,
+    use [y, Hy']; simp,
+    rw [←Hy, ←Hz],
+    have H : a ^ n * a ^ (m - n) = a^m,
+      rw [←pow_add, nat.add_sub_of_le],
+      exact h,
+    rw mul_comm xR,
+    rw ←mul_assoc (b^m),
+    rw mul_comm (b^m),
+    rw ←mul_assoc (a^n),
+    rw ←mul_assoc (a^n),
+    rw H,
+    rw Habk,
+    rw add_left_neg,
+    simp, },
+  { sorry }
 end
 
 -- Kernel is monoid annihilator.
