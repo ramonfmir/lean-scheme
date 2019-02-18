@@ -7,7 +7,7 @@ open topological_space lattice
 
 section covering
 
-parameters {α : Type u} [topological_space α]
+variables {α : Type u} [topological_space α]
 
 -- Open cover.
 

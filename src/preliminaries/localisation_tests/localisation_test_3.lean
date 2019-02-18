@@ -1,6 +1,5 @@
 import ring_theory.localization
 import preliminaries.localisation
---import localisation_test
 import tactic.find
 
 universes u v w
@@ -22,12 +21,8 @@ begin
   exact ((set.mem_compl_iff ↑P 1).2 H1nP),
 end
 
-lemma zero_not_P_set : (0 : ℤ) ∉ P_set :=
-begin
-  intros H0P,
-  have H := P.zero_mem,
-  contradiction,
-end
+instance has_one_P_set : has_one P_set :=
+{ one := 1 }
 
 -- Z(p).
 
@@ -86,12 +81,11 @@ begin
   apply le_antisymm,
   { intros x Hx,
     dunfold localization_alt.submonoid_ann,
+    dunfold localization_alt.ann_aux,
     unfold localization_alt.ker at *,
     unfold localization_alt.ideal.mk at *,
-    dunfold localization_alt.ann_aux,
     unfold set.range,
-    have Hx : x ∈ {x : ℤ | f x = 0} := Hx,
-    have Hxf0 : f x = 0 := by apply_assumption,
+    have Hxf0 : f x = 0 := Hx,
     have Hx0 : x = 0,
       rcases (quotient.exact Hxf0) with ⟨z, Hz, Hxz⟩,
       simp at Hxz,
@@ -105,7 +99,7 @@ begin
       { split,
         { left, apply_assumption, },
         { refl, } } },
-  { exact localization_alt.inverts_ker P_set f loc_inverts, }
+  { exact localization_alt.inverts_ker P_set f Zp_inverts, }
 end
 
 lemma Zp_is_local : localization_alt.is_localization P_set f :=
@@ -124,7 +118,25 @@ instance is_ring_hom_g : is_ring_hom g :=
 
 -- Z(p) --> Z/p
 
-def h : Zp → ZpZ := sorry
+@[reducible] noncomputable def h' : Zp → ℤ := λ x, (quotient.out x).1
+
+instance is_ring_hom_h' : is_ring_hom h' :=
+{ map_one := 
+    begin
+      suffices Hsuff : ∀ {x : Zp}, x = 1 → h' x = 1,
+        apply Hsuff,
+        refl,
+      intros x,
+      refine quotient.induction_on x _,
+      rintros ab Hab,
+      have Ha := quotient.exact Hab,
+      let one : ℤ × P_set := (1, ⟨1, one_P_set⟩),
+      have Hloc : @localization.r ℤ _ P_set _ ab one := Ha,
+      let Hprop := λ t, ((ab.2 : Zp) * one.1 - one.2 * ab.1) * (t : ℤ) = 0,
+      --have H : ∃ t ∈ P_set, Hprop t := Hloc, 
+    end }
+
+def h : Zp → ZpZ :=  sorry
 
 
 end loc_test_3

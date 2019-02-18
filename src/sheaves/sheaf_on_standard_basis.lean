@@ -16,8 +16,9 @@
 -- -/
 
 import preliminaries.opens
-import preliminaries.covering
+import preliminaries.covering_on_standard_basis
 import topology.basic
+import sheaves.presheaf
 import sheaves.stalk_on_basis
 import sheaves.presheaf_of_rings_on_basis
 
@@ -27,194 +28,149 @@ open topological_space
 
 section sheaf_on_standard_basis
 
-variables {α : Type u} [topological_space α] 
-variables {B : set (opens α )} {HB : opens.is_basis B}
+parameters {α : Type u} [topological_space α] 
+parameters {B : set (opens α)} [HB : opens.is_basis B]
 
 -- Standard basis. TODO: Move somewhere else?
 
 def opens.univ : opens α := ⟨set.univ, is_open_univ⟩
-variables (Bstd : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ V ∈ B)
-
-variables (F : presheaf_on_basis α HB) (x : α)
+parameters {Bstd : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ V ∈ B}
 
 section properties
 
 -- Compactness definition.
 -- TODO : Finite subcover stuff can be moved to preliminaries.
 
-definition basis_is_compact : Prop := 
-∀ (U) (OC : covering U) (BOC : ∀ i, OC.Uis i ∈ B),
-∃ γ (Hfin : fintype γ) (f : γ → OC.γ), (⋃ (OC.Uis ∘ f)) = U
+def basis_is_compact : Prop := 
+∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U),
+∃ (γ : Type u) (Hfin : fintype γ) (f : γ → OC.γ), (⋃ (OC.Uis ∘ f)) = U
 
 end properties
 
+section sheaf_condition
+
+-- Restriction map from U to U ∩ V.
+
+@[reducible] def res_to_inter_left' (F : presheaf_on_basis α HB) {U V} (BU : U ∈ B) (BV : V ∈ B) 
+: (F BU) → (F (Bstd.2 BU BV)) :=
+F.res BU (Bstd.2 BU BV) (set.inter_subset_left U V)
+
+-- Restriction map from V to U ∩ V.
+
+@[reducible] def res_to_inter_right' (F : presheaf_on_basis α HB) {U V} (BU : U ∈ B) (BV : V ∈ B) 
+: (F BV) → (F (Bstd.2 BU BV)) :=
+F.res BV (Bstd.2 BU BV) (set.inter_subset_right U V)
+
+-- Sheaf condition.
+
+def locality 
+(F : presheaf_on_basis α HB) {U} (BU : U ∈ B) (OC : covering_standard_basis B U) :=
+∀ (s t : F BU), 
+(∀ i, F.res BU (OC.BUis i) (subset_covering i) s = 
+      F.res BU (OC.BUis i) (subset_covering i) t) → 
+s = t
+
+def gluing 
+(F : presheaf_on_basis α HB) {U} (BU : U ∈ B) (OC : covering_standard_basis B U) :=
+∀ (s : Π i, F (OC.BUis i)),
+(∀ j k, F.res (OC.BUis j) (Bstd.2 (OC.BUis j) (OC.BUis k)) (set.inter_subset_left _ _) (s j) =
+        F.res (OC.BUis k) (Bstd.2 (OC.BUis j) (OC.BUis k)) (set.inter_subset_right _ _) (s k)) → 
+∃ S, ∀ i, F.res BU (OC.BUis i) (subset_covering i) S = s i
+
+def is_sheaf_on_standard_basis (F : presheaf_on_basis α HB) :=
+∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U),
+locality F BU OC ∧ gluing F BU OC
+
+end sheaf_condition
+
+section cofinal_system
+
+def is_sheaf_on_standard_basis_cofinal_system (F : presheaf_on_basis α HB) :=
+∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U) (Hfin : fintype OC.γ),
+locality F BU OC ∧ gluing F BU OC
+
+theorem cofinal_systems_coverings_standard_case
+(F : presheaf_on_basis α HB) 
+(Hcompact : basis_is_compact)
+: is_sheaf_on_standard_basis_cofinal_system F → is_sheaf_on_standard_basis F :=
+begin
+  intros Hcofinal,
+  have Hcofinal' := @Hcofinal,
+  intros U BU OC,
+  rcases (Hcompact BU OC) with ⟨γ, Hfinγ, fγ, Hcov⟩,
+  have BUisfin : ∀ i, ((OC.Uis ∘ fγ) i) ∈ B := λ i, OC.BUis (fγ i),
+  let OCfin : covering_standard_basis B U 
+    := {γ := γ, Uis := OC.Uis ∘ fγ, Hcov := Hcov, BUis := BUisfin},
+  replace Hcofinal := Hcofinal BU OCfin Hfinγ, 
+  rcases Hcofinal with ⟨Hloc, Hglue⟩,
+  split,
+  -- Locality.
+  { intros s t Hres,
+    apply Hloc,
+    intros i,
+    apply Hres,
+  },
+  -- Gluing.
+  { intros s Hinter,
+    let sfin := λ i, (s (fγ i)),
+    have Hinterfin 
+    : ∀ (j k), res_to_inter_left' F _ _ (sfin j) = res_to_inter_right' F _ _ (sfin k) :=
+    λ j k, Hinter (fγ j) (fγ k),
+    have Hglobal := Hglue sfin Hinterfin,
+    rcases Hglobal with ⟨S, HS⟩,
+    existsi S,
+    intros i,
+    let Vjs := λ j, (OCfin.Uis j) ∩ (OC.Uis i),
+    have BVjs : ∀ j, (Vjs j) ∈ B := λ j, Bstd.2 (OCfin.BUis j) (OC.BUis i),
+    have HVjscov : (⋃ Vjs) = OC.Uis i,
+      apply opens.ext,
+      apply set.ext,
+      intros x,
+      split,
+      { intros HxUVjs,
+        rcases HxUVjs with ⟨Vj, HVj, HxVj⟩,
+        rcases HVj with ⟨VjO, ⟨⟨j, HVjO⟩, HVjeq⟩⟩,
+        rw [←HVjeq, ←HVjO] at HxVj,
+        exact HxVj.2, },
+      { intros HxUi,
+        have HxU : x ∈ U := OC.Hcov ▸ (opens_supr_mem OC.Uis i x HxUi),
+        rw ←Hcov at HxU,
+        rcases HxU with ⟨Uj, HUj, HxUj⟩,
+        rcases HUj with ⟨UjO, ⟨⟨j, HUjO⟩, HUjeq⟩⟩,
+        use [(Vjs j).1, ⟨(Vjs j), ⟨⟨j, rfl⟩, rfl⟩⟩],
+        rw [←HUjeq, ←HUjO] at HxUj,
+        exact ⟨HxUj, HxUi⟩,
+      },
+    have HVjUVjs : ∀ j, Vjs j ⊆ OC.Uis i 
+      := HVjscov ▸ λ j x Hx, opens_supr_mem Vjs j x Hx,
+    have HVjU : ∀ j, Vjs j ⊆ U
+      := λ j, set.subset.trans (HVjUVjs j) (subset_covering i),
+    -- Cover Ui.
+    let Ui : opens α := OC.Uis i,
+    let BUi : Ui ∈ B := OC.BUis i,
+    let OCfin' : covering_standard_basis B (OC.Uis i) 
+      := {γ := γ, Uis := Vjs, Hcov := HVjscov, BUis := BVjs},
+    have Hglue' := (@Hcofinal' Ui BUi OCfin' Hfinγ).2,
+    have Hglue'' := Hglue' (λ j, F.res BU (BVjs j) (HVjU j) S),
+    have Hres' : ∀ (j k),
+      res_to_inter_left' F (BVjs j) (BVjs k) (F.res BU (BVjs j) (HVjU j) S) = 
+      res_to_inter_right' F (BVjs j) (BVjs k) (F.res BU (BVjs k) (HVjU k) S),
+      intros j k,
+      let Vj := Vjs j,
+      let Vk := Vjs k,
+      let Vjk := Vj ∩ Vk,
+      have BVj := BVjs j,
+      have BVk := BVjs k,
+      have BVjk := Bstd.2 BVj BVk,
+      -- show ((F.res BVj BVjk (set.inter_subset_left _ _)) ∘ (FPTB.res BU BVj (HVjU j))) S = 
+      --      ((F.res BVk BVjk (set.inter_subset_right _ _)) ∘ (FPTB.res BU BVk (HVjU k))) S,
+      -- rw ←(FPTB.Hcomp U Vj1 Vj12 BU BVj1 BVj12 _ _),
+      -- rw ←(FPTB.Hcomp U Vj2 Vj12 BU BVj2 BVj12 _ _),
+      sorry,
+    sorry,
+  },
+end
+
+end cofinal_system
+
 end sheaf_on_standard_basis
-
--- import tag009J 
-
--- universe u
--- -- A "standard" basis -- I just mean intersection of two basic opens is basic open.
--- -- Makes the sheaf axiom easier, and is satisfied in the case of Spec of a ring.
--- -- Below is the statement of the sheaf axiom for a given open cover in this case. 
--- definition sheaf_property_for_standard_basis 
---   {X : Type u} [T : topological_space X] 
---   {B : set (set X)} 
---   (HB : topological_space.is_topological_basis B)
---   (FPTB : presheaf_of_types_on_basis HB)
---   (Hstandard : ∀ {U V : set X}, B U → B V → B (U ∩ V))
---   (U : set X)
---   (BU : B U)
---   (γ : Type u)
---   (Ui : γ → set X)
---   (BUi : ∀ i : γ, B (Ui i))
---   (Hcover: (⋃ (i : γ), (Ui i)) = U) : Prop := 
---   ∀ si : Π (i : γ), FPTB.F (BUi i), 
---   (∀ i j : γ, FPTB.res (BUi i) (Hstandard (BUi i) (BUi j) : B (Ui i ∩ Ui j)) (set.inter_subset_left _ _) (si i) = 
---               FPTB.res (BUi j) (Hstandard (BUi i) (BUi j) : B (Ui i ∩ Ui j)) (set.inter_subset_right _ _) (si j))
---   → ∃! s : FPTB.F BU, ∀ i : γ, FPTB.res BU (BUi i) (Hcover ▸ (set.subset_Union Ui i)) s = si i 
-
--- definition basis_is_compact 
---   {X : Type u} [T : topological_space X] 
---   {B : set (set X)} 
---   (HB : topological_space.is_topological_basis B) : Prop :=
---   ∀ U : set X, B U →
---     ∀ β : Type u, ∀ Ui : β → set X,
---     (∀ i : β, B (Ui i)) → 
---     (⋃ (i : β), Ui i) = U →
---     ∃ γ : Type u, ∃ Hfinite : fintype γ,
---     ∃ f : γ → β, 
---     (⋃ (j : γ), Ui (f j)) = U 
-
-
--- definition sheaf_for_standard_cofinal_system  {X : Type u} [T : topological_space X] 
---   {B : set (set X)} 
---   (HB : topological_space.is_topological_basis B)
---   (FPTB : presheaf_of_types_on_basis HB)
---   (Hstandard : ∀ U V : set X, B U → B V → B (U ∩ V))
---   -- cofinal system is finite covers
---   (HBcompact: basis_is_compact HB)
---   := 
---   (∀ U : set X, ∀ BU : B U,
---   ∀ γ : Type u, fintype γ → -- note fintype here
---   ∀ Ui : γ → set X,
---   ∀ BUi :  ∀ i : γ, B (Ui i),
---   ∀ Hcover: (⋃ (i : γ), (Ui i)) = U,
---   sheaf_property_for_standard_basis HB FPTB Hstandard U BU γ Ui BUi Hcover)
-
--- theorem lemma_cofinal_systems_coverings_standard_case 
---   {X : Type u} [T : topological_space X] 
---   {B : set (set X)} 
---   (HB : topological_space.is_topological_basis B)
---   (FPTB : presheaf_of_types_on_basis HB)
---   (Hstandard : ∀ U V : set X, B U → B V → B (U ∩ V))
---   -- cofinal system is finite covers
---   (HBcompact: basis_is_compact HB)
---   : sheaf_for_standard_cofinal_system HB FPTB Hstandard HBcompact → 
--- -- that line above is shorthand for:
--- --  (∀ U : set X, ∀ BU : B U,
--- --  ∀ γ : Type u, fintype γ → -- note fintype here
--- --  ∀ Ui : γ → set X,
--- --  ∀ BUi :  ∀ i : γ, B (Ui i),
--- --  ∀ Hcover: (⋃ (i : γ), (Ui i)) = U,
--- --  sheaf_property_for_standard_basis HB FPTB Hstandard U BU γ Ui BUi Hcover)
--- --  → 
---   (∀ U : set X, ∀ BU : B U,
---   ∀ γ : Type u, 
---   ∀ Ui : γ → set X,
---   ∀ BUi :  ∀ i : γ, B (Ui i),
---   ∀ Hcover: (⋃ (i : γ), (Ui i)) = U,  
---   sheaf_property_for_standard_basis HB FPTB Hstandard U BU γ Ui BUi Hcover)
---   := 
--- begin
---   intro Hfinite,
---   intros U BU β Ui BUi Hcover,
---   intros si Hsiglue,
---   -- Hcover has a finite subcover
---   cases HBcompact U BU β Ui BUi Hcover with γ Hγ,
---   cases Hγ with HFinγ Hf,
---   cases Hf with f Hfincover,
---   have Huniques := Hfinite U BU γ HFinγ (Ui ∘ f) (λ j, BUi (f j)) Hfincover
---     (λ i, si (f i)) (λ i j, Hsiglue (f i) (f j)),
---   cases Huniques with s Hs,
---   existsi s,
---   split,
---   { intro i,
---     let Vj : γ → set X := λ j, Ui (f j) ∩ Ui i,
---     have BVj : ∀ j : γ, B (Vj j) := 
---       λ j, Hstandard (Ui (f j)) (Ui i) (BUi (f j)) (BUi i),
---     have  HVcover : (⋃ (j : γ), Vj j) = Ui i,
---     { apply set.ext,intro x,split,
---       { intro HUn,
---         cases HUn with Uk HUk,
---         cases HUk with Ul HUl,
---         cases Ul with j Hj,
---         rw Hj at HUl,
---         exact HUl.2
---       },
---       { intro Hx,
---         have Hx2 : x ∈ U,
---           rw ←Hcover,exact ⟨(Ui i),⟨i,rfl⟩,Hx⟩,
---         rw ←Hfincover at Hx2,
---         cases Hx2 with Vjj Hx3,
---         cases Hx3 with Hx4 Vjjx,
---         cases Hx4 with j Hj,
---         existsi (Vj j),
---         constructor,existsi j,refl,
---         split,rw Hj at Vjjx,exact Vjjx,
---         exact Hx
---       }
---     },
---     --let x, show x = _,
---     have HV := Hfinite (Ui i) (BUi i) γ HFinγ Vj BVj HVcover
---       (λ j, FPTB.res BU (BVj j) 
---       (set.subset.trans (set.inter_subset_right _ _) 
---         (Hcover ▸ (set.subset_Union Ui i))) s) _,swap,
---     { intros j1 j2,
---       let Vj1 := Vj j1,
---       let Vj2 := Vj j2,
---       let Vj12 := Vj j1 ∩ Vj j2,
---       have BVj1 := BVj j1,
---       have BVj2 := BVj j2,
---       have BVj12 := Hstandard _ _ BVj1 BVj2,
---       show ((FPTB.res BVj1 BVj12 _) ∘ (FPTB.res BU BVj1 _)) s = 
---            ((FPTB.res BVj2 BVj12 _) ∘ (FPTB.res BU BVj2 _)) s,
---       rw ←(FPTB.Hcomp U Vj1 Vj12 BU BVj1 BVj12 _ _),
---       rw ←(FPTB.Hcomp U Vj2 Vj12 BU BVj2 BVj12 _ _),
---     },
---     -- it's "exact HV" -- a fact about Ui i
---     cases HV with s2 Hs2,
---     refine @eq.trans _ _ s2 _ _ _,
---     { -- goal is that restriction of s to Ui i is s2
---       apply Hs2.2,
---       intro j, -- goal is that res from U to Ui i to Vj j.
---       show ((FPTB.res _ _ _) ∘ (FPTB.res BU _ _)) s 
---         = FPTB.res BU _ _ s,
---       rw ←(FPTB.Hcomp U (Ui i) (Vj j) BU _ _ _ _),
---     },
---     { -- goal is s2 = si i on Ui i
---       apply eq.symm,
---       apply Hs2.2,
---       intro j, 
---       -- goal is that si i restricted to Vj j equals s restricted to Vj j
---       -- Hs.1 is the fact that 
---       -- for all j, restriction of
---       -- s to Ui (f j) is si (f j).
---       -- now restrict to Vj j
---       -- and deduce res of s to Vj j equals res of si (f j) to Vj j
---       -- now Hsiglue says that on Vj j = Ui (f j) ∩ Ui i
---       -- si (f j) and si i are equal.
---       -- it says res si (f j) to Ui (f j) cap Ui i = res si i
---       rw ←(Hsiglue), -- that was easy!
---       -- goal now is that si (f j) = s on Ui (f j) cap Ui i
---       have Htemp : si (f j) = _ := eq.symm (Hs.1 j),
---       rw Htemp,
---       show ((FPTB.res _ _ _) ∘ (FPTB.res BU _ _)) s = FPTB.res BU _ _ s,
---       rw ←(FPTB.Hcomp U _ _ BU _ _ _ _),
---     },
---   },
---   { intros s' Hs',
---     apply Hs.2,
---     intro i,
---     exact Hs' (f i)
---   }
--- end
