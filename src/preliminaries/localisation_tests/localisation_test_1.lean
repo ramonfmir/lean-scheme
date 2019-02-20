@@ -5,6 +5,8 @@ import preliminaries.localisation
 
 universes u v w
 
+open localization_alt
+
 -- Define localisation on a set of generators.
 
 section localization_on_generators 
@@ -16,8 +18,8 @@ parameters (G : set A) (f : A → B) [is_ring_hom f]
 def S : set A := monoid.closure G
 instance S_submonoid : is_submonoid S := monoid.closure.is_submonoid G
 
-def is_localization' := localization_alt.is_localization S f
-def is_localization_data' := localization_alt.is_localization_data S f
+def is_localization' := is_localization S f
+def is_localization_data' := is_localization_data S f
 
 end localization_on_generators
 
@@ -30,12 +32,11 @@ parameters (a b : R)
 
 -- I need this because localization on generators is defined using monoid.closure.
 
-lemma powers_closure_eq : ∀ x : R, powers x = monoid.closure {x} :=
+lemma powers_closure_eq : ∀ x : R, powers x = S {x} :=
 begin
   intros x,
   apply set.eq_of_subset_of_subset,
-  { rintros y ⟨n, Hy⟩ ,
-    unfold monoid.closure,
+  { rintros y ⟨n, Hy⟩,
     revert x y,
     induction n with n Hn,
     { intros x y Hx,
@@ -61,8 +62,7 @@ begin
     case monoid.in_closure.mul : x y HxS HyS Hx Hy
     { rcases Hx with ⟨n, Hx⟩,
       rcases Hy with ⟨m, Hy⟩,
-      rw [←Hx, ←Hy],
-      rw ←pow_add,
+      rw [←Hx, ←Hy, ←pow_add],
       exact ⟨n + m, by simp⟩, } }
 end
 
@@ -157,7 +157,7 @@ def one_Rab : Rab := 1
 def binv_Rab : Rab := ⟦⟨⟦⟨1, 1, one_powers_a⟩⟧, b1, ⟨1, by simp⟩⟩⟧
 def ainv_Rab : Rab := ⟦⟨⟦⟨1, a, ⟨1, by simp⟩⟩⟧, 1, one_powers_b1⟩⟧
 
-lemma loc_inverts : localization_alt.inverts (S {a * b}) h :=
+lemma loc_inverts : inverts (S {a * b}) h :=
 begin
   rintros ⟨x, Hx⟩,
   induction Hx,
@@ -224,7 +224,7 @@ begin
     rw nat.sub_add_cancel Hff, }
 end
 
-lemma loc_has_denom : localization_alt.has_denom (monoid.closure {a * b}) h :=
+lemma loc_has_denom : has_denom (S {a * b}) h :=
 begin
   intros x,
   refine quotient.induction_on x _,
@@ -256,15 +256,15 @@ end
 
 -- Kernel is monoid annihilator.
 
-lemma loc_ker_ann_sub : localization_alt.ker h ≤ localization_alt.submonoid_ann (S {a * b}) :=
+lemma loc_ker_ann_sub : ker h ≤ submonoid_ann (S {a * b}) :=
 λ x Hx,
 begin
-  unfold localization_alt.submonoid_ann,
-  unfold localization_alt.ker at *,
-  unfold localization_alt.ideal.mk at *,
+  unfold submonoid_ann,
+  unfold ker at *,
+  unfold ideal.mk at *,
   have Hx : x ∈ {x : R | h x = 0} := Hx,
   have Hx0 : h x = 0 := by apply_assumption,
-  dunfold localization_alt.ann_aux,
+  dunfold ann_aux,
   unfold set.range,
   simp,
   show ∃ (c z : R), z ∈ S {a * b} ∧ c * z = 0 ∧ c = x,
@@ -283,25 +283,18 @@ begin
     rcases Hz with ⟨n, Hz⟩,
     existsi (z * y * homogenizer n m),
     split,
-    { rw [←Hy, ←Hz],
-      rw homogenizer_mul n m,
-      rw ←mul_pow,
-      unfold S,
-      rw ←powers_closure_eq,
+    { rw [←Hy, ←Hz, homogenizer_mul n m, ←mul_pow, ←powers_closure_eq],
       exact ⟨max n m, rfl⟩, },
     { split; try { refl },
-      rw ←mul_assoc,
-      rw mul_comm z,
-      rw ←mul_assoc,
-      rw Hxyz0,
+      rw [←mul_assoc, mul_comm z, ←mul_assoc, Hxyz0],
       simp, }
 end
 
-lemma loc_ker_ann : localization_alt.ker h = localization_alt.submonoid_ann (S {a * b}) :=
+lemma loc_ker_ann : ker h = submonoid_ann (S {a * b}) :=
 begin
   apply le_antisymm,
   { exact loc_ker_ann_sub, },
-  { exact localization_alt.inverts_ker (S {a * b}) h loc_inverts, }
+  { exact inverts_ker (S {a * b}) h loc_inverts, }
 end
 
 -- R[1/a][1/b] = R[1/ab].
