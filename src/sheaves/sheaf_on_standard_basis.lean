@@ -108,11 +108,10 @@ begin
   },
   -- Gluing.
   { intros s Hinter,
-    let sfin := λ i, (s (fγ i)),
     have Hinterfin 
-    : ∀ (j k), res_to_inter_left F _ _ (sfin j) = res_to_inter_right F _ _ (sfin k) :=
+    : ∀ (j k), res_to_inter_left F _ _ (s (fγ j)) = res_to_inter_right F _ _ (s (fγ k)) :=
     λ j k, Hinter (fγ j) (fγ k),
-    have Hglobal := Hglue sfin Hinterfin,
+    have Hglobal := Hglue (λ i, s (fγ i)) Hinterfin,
     rcases Hglobal with ⟨S, HS⟩,
     existsi S,
     intros i,
@@ -163,11 +162,16 @@ begin
       rw ←F.Hcomp',
       refl,
     },
-    { apply Hloc',
+    { apply eq.symm,
+      apply Hloc',
       intro j,
+      simp at Hinter,
+      erw ←Hinter,
       rw HS',
-      simp,
-      sorry,
+      have Hsfj : s (fγ j) = _ := (HS j).symm,
+      rw Hsfj,
+      rw ←F.Hcomp',
+      refl,
     }
   },
 end
