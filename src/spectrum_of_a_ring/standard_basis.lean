@@ -17,11 +17,11 @@ local attribute [instance] classical.prop_decidable
 
 variables (R : Type u) [comm_ring R]
 
-definition standard_basis  
+definition D_fs
 := {U : set (Spec R) | ∃ f : R, U = Spec.D'(f)}
 
-lemma D_f_form_basis : 
-  topological_space.is_topological_basis (standard_basis R) := 
+lemma D_fs_basis : 
+  topological_space.is_topological_basis (D_fs R) := 
 begin
   refine topological_space.is_topological_basis_of_open_of_nhds _ _,
   { intros U HU,
@@ -55,4 +55,10 @@ begin
         simp [Spec.D'] at Hy,
         apply Hy,
         exact HyE HfE, } } }
+end
+
+lemma D_fs_standard_basis : 
+∀ {U V}, U ∈ (D_fs R) → V ∈ (D_fs R) → U ∩ V ∈ (D_fs R) :=
+begin
+  intros U V HU HV,
 end
