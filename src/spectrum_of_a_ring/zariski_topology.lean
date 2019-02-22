@@ -6,8 +6,6 @@ import topology.basic
 import ring_theory.ideals
 import group_theory.submonoid
 
-noncomputable theory
-
 local attribute [instance] classical.prop_decidable
 
 universe u
@@ -46,6 +44,8 @@ parameters (α : Type u) [comm_ring α]
 -- Definition.
 
 def Spec := {P : ideal α // ideal.is_prime P}
+
+parameter {α}
 
 def Spec.V : set α → set Spec := λ E, {P | E ⊆ P.val}
 
@@ -129,6 +129,8 @@ begin
     exact HI HxEB, }
 end⟩⟩
 
+parameter (α)
+
 instance zariski_topology : topological_space Spec :=
 topological_space.of_closed Spec.closed Spec.H1 Spec.H2 Spec.H3
 
@@ -138,22 +140,18 @@ instance spec_t0 : t0_space Spec :=
 begin
   constructor,
   rintros ⟨I, PI⟩ ⟨J, PJ⟩ Hneq,
-  -- this is very ugly...
-  have HIJneq : ¬ (I = J),
-    intros H,
-    apply Hneq,
-    exact (subtype.eq H),
-  have HIJsetneq : ¬ (I.carrier = J.carrier),
+  simp at Hneq,
+  have HIJneq : ¬ (I.carrier = J.carrier),
     intros H,
     have Hlift : ↑I = ↑J := H,
-    apply HIJneq,
+    apply Hneq,
     apply ideal.ext,
     unfold has_mem.mem,
     rw Hlift,
     simp,
-  rw set.ext_iff at HIJsetneq,
-  rw not_forall at HIJsetneq,
-  rcases HIJsetneq with ⟨x, Hx⟩,
+  rw set.ext_iff at HIJneq,
+  rw not_forall at HIJneq,
+  rcases HIJneq with ⟨x, Hx⟩,
   use [Spec.D {x}],
   split,
   { use {x},
