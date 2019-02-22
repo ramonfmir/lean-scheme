@@ -132,5 +132,64 @@ end⟩⟩
 instance zariski_topology : topological_space Spec :=
 topological_space.of_closed Spec.closed Spec.H1 Spec.H2 Spec.H3
 
+section spec_t0_space
+
+instance spec_t0 : t0_space Spec :=
+begin
+  constructor,
+  rintros ⟨I, PI⟩ ⟨J, PJ⟩ Hneq,
+  -- this is very ugly...
+  have HIJneq : ¬ (I = J),
+    intros H,
+    apply Hneq,
+    exact (subtype.eq H),
+  have HIJsetneq : ¬ (I.carrier = J.carrier),
+    intros H,
+    have Hlift : ↑I = ↑J := H,
+    apply HIJneq,
+    apply ideal.ext,
+    unfold has_mem.mem,
+    rw Hlift,
+    simp,
+  rw set.ext_iff at HIJsetneq,
+  rw not_forall at HIJsetneq,
+  rcases HIJsetneq with ⟨x, Hx⟩,
+  use [Spec.D {x}],
+  split,
+  { use {x},
+    simp [Spec.D], },
+  { rw iff_def at Hx,
+    rw not_and_distrib at Hx,
+    repeat { rw not_imp at Hx, },
+    cases Hx,
+    { cases Hx with HxI HnxJ,
+      right,
+      split,
+      { intros H,
+        apply HnxJ,
+        apply H,
+        exact set.mem_singleton x, },
+      { intros H,
+        apply H,
+        intros z Hz,
+        rw set.mem_singleton_iff at Hz,
+        rw Hz,
+        exact HxI, } },
+    { cases Hx with HxJ HnxI,
+      left,
+      split,
+      { intros H,
+        apply HnxI,
+        apply H,
+        exact set.mem_singleton x, },
+      { intros H,
+        apply H,
+        intros z Hz,
+        rw set.mem_singleton_iff at Hz,
+        rw Hz,
+        exact HxJ, } } }
+end
+
+end spec_t0_space
 
 end spec_topological_space

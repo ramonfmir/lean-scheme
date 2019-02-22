@@ -141,11 +141,11 @@ begin
       := HVjscov ▸ λ j x Hx, opens_supr_mem Vjs j x Hx,
     have HVjU : ∀ j, Vjs j ⊆ U
       := λ j, set.subset.trans (HVjUVjs j) (subset_covering i),
-    -- Cover Ui.
     let Ui : opens α := OC.Uis i,
     let BUi : Ui ∈ B := OC.BUis i,
     let OCfin' : covering_standard_basis B Ui 
       := {γ := γ, Uis := Vjs, Hcov := HVjscov, BUis := BVjs},
+    have Hloc' := (@Hcofinal' Ui BUi OCfin' Hfinγ).1,
     have Hglue' := (@Hcofinal' Ui BUi OCfin' Hfinγ).2,
     have Hglue'' := Hglue' (λ j, F.res BU (BVjs j) (HVjU j) S),
     have Hres' : ∀ (j k),
@@ -157,9 +157,17 @@ begin
       rw ←F.Hcomp',
     rcases (Hglue'' Hres') with ⟨S', HS'⟩,
     refine @eq.trans _ _ S' _ _ _,
-    { sorry
+    { apply Hloc',
+      intro j,
+      rw HS',
+      rw ←F.Hcomp',
+      refl,
     },
-    { sorry
+    { apply Hloc',
+      intro j,
+      rw HS',
+      simp,
+      sorry,
     }
   },
 end
