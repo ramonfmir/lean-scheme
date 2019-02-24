@@ -26,22 +26,57 @@ begin
   apply_instance,
 end
 
-#print notation
-
 instance find_maximal_ideal.inhabited : inhabited {S : ideal α // P ⊆ S} :=
 ⟨⟨P, set.subset.refl P⟩⟩
+
+#print set.coe_nonempty_iff_ne_empty
+#print classical.inhabited_of_nonempty
+#check ideal.add_mem
 
 private theorem find_maximal_ideal.aux :
   ∃ (M : {S : ideal α // P ⊆ S}), ∀ x, M ≤ x → x = M :=
 begin
   apply zorn.zorn_partial_order,
   intros c Hc,
+  cases (classical.em (c = ∅)) with Hce Hce,
+  { use ⟨P, set.subset.refl P⟩,
+    rw Hce,
+    intros a Ha,
+    cases Ha, },
+  replace Hce := set.coe_nonempty_iff_ne_empty.2 Hce,
+  replace Hce := classical.exists_true_of_nonempty Hce,
+  replace Hce := set_coe.exists.1 Hce,
+  rcases Hce with ⟨Q, HQ, H⟩; clear H,
   use [{y | ∃ S ∈ (subtype.val '' c), y ∈ S}],
   { -- zero
-  },
+    use Q,
+    simp, 
+    exact ⟨Q.2, HQ⟩, },
   { -- add 
+    intros x y Hx Hy,
+    rcases Hx with ⟨I, ⟨HI, ⟨HIc, HIval⟩⟩, HxI⟩,
+    rcases Hy with ⟨J, ⟨HJ, ⟨HJc, HJval⟩⟩, HyJ⟩,
+    cases (classical.em (HI = HJ)),
+    { use I, 
+      simp,
+      rw ←HIval,
+      use HI.2, 
+      simp,
+      use HIc,
+      rw HIval,
+      rw [←HJval, ←h, HIval] at HyJ,
+      exact (ideal.add_mem I HxI HyJ), },
+    have Hzn := Hc HI HIc HJ HJc h,
+    cases Hzn,
+    { use J,
+      simp,
+      rw ←HJval, 
+      use HJ.2,
+      simp,
+      use HJc, },
+    {  }
   },
-  { -- mul 
+  { -- smul 
   },
   { intros x Hx,
     have HS : ∀ {S}, S ∈ c → x ∈ (subtype.val S),
