@@ -104,8 +104,7 @@ begin
   { intros s t Hres,
     apply Hloc,
     intros i,
-    apply Hres,
-  },
+    apply Hres, },
   -- Gluing.
   { intros s Hinter,
     have Hinterfin 
@@ -134,8 +133,7 @@ begin
         rcases HUj with ⟨UjO, ⟨⟨j, HUjO⟩, HUjeq⟩⟩,
         use [(Vjs j).1, ⟨(Vjs j), ⟨⟨j, rfl⟩, rfl⟩⟩],
         rw [←HUjeq, ←HUjO] at HxUj,
-        exact ⟨HxUj, HxUi⟩,
-      },
+        exact ⟨HxUj, HxUi⟩, },
     have HVjUVjs : ∀ j, Vjs j ⊆ OC.Uis i 
       := HVjscov ▸ λ j x Hx, opens_supr_mem Vjs j x Hx,
     have HVjU : ∀ j, Vjs j ⊆ U
@@ -160,8 +158,7 @@ begin
       intro j,
       rw HS',
       rw ←F.Hcomp',
-      refl,
-    },
+      refl, },
     { apply eq.symm,
       apply Hloc',
       intro j,
@@ -171,9 +168,7 @@ begin
       have Hsfj : s (fγ j) = _ := (HS j).symm,
       rw Hsfj,
       rw ←F.Hcomp',
-      refl,
-    }
-  },
+      refl, }, },
 end
 
 end cofinal_system
