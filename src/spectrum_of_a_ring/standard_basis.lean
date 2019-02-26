@@ -10,6 +10,7 @@ The sets D(f) are open and form a basis for this topology (on Spec(R))
 
 import topology.basic
 import spectrum_of_a_ring.zariski_topology
+import spectrum_of_a_ring.properties
 
 universe u 
 
@@ -17,8 +18,7 @@ local attribute [instance] classical.prop_decidable
 
 variables (R : Type u) [comm_ring R]
 
-definition D_fs
-:= {U : set (Spec R) | ∃ f : R, U = Spec.D'(f)}
+definition D_fs := {U : set (Spec R) | ∃ f : R, U = Spec.D'(f)}
 
 lemma D_fs_basis : 
   topological_space.is_topological_basis (D_fs R) := 
@@ -29,8 +29,7 @@ begin
     use {f},
     rw HUf,
     erw set.compl_compl,
-    simp [Spec.V', Spec.V],
-  },
+    simp [Spec.V', Spec.V], },
   { intros x U HxU OU,
     cases OU with E HVE,
     have HDE : U = -Spec.V E := by simp [HVE],
@@ -61,4 +60,9 @@ lemma D_fs_standard_basis :
 ∀ {U V}, U ∈ (D_fs R) → V ∈ (D_fs R) → U ∩ V ∈ (D_fs R) :=
 begin
   intros U V HU HV,
+  cases HU with fU HU,
+  cases HV with fV HV,
+  rw [HU, HV],
+  rw ←tag00E0.lemma15, -- Not the best name.
+  use [fU * fV],
 end
