@@ -1,11 +1,7 @@
 /-
-This is a section.
-It contains 00DZ, 00E0, 00E1 and 00E2 and 00E3 and 00E4 and 00E5 and 00E6 and 00E7 and 00E8 and 04PM
+  Standard opens form basis.
 
-It also contains the following useful claim, just under Lemma 10.16.2 (tag 00E0):
-
-The sets D(f) are open and form a basis for this topology (on Spec(R))
-
+  https://stacks.math.columbia.edu/tag/04PM
 -/
 
 import topology.basic

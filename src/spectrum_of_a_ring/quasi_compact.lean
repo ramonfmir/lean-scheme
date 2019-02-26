@@ -1,57 +1,22 @@
 /-
-Lemma 10.16.10. Let R be a ring. The space Spec(R) is quasi-compact.
+  Spec(R) is quasi-compact.
 
-Proof. It suffices to prove that any covering of Spec(R) by standard opens can be refined by a finite covering.
- Thus suppose that Spec(R)=∪D(fi) for a set of elements {fi}i∈I of R. This means that ∩V(fi)=∅. According to 
- Lemma 10.16.2 (00E0) this means that V({fi})=∅. According to the same lemma this means that the ideal generated
-  by the fi is the unit ideal of R. This means that we can write 1 as a finite sum: 1=∑i∈Jrifi with J⊂I finite.
-   And then it follows that Spec(R)=∪i∈JD(fi). 
+  https://stacks.math.columbia.edu/tag/00E8
 -/
 
-import Kenny_comm_alg.Zariski algebra.module Kenny_comm_alg.maximal_ideal tag00DY tag00E0
-import tag009L -- standard basis for Spec(R)
+import spectrum_of_a_ring.standard_basis
+
 universe u
 
 local attribute [instance] classical.prop_decidable
 
 -- this next lemma will go to mathlib one day
-lemma mem_subset_basis_of_mem_open {X : Type u} [T : topological_space X] {b : set (set X)}
-  (hb : topological_space.is_topological_basis b) {a:X} (u : set X) (au : a ∈ u)
-  (ou : _root_.is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
-(topological_space.mem_nhds_of_is_topological_basis hb).1 $ mem_nhds_sets ou au
 
+-- lemma mem_subset_basis_of_mem_open {X : Type u} [T : topological_space X] {b : set (set X)}
+--   (hb : topological_space.is_topological_basis b) {a:X} (u : set X) (au : a ∈ u)
+--   (ou : _root_.is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
+-- (topological_space.mem_nhds_of_is_topological_basis hb).1 $ mem_nhds_sets ou au
 
--- this was warm-up : I never use it
-/-
-lemma cover_open_by_basis {X : Type u} [T : topological_space X] {U : set X} (HU : T.is_open U)
-(B : set (set X)) (HB : topological_space.is_topological_basis B) 
-  : ∃ (g : {x : X // U x} → set X), (∀ j, B (g j)) ∧ set.Union g = U :=
-begin
-  existsi λ (xUx : {x : X // U x}), classical.some (mem_subset_basis_of_mem_open HB U xUx.property HU),
-  split,
-  { intro xUx,
-    exact classical.some (classical.some_spec (mem_subset_basis_of_mem_open HB U xUx.property HU)),
-  },
-  apply set.subset.antisymm,
-  { intros x Hx, 
-    cases Hx with V HV,
-    cases HV with HV Hx,
-    cases HV with xUx HV,
-    have H := classical.some_spec (classical.some_spec (mem_subset_basis_of_mem_open HB U xUx.property HU)),
-    have H2 := H.2,
-    rw (eq.symm HV : classical.some (mem_subset_basis_of_mem_open HB U (xUx.property) HU) = V) at H2,
-    exact H2 Hx,
-  },
-  intros x Hx,
-  let xUx : { x // U x} := ⟨x,Hx⟩,
-  existsi classical.some (mem_subset_basis_of_mem_open HB U (xUx.property) HU),
-  existsi _,
-  { exact (classical.some_spec (classical.some_spec (mem_subset_basis_of_mem_open HB U (xUx.property) HU))).1,
-  },
-  existsi xUx,
-  refl
-end 
--/
 
 -- a cover can be refined to a cover by a basis
 lemma refine_cover_with_basis {X : Type u} [T : topological_space X] 

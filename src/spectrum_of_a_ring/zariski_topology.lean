@@ -5,12 +5,13 @@
 import topology.basic
 import ring_theory.ideals
 import group_theory.submonoid
+import spectrum_of_a_ring.spectrum
 
 local attribute [instance] classical.prop_decidable
 
 universe u
 
--- Useful.
+-- Useful. TODO: Move somewhere else.
 
 lemma ideal.is_prime.one_not_mem 
 {α : Type u} [comm_ring α] (S : ideal α) [P : ideal.is_prime S] : (1:α) ∉ S :=
@@ -41,40 +42,16 @@ section spec_topological_space
 
 parameters (α : Type u) [comm_ring α]
 
--- Definition.
-
-def Spec := {P : ideal α // ideal.is_prime P}
-
-parameter {α}
-
-def Spec.V : set α → set Spec := λ E, {P | E ⊆ P.val}
-
-def Spec.V' : α → set Spec := λ f, {P | f ∈ P.val}
-
-def Spec.D : set α → set Spec := λ E, -Spec.V(E)
-
-def Spec.D' : α → set Spec := λ f, -Spec.V'(f)
-
-def Spec.closed : set (set Spec) := {A | ∃ E, Spec.V E = A}
-
-lemma Spec.V.set_eq_span (S : set α) : Spec.V S = Spec.V (ideal.span S) :=
-set.ext $ λ ⟨I, PI⟩,
-⟨λ HI x Hx,
-  begin 
-    have HxI := (ideal.span_mono HI) Hx, 
-    rw ideal.span_eq at HxI,
-    exact HxI,
-  end,
- λ HI x Hx, HI (ideal.subset_span Hx)⟩
+def closed_sets := @Spec.closed α _
 
 -- Proof.
 
-lemma Spec.H1 : ∅ ∈ Spec.closed := 
+lemma Spec.H1 : ∅ ∈ closed_sets := 
 ⟨{(1:α)}, set.ext $ λ ⟨I, PI⟩, ⟨
   λ HI, false.elim $ @ideal.is_prime.one_not_mem _ _ I PI $ by simpa [Spec.V] using HI,
   λ HI, by cases HI⟩⟩
 
-lemma Spec.H2 : ∀ A ⊆ Spec.closed, ⋂₀ A ∈ Spec.closed := 
+lemma Spec.H2 : ∀ A ⊆ closed_sets, ⋂₀ A ∈ closed_sets := 
 λ A HA, ⟨(⋃₀ {E | ∃ S ∈ A, Spec.V E = S}), set.ext $ λ ⟨I, PI⟩, ⟨ 
   λ HI T HT, 
     begin
@@ -92,7 +69,7 @@ lemma Spec.H2 : ∀ A ⊆ Spec.closed, ⋂₀ A ∈ Spec.closed :=
       exact (HIS HxE)
     end⟩⟩
 
-lemma Spec.H3 : ∀ A B ∈ Spec.closed, A ∪ B ∈ Spec.closed :=
+lemma Spec.H3 : ∀ A B ∈ closed_sets, A ∪ B ∈ closed_sets :=
 λ A B ⟨EA, HEA⟩ ⟨EB, HEB⟩, 
 ⟨(ideal.span EA ∩ ideal.span EB), set.ext $ λ ⟨I, PI⟩, ⟨
 begin 
@@ -131,12 +108,12 @@ end⟩⟩
 
 parameter (α)
 
-instance zariski_topology : topological_space Spec :=
+instance zariski_topology : topological_space (Spec α) :=
 topological_space.of_closed Spec.closed Spec.H1 Spec.H2 Spec.H3
 
 section spec_t0_space
 
-instance spec_t0 : t0_space Spec :=
+instance spec_t0 : t0_space (Spec α) :=
 begin
   constructor,
   rintros ⟨I, PI⟩ ⟨J, PJ⟩ Hneq,
