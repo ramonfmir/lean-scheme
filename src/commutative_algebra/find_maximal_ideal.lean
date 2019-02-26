@@ -15,7 +15,7 @@ open lattice
 
 section find_maximal_ideal
 
-parameters {α : Type u} [comm_ring α] (P : ideal α) [HPnT : P ≠ ⊤]
+parameters {α : Type u} [comm_ring α] (P : ideal α) (HPnT : P ≠ ⊤)
 
 instance ideal.has_subset : has_subset (ideal α) :=
 { subset := λ I J, I.1 ⊆ J.1, }
@@ -125,8 +125,7 @@ def find_maximal_ideal : ideal α :=
 theorem find_maximal_ideal.contains : P ⊆ find_maximal_ideal :=
 (classical.some find_maximal_ideal.aux).2.1
 
-def find_maximal_ideal.is_maximal_ideal :
-  ideal.is_maximal find_maximal_ideal :=
+instance find_maximal_ideal.is_maximal_ideal : ideal.is_maximal find_maximal_ideal :=
 let HM := classical.some_spec find_maximal_ideal.aux in
 let M := classical.some find_maximal_ideal.aux in
 begin 
@@ -140,5 +139,8 @@ begin
     apply HnMJ,
     exact subtype.ext.1 HMJ.symm, }
 end
+
+instance find_maximal_ideal.is_prime : ideal.is_prime find_maximal_ideal :=
+ideal.is_maximal.is_prime find_maximal_ideal.is_maximal_ideal
 
 end find_maximal_ideal

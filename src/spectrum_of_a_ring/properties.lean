@@ -5,10 +5,13 @@
 -/
 
 import spectrum_of_a_ring.zariski_topology
+import commutative_algebra.find_maximal_ideal
 
 noncomputable theory
 
 local attribute [instance] classical.prop_decidable
+
+open lattice
 
 universe u
 
@@ -21,28 +24,41 @@ variables (R : Type u) [comm_ring R]
 lemma lemma01 : (Spec R → false) ↔ subsingleton R :=
 begin
   split,
-  intros H,
-  constructor,
-  intros a b,
-  have Hz : (0 : R) = 1,
-  { by_contra,
-    apply H,
-    have G := ideal.exists_le_maximal,
-     }
+  { intros H,
+    constructor,
+    intros a b,
+    have Hz : (0 : R) = 1,
+    { by_contra Hzo,
+      replace Hzo : (0 : R) ≠ 1 := λ H, (Hzo H),
+      apply H,
+      have Honz : (1:R) ∉ ({0} : set R),
+        intros HC,
+        cases HC,
+        { exact (Hzo HC.symm), },
+        { cases HC, },
+      have HTnB : (⊥ : ideal R) ≠ ⊤,
+        intros HC,
+        replace HC := (ideal.eq_top_iff_one ⊥).1 HC,
+        exact (Honz HC),
+      let M := find_maximal_ideal ⊥ HTnB,
+      have MP : ideal.is_prime _ := find_maximal_ideal.is_prime ⊥ HTnB,
+      exact ⟨M, MP⟩, },
+    calc a = a * 0 : by rw [Hz, mul_one]
+      ...  = b * 0 : by simp
+      ...  = b     : by rw [Hz, mul_one], },
+  { intros Hsub X,
+    cases Hsub,
+    rcases X with ⟨X, ⟨HC, PX⟩⟩,
+    apply HC,
+    apply ideal.ext,
+    intros x,
+    split,
+    { intros Hx,
+      trivial, },
+    { intros Hx,
+      rw (Hsub x 0),
+      exact X.2, } }
 end
--- ⟨λ h, have h1 : (0:R) = 1,
---    from classical.by_contradiction
---      (λ hzo, h ⟨is_ideal.find_maximal_ideal.of_zero_ne_one hzo,
---         (is_ideal.find_maximal_ideal.of_zero_ne_one.is_maximal_ideal hzo).to_is_prime_ideal⟩),
---    ⟨λ x y, calc x = x * 0 : by rw [h1, mul_one]
---               ... = y * 0 : by simp
---               ... = y : by rw [h1, mul_one]⟩,
---  λ h x, @@is_proper_ideal.ne_univ _ x.1 x.2.1 $
---    set.eq_univ_of_forall $ λ z, calc
---            z = z * 1 : eq.symm $ mul_one z
---          ... = z * 0 : congr_arg _ (@subsingleton.elim R h 1 0)
---          ... = 0 : mul_zero z
---          ... ∈ x.val : @is_ideal.zero R _ x.val x.2.1.1⟩
 
 lemma lemma02 : (0:R) ≠ 1 → ∃ S:set R, is_maximal_ideal S :=
 λ hzo, ⟨is_ideal.find_maximal_ideal.of_zero_ne_one hzo,
