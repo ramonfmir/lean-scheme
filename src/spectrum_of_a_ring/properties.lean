@@ -4,7 +4,7 @@
   https://stacks.math.columbia.edu/tag/00E0
 -/
 
-import spectrum_of_a_ring.zariski_topology
+import spectrum_of_a_ring.spectrum
 import commutative_algebra.find_maximal_ideal
 
 noncomputable theory
@@ -26,9 +26,8 @@ begin
   intros Hzno,
   have Honz : (1:R) ∉ ({0} : set R),
     intros HC,
-    cases HC,
-    { exact (Hzno HC.symm), },
-    { cases HC, },
+    rw set.mem_singleton_iff at HC,
+    exact Hzno HC.symm,
   intros HC,
   replace HC := (ideal.eq_top_iff_one ⊥).1 HC,
   exact (Honz HC),
@@ -102,6 +101,18 @@ end
 --   from is_ideal.find_minimal_prime_ideal.minimal I P hip,
 -- ⟨Q, h1, h2, h3, h4⟩
 
+-- lemma 5
+
+lemma Spec.V.set_eq_span (S : set R) : Spec.V S = Spec.V (ideal.span S) :=
+set.ext $ λ ⟨I, PI⟩,
+⟨λ HI x Hx,
+  begin 
+    have HxI := (ideal.span_mono HI) Hx, 
+    rw ideal.span_eq at HxI,
+    exact HxI,
+  end,
+ λ HI x Hx, HI (ideal.subset_span Hx)⟩
+
 -- lemma lemma05 (T : set R) : Spec.V (span T) = Spec.V T :=
 -- set.ext $ λ x,
 -- ⟨λ hx z hz, hx $ subset_span hz,
@@ -128,6 +139,44 @@ end
 --    have h4 : ∀ n, f^n ∉ P,
 --      from is_ideal.avoid_powers.avoid_powers f I h1,
 --    h4 1 $ by simpa using hf P ⟨h2, h3⟩⟩
+
+lemma ideal.ext' {I J : ideal R} : I = J ↔ I.1 = J.1 :=
+begin
+  split,
+  { intros H,
+    rw H, },
+  { intros H,
+    apply ideal.ext,
+    intros x,
+    split,
+    { intros Hx,
+      exact (H ▸ Hx : x ∈ J.1), },
+    { intros Hx,
+      exact (H.symm ▸ Hx : x ∈ I.1), } }
+end
+
+lemma lemma08 (I : ideal R) : Spec.V I.1 = ∅ ↔ I = ⊤ :=
+begin
+  split,
+  { intros HI,
+    by_contradiction HC,
+    suffices Hsuff : ∃ x, x ∈ Spec.V I.1,
+      cases Hsuff with x Hx,
+      rw set.eq_empty_iff_forall_not_mem at HI,
+      exact HI x Hx,
+    let M := find_maximal_ideal I HC,
+    have MM : ideal.is_maximal M := find_maximal_ideal.is_maximal_ideal I HC,
+    have MP : ideal.is_prime M := ideal.is_maximal.is_prime MM,
+    use [⟨M, MP⟩],
+    exact (find_maximal_ideal.contains I HC), },
+  { intros HI,
+    rw [HI, set.eq_empty_iff_forall_not_mem],
+    rintros ⟨J, PJ⟩ HnJ,
+    have HTJ : ⊤ ⊆ J := HnJ,
+    have HJT : J ⊆ ⊤ := λ x Hx, trivial,
+    have HJ : J = ⊤ := ideal.ext'.2 (set.eq_of_subset_of_subset HJT HTJ),
+    exact PJ.1 HJ, }
+end
 
 -- lemma lemma08 (I : set R) [is_ideal I] : Spec.V I = ∅ ↔ I = set.univ :=
 -- ⟨λ h, set.eq_univ_of_forall $ classical.by_contradiction $ λ hn,

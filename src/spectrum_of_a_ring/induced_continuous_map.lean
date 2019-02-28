@@ -15,7 +15,7 @@ universes u v
 variables {α : Type u} {β : Type v} [comm_ring α] [comm_ring β]
 variables (f : α → β) [is_ring_hom f]
 
--- Map given φ : A → B, we have Spec(φ) : Spec(B) → Spec(A) s.t. 𝔭′⟼φ−1(𝔭′).
+-- Given φ : A → B, we have Spec(φ) : Spec(B) → Spec(A), 𝔭′⟼φ⁻¹(𝔭′).
 
 @[reducible] def Zariski.induced : Spec β → Spec α :=
 λ ⟨I, PI⟩, ⟨ideal.preimage f I, ideal.is_prime.preimage f I PI⟩

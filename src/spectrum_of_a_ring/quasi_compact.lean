@@ -10,6 +10,8 @@ universe u
 
 local attribute [instance] classical.prop_decidable
 
+variables {α}
+
 -- this next lemma will go to mathlib one day
 
 -- lemma mem_subset_basis_of_mem_open {X : Type u} [T : topological_space X] {b : set (set X)}

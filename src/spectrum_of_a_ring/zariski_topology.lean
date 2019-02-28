@@ -6,6 +6,7 @@ import topology.basic
 import ring_theory.ideals
 import group_theory.submonoid
 import spectrum_of_a_ring.spectrum
+import spectrum_of_a_ring.properties
 
 local attribute [instance] classical.prop_decidable
 
