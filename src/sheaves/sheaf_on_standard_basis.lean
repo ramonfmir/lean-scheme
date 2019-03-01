@@ -20,9 +20,6 @@ section sheaf_on_standard_basis
 parameters {α : Type u} [topological_space α] 
 parameters {B : set (opens α)} [HB : opens.is_basis B]
 
--- Standard basis. TODO: Move somewhere else?
-
-def opens.univ : opens α := ⟨set.univ, is_open_univ⟩
 parameters {Bstd : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ V ∈ B}
 
 section properties

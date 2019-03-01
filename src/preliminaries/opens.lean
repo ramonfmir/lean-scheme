@@ -19,6 +19,12 @@ instance : has_union (opens α) :=
 
 prefix `⋃` := supr
 
+-- Opens constants.
+
+def opens.univ : opens α := ⟨set.univ, is_open_univ⟩
+
+def opens.empty : opens α := ⟨∅, is_open_empty⟩
+
 -- Some useful lemmas. Maybe versions of them are already somewhere.
 
 lemma opens_supr_mem {γ : Type u} (X : γ → opens α) 

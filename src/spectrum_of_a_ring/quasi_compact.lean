@@ -4,50 +4,141 @@
   https://stacks.math.columbia.edu/tag/00E8
 -/
 
+import topology.basic
+import preliminaries.opens
+import preliminaries.covering
 import spectrum_of_a_ring.standard_basis
+import tactic.find
 
 universe u
 
+open topological_space lattice
+
+variables {α : Type u} [comm_ring α]
+
+section quasi_compact
+
 local attribute [instance] classical.prop_decidable
 
-variables {α}
+lemma mem_subset_basis_of_mem_open {X : Type u} [T : topological_space X] 
+(B : set (opens X)) (HB : opens.is_basis B) (U : opens X)
+: U ≠ opens.empty → ∃ V ∈ B, V ⊆ U :=
+begin 
+  intros Hne,
+  have Hnes : U.1 ≠ ∅ := λ HC, Hne (opens.ext HC),
+  have Hx := set.ne_empty_iff_exists_mem.1 Hnes,
+  rcases Hx with ⟨x, Hx⟩,
+  have HU' := opens.is_basis_iff_nbhd.1 HB Hx,
+  rcases HU' with ⟨U', HU', ⟨HxU', HU'U⟩⟩,
+  use [U', HU', HU'U],
+end
 
--- this next lemma will go to mathlib one day
-
--- lemma mem_subset_basis_of_mem_open {X : Type u} [T : topological_space X] {b : set (set X)}
---   (hb : topological_space.is_topological_basis b) {a:X} (u : set X) (au : a ∈ u)
---   (ou : _root_.is_open u) : ∃v ∈ b, a ∈ v ∧ v ⊆ u :=
--- (topological_space.mem_nhds_of_is_topological_basis hb).1 $ mem_nhds_sets ou au
-
-
--- a cover can be refined to a cover by a basis
-lemma refine_cover_with_basis {X : Type u} [T : topological_space X] 
-  (B : set (set X)) (HB : topological_space.is_topological_basis B) 
-  (c : set (set X)) (Oc : ∀ U ∈ c, T.is_open U) (Hcov : set.sUnion c = set.univ) :
-∃ (d : set (set X)), d ⊆ B ∧ (∀ V ∈ d, ∃ U ∈ c, V ⊆ U) ∧ set.sUnion d = set.univ :=
+lemma covering.exists_not_empty {α : Type u} [T : topological_space α] (U : opens α)
+(HU : U ≠ opens.empty) (OC : covering U) : ∃ i, OC.Uis i ≠ opens.empty :=
 begin
-  existsi λ V, V ∈ B ∧ ∃ U ∈ c, V ⊆ U,
-  split,intros V HV,exact HV.1,
-  split,intros V HV,exact HV.2,
-  apply set.subset.antisymm,simp,
-  intros x Hx,
-  rw ←Hcov at Hx,
-  cases Hx with U HU,
-  cases HU with HU Hx,
-  cases (mem_subset_basis_of_mem_open HB U Hx (Oc U HU)) with V HV,
-  cases HV with HV1 HV2,
-  existsi V,
-  existsi _,exact HV2.1,
-  split,exact HV1,
-  existsi U,
-  existsi HU,
-  exact HV2.2
-end 
+  apply classical.by_contradiction,
+  intros HC,
+  rw not_exists at HC,
+  simp at HC,
+  have Hemp : ⋃ OC.Uis = opens.empty,
+    rw (supr_eq_bot.2 HC),
+    refl,
+  rw OC.Hcov at Hemp,
+  exact HU Hemp,
+end
+
+noncomputable def covering.all_not_empty.aux {α : Type u} [T : topological_space α] (U : opens α)
+(HU : U ≠ opens.empty) (OC : covering U) : OC.γ → opens α :=
+begin
+  have HUi := covering.exists_not_empty U HU OC,
+  let i := classical.some HUi,
+  intros j,
+  exact (if (OC.Uis j = opens.empty) then OC.Uis i else OC.Uis j),
+end
+
+private lemma covering.all_not_empty.union {α : Type u} [T : topological_space α] (U : opens α)
+(HU : U ≠ opens.empty) (OC : covering U) : ⋃ (covering.all_not_empty.aux U HU OC) = U :=
+begin
+  unfold covering.all_not_empty.aux,
+  apply opens.ext,
+  apply set.ext,
+  intros x,
+  split,
+  { intros Hx,
+    rcases Hx with ⟨Uiset, ⟨Ui, ⟨i, HUi⟩, HUival⟩, HxUi⟩,
+    simp at HUi,
+    rw ←HUival at HxUi,
+    rw ←HUi at HxUi,
+    cases (classical.prop_decidable (OC.Uis i = opens.empty)),
+    { rw if_neg at HxUi,
+      use (subset_covering _) HxUi, },
+    { rw if_pos at HxUi,
+      use (subset_covering _) HxUi,
+      use h, } },
+  { intros Hx,
+    rw ←OC.Hcov at Hx,
+    rcases Hx with ⟨Uiset, ⟨Ui, ⟨i, HUi⟩, HUival⟩, HxUi⟩,
+    have HUine : OC.Uis i ≠ opens.empty,
+      intros HC,
+      rw ←HUival at HxUi,
+      rw ←HUi at HxUi,
+      rw HC at HxUi,
+      cases HxUi,
+    use [Ui.val],
+    simp,
+    use [Ui.property, i],
+    rw if_neg,
+    { exact HUi, },
+    { exact HUine, },
+    { rw HUival,
+      exact HxUi, }, }
+end
+
+noncomputable lemma covering.all_not_empty {α : Type u} [T : topological_space α] (U : opens α)
+(HU : U ≠ opens.empty) (OC : covering U) : covering U :=
+begin
+  have HUi := covering.exists_not_empty U HU OC,
+  let i := classical.some HUi,
+  let Hi := classical.some_spec HUi,
+  exact { γ := OC.γ, 
+          Uis := covering.all_not_empty.aux U HU OC,
+          Hcov := covering.all_not_empty.union U HU OC }
+end
+
+-- A cover can be refined to a cover by a basis.
+
+lemma refine_cover_with_basis {X : Type u} [T : topological_space X]
+(B : set (opens X)) (HB : opens.is_basis B) (OC : covering opens.univ) :
+∃ (D : OC.γ → opens X),
+    ∀ i, D i ∈ B
+  ∧ ∀ i, D i ⊆ OC.Uis i
+  ∧ (⋃ D) = opens.univ :=
+begin
+  have H := opens.is_basis_iff_nbhd.1 HB,
+end
+
+--   existsi λ V, V ∈ B ∧ ∃ U ∈ c, V ⊆ U,
+--   split,intros V HV,exact HV.1,
+--   split,intros V HV,exact HV.2,
+--   apply set.subset.antisymm,simp,
+--   intros x Hx,
+--   rw ←Hcov at Hx,
+--   cases Hx with U HU,
+--   cases HU with HU Hx,
+--   cases (mem_subset_basis_of_mem_open HB U Hx (Oc U HU)) with V HV,
+--   cases HV with HV1 HV2,
+--   existsi V,
+--   existsi _,exact HV2.1,
+--   split,exact HV1,
+--   existsi U,
+--   existsi HU,
+--   exact HV2.2
+-- end
 
 -- a cover by basis elements has a finite subcover
 lemma basis_quasi_compact {R : Type u} [comm_ring R] :
 ∀ F : set R, @set.univ (X R) = set.Union (λ fF : {f // f ∈ F}, Spec.D' fF.val) →
-∃ G : set R, G ⊆ F ∧ set.finite G ∧ 
+∃ G : set R, G ⊆ F ∧ set.finite G ∧
   @set.univ (X R) = set.Union (λ gG : {g // g ∈ G}, Spec.D' gG.val) :=
 begin
   intros F Hcover,

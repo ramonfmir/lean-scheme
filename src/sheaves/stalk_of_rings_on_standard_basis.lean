@@ -21,7 +21,6 @@ variables {B : set (opens α )} {HB : opens.is_basis B}
 
 -- Standard basis. TODO: Move somewhere else?
 
-def opens.univ : opens α := ⟨set.univ, is_open_univ⟩
 variables (Bstandard : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ V ∈ B)
 
 variables (F : presheaf_of_rings_on_basis α HB) (x : α)
