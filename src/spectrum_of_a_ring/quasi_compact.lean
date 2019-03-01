@@ -20,45 +20,65 @@ section quasi_compact
 
 local attribute [instance] classical.prop_decidable
 
+parameters (X : Type u) [T : topological_space X]
+parameters (B : set (opens X)) [HB : opens.is_basis B] 
+parameters (OC : covering (@opens.univ X _))
+
+include HB
+
 -- Given i, returns the basis elements in Ui.
 
-def basis_in_covering {X : Type u} [T : topological_space X]
-(B : set (opens X)) (HB : opens.is_basis B) (OC : covering opens.univ) 
-: OC.γ → set (opens X) :=
-λ i, (classical.indefinite_description _ (opens.is_basis_iff_cover.1 HB (OC.Uis i))).1
+noncomputable def basis_in_covering 
+: Π i : OC.γ, { Us : set (opens X) // Us ⊆ B ∧ OC.Uis i = Sup Us} := λ i, 
+begin 
+  have HcovUi := opens.is_basis_iff_cover.1 HB (OC.Uis i),
+  have HUs := classical.indefinite_description _ HcovUi,
+  rcases HUs with ⟨Us, HUs⟩,
+  have HUs' := classical.indefinite_description _ HUs,
+  rcases HUs' with ⟨HUsB, HUsUi⟩,
+  exact ⟨Us, ⟨HUsB, HUsUi⟩⟩,
+end
 
+def basis_in_covering.val : OC.γ → set (opens X) :=
+λ i, (basis_in_covering i).val
 
-lemma refine_cover_with_basis' {X : Type u} [T : topological_space X]
+lemma refine_cover_with_basis {X : Type u} [T : topological_space X]
 (B : set (opens X)) (HB : opens.is_basis B) (OC : covering opens.univ) :
 ∃ (D : set (opens X)),
     (D ⊆ B)
   ∧ (∀ i, ∃ V ∈ D, V ⊆ OC.Uis i)
   ∧ (Sup D = opens.univ) :=
 begin
-  let D : OC.γ → set (opens X) :=
-  
-  end
-  let D : set (opens X) :=
-  begin
-    exact { S |  }
-  end
-  -- begin
-  --   intros i,
-  --   cases (classical.prop_decidable (OC.Uis i = opens.empty)),
-  --   { have Hxex := opens.exists_mem_of_ne_empty h,
-  --     let Hx := classical.some_spec Hxex,
-  --     have HUi := opens.is_basis_iff_nbhd.1 HB Hx,
-  --     use classical.some HUi, },
-  --   { use opens.empty, },
-  -- end,
-  -- existsi D,
-  -- split,
-  -- { intros i,
-  --   cases (classical.prop_decidable (OC.Uis i = opens.empty)),
-  --   { simp [D],
-  --     apply h,
-  --     show classical.some _ ∈ B, }, },
+  existsi [⋃ basis_in_covering.val],
+  split,
+  { intros U HU,
+    rcases HU with ⟨Ui, ⟨i, Hi⟩, HxUi⟩,
+    rw ←Hi at HxUi,
+    cases Hi,
+    rcases (basis_in_covering i).property with ⟨HUiB, HUiU⟩,
+    exact HUiB HxUi, },
+  { split,
+    { intros i,
+      have HUs := subtype.exists_of_subtype (basis_in_covering i),
+      cases (classical.indefinite_description _ HUs) with Us Usprop,
+      cases Usprop with HUsB HUsUi,
+      cases (classical.prop_decidable (Us = ∅)) with Hne He,
+      { have HU := set.ne_empty_iff_exists_mem.1 Hne,
+        cases HU with U HU,
+        existsi U,
+        have : U ∈ ⋃basis_in_covering.val,
+          existsi Us,
+          use i,
+          show (basis_in_covering i).val = Us,
+            cases (basis_in_covering i),
+            simp,
+            apply
+            sorry, },
+      {  } },
+    {  } }
 end
+
+
 
 --   existsi λ V, V ∈ B ∧ ∃ U ∈ c, V ⊆ U,
 --   split,intros V HV,exact HV.1,
