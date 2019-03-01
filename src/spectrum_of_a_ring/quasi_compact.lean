@@ -20,101 +20,44 @@ section quasi_compact
 
 local attribute [instance] classical.prop_decidable
 
-lemma mem_subset_basis_of_mem_open {X : Type u} [T : topological_space X] 
-(B : set (opens X)) (HB : opens.is_basis B) (U : opens X)
-: U ≠ opens.empty → ∃ V ∈ B, V ⊆ U :=
-begin 
-  intros Hne,
-  have Hnes : U.1 ≠ ∅ := λ HC, Hne (opens.ext HC),
-  have Hx := set.ne_empty_iff_exists_mem.1 Hnes,
-  rcases Hx with ⟨x, Hx⟩,
-  have HU' := opens.is_basis_iff_nbhd.1 HB Hx,
-  rcases HU' with ⟨U', HU', ⟨HxU', HU'U⟩⟩,
-  use [U', HU', HU'U],
-end
+-- Given i, returns the basis elements in Ui.
 
-lemma covering.exists_not_empty {α : Type u} [T : topological_space α] (U : opens α)
-(HU : U ≠ opens.empty) (OC : covering U) : ∃ i, OC.Uis i ≠ opens.empty :=
-begin
-  apply classical.by_contradiction,
-  intros HC,
-  rw not_exists at HC,
-  simp at HC,
-  have Hemp : ⋃ OC.Uis = opens.empty,
-    rw (supr_eq_bot.2 HC),
-    refl,
-  rw OC.Hcov at Hemp,
-  exact HU Hemp,
-end
+def basis_in_covering {X : Type u} [T : topological_space X]
+(B : set (opens X)) (HB : opens.is_basis B) (OC : covering opens.univ) 
+: OC.γ → set (opens X) :=
+λ i, (classical.indefinite_description _ (opens.is_basis_iff_cover.1 HB (OC.Uis i))).1
 
-noncomputable def covering.all_not_empty.aux {α : Type u} [T : topological_space α] (U : opens α)
-(HU : U ≠ opens.empty) (OC : covering U) : OC.γ → opens α :=
-begin
-  have HUi := covering.exists_not_empty U HU OC,
-  let i := classical.some HUi,
-  intros j,
-  exact (if (OC.Uis j = opens.empty) then OC.Uis i else OC.Uis j),
-end
 
-private lemma covering.all_not_empty.union {α : Type u} [T : topological_space α] (U : opens α)
-(HU : U ≠ opens.empty) (OC : covering U) : ⋃ (covering.all_not_empty.aux U HU OC) = U :=
-begin
-  unfold covering.all_not_empty.aux,
-  apply opens.ext,
-  apply set.ext,
-  intros x,
-  split,
-  { intros Hx,
-    rcases Hx with ⟨Uiset, ⟨Ui, ⟨i, HUi⟩, HUival⟩, HxUi⟩,
-    simp at HUi,
-    rw ←HUival at HxUi,
-    rw ←HUi at HxUi,
-    cases (classical.prop_decidable (OC.Uis i = opens.empty)),
-    { rw if_neg at HxUi,
-      use (subset_covering _) HxUi, },
-    { rw if_pos at HxUi,
-      use (subset_covering _) HxUi,
-      use h, } },
-  { intros Hx,
-    rw ←OC.Hcov at Hx,
-    rcases Hx with ⟨Uiset, ⟨Ui, ⟨i, HUi⟩, HUival⟩, HxUi⟩,
-    have HUine : OC.Uis i ≠ opens.empty,
-      intros HC,
-      rw ←HUival at HxUi,
-      rw ←HUi at HxUi,
-      rw HC at HxUi,
-      cases HxUi,
-    use [Ui.val],
-    simp,
-    use [Ui.property, i],
-    rw if_neg,
-    { exact HUi, },
-    { exact HUine, },
-    { rw HUival,
-      exact HxUi, }, }
-end
-
-noncomputable lemma covering.all_not_empty {α : Type u} [T : topological_space α] (U : opens α)
-(HU : U ≠ opens.empty) (OC : covering U) : covering U :=
-begin
-  have HUi := covering.exists_not_empty U HU OC,
-  let i := classical.some HUi,
-  let Hi := classical.some_spec HUi,
-  exact { γ := OC.γ, 
-          Uis := covering.all_not_empty.aux U HU OC,
-          Hcov := covering.all_not_empty.union U HU OC }
-end
-
--- A cover can be refined to a cover by a basis.
-
-lemma refine_cover_with_basis {X : Type u} [T : topological_space X]
+lemma refine_cover_with_basis' {X : Type u} [T : topological_space X]
 (B : set (opens X)) (HB : opens.is_basis B) (OC : covering opens.univ) :
-∃ (D : OC.γ → opens X),
-    ∀ i, D i ∈ B
-  ∧ ∀ i, D i ⊆ OC.Uis i
-  ∧ (⋃ D) = opens.univ :=
+∃ (D : set (opens X)),
+    (D ⊆ B)
+  ∧ (∀ i, ∃ V ∈ D, V ⊆ OC.Uis i)
+  ∧ (Sup D = opens.univ) :=
 begin
-  have H := opens.is_basis_iff_nbhd.1 HB,
+  let D : OC.γ → set (opens X) :=
+  
+  end
+  let D : set (opens X) :=
+  begin
+    exact { S |  }
+  end
+  -- begin
+  --   intros i,
+  --   cases (classical.prop_decidable (OC.Uis i = opens.empty)),
+  --   { have Hxex := opens.exists_mem_of_ne_empty h,
+  --     let Hx := classical.some_spec Hxex,
+  --     have HUi := opens.is_basis_iff_nbhd.1 HB Hx,
+  --     use classical.some HUi, },
+  --   { use opens.empty, },
+  -- end,
+  -- existsi D,
+  -- split,
+  -- { intros i,
+  --   cases (classical.prop_decidable (OC.Uis i = opens.empty)),
+  --   { simp [D],
+  --     apply h,
+  --     show classical.some _ ∈ B, }, },
 end
 
 --   existsi λ V, V ∈ B ∧ ∃ U ∈ c, V ⊆ U,
