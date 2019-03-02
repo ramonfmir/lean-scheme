@@ -9,6 +9,7 @@ import linear_algebra.linear_combination
 import preliminaries.opens
 import preliminaries.covering
 import spectrum_of_a_ring.standard_basis
+import tactic.find
 
 noncomputable theory
 
@@ -130,6 +131,26 @@ begin
     apply ideal.span_mem_finset, }
 end
 
+def set.to_indexed {A : Type*} (S : set A) 
+: ∃ γ, ∃ f : γ → A, set.range f = S := 
+begin
+  use [S, λ x, x],
+  simp [set.range],
+end
+
+lemma Spec.quasi_compact.aux : compact (Spec.univ R) :=
+begin
+  rw compact_iff_finite_subcover,
+  intros C HC Hcov,
+  replace Hcov := set.subset.antisymm Hcov (λ x Hx, trivial),
+  
+end
+
+lemma Spec.compact : compact_space (Spec R) :=
+begin
+  constructor,
+  apply Spec.quasi_compact.aux,
+end
 
 -- -- now deduce main result from compact basis result
 -- lemma lemma_quasi_compact {R : Type u} [comm_ring R] : compact (@set.univ (X R)) :=
