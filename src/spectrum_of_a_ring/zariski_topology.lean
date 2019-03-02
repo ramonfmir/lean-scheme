@@ -122,7 +122,7 @@ lemma V_fs_closed : ∀ (f : α), is_closed (Spec.V' f) := λ f,
 
 def Spec.DO : α → opens (Spec α) := λ x, ⟨Spec.D' x, D_fs_open x⟩
 
---def Spec.VC : α → closeds (Spec α) := λ x, ⟨Spec.V' x, V_fs_closed x⟩
+def Spec.VC : α → closeds (Spec α) := λ x, ⟨Spec.V' x, V_fs_closed x⟩
 
 def Spec.open.univ : opens (Spec α) := ⟨Spec.univ α, is_open_univ⟩
 
