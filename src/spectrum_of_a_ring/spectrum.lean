@@ -24,6 +24,12 @@ def Spec.D : set α → set Spec := λ E, -Spec.V(E)
 
 def Spec.D' : α → set Spec := λ f, -Spec.V'(f)
 
-def Spec.closed : set (set Spec) := {A | ∃ E, Spec.V E = A}
+parameter (α)
 
- end spectrum
+def Spec.univ := @set.univ Spec
+
+def Spec.closed : set (set Spec) := {A | ∃ E, Spec.V  E = A}
+
+def Spec.open : set (set Spec) := {A | ∃ U, Spec.D U = A}
+
+end spectrum

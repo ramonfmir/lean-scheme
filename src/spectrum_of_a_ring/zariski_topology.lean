@@ -43,16 +43,14 @@ section spec_topological_space
 
 parameters (α : Type u) [comm_ring α]
 
-def closed_sets := @Spec.closed α _
-
 -- Proof.
 
-lemma Spec.H1 : ∅ ∈ closed_sets := 
+lemma Spec.H1 : ∅ ∈ Spec.closed α := 
 ⟨{(1:α)}, set.ext $ λ ⟨I, PI⟩, ⟨
   λ HI, false.elim $ @ideal.is_prime.one_not_mem _ _ I PI $ by simpa [Spec.V] using HI,
   λ HI, by cases HI⟩⟩
 
-lemma Spec.H2 : ∀ A ⊆ closed_sets, ⋂₀ A ∈ closed_sets := 
+lemma Spec.H2 : ∀ A ⊆ Spec.closed α, ⋂₀ A ∈ Spec.closed α := 
 λ A HA, ⟨(⋃₀ {E | ∃ S ∈ A, Spec.V E = S}), set.ext $ λ ⟨I, PI⟩, ⟨ 
   λ HI T HT, 
     begin
@@ -70,7 +68,7 @@ lemma Spec.H2 : ∀ A ⊆ closed_sets, ⋂₀ A ∈ closed_sets :=
       exact (HIS HxE)
     end⟩⟩
 
-lemma Spec.H3 : ∀ A B ∈ closed_sets, A ∪ B ∈ closed_sets :=
+lemma Spec.H3 : ∀ A B ∈ Spec.closed α, A ∪ B ∈ Spec.closed α :=
 λ A B ⟨EA, HEA⟩ ⟨EB, HEB⟩, 
 ⟨(ideal.span EA ∩ ideal.span EB), set.ext $ λ ⟨I, PI⟩, ⟨
 begin 
@@ -110,7 +108,7 @@ end⟩⟩
 parameter (α)
 
 instance zariski_topology : topological_space (Spec α) :=
-topological_space.of_closed Spec.closed Spec.H1 Spec.H2 Spec.H3
+topological_space.of_closed (Spec.closed α) Spec.H1 Spec.H2 Spec.H3
 
 section spec_t0_space
 
