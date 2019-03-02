@@ -26,79 +26,44 @@ parameters (OC : covering (@opens.univ X _))
 
 include HB
 
--- Given i, returns the basis elements in Ui.
-
-noncomputable def basis_in_covering 
-: Π i : OC.γ, { Us : set (opens X) // Us ⊆ B ∧ OC.Uis i = Sup Us} := λ i, 
-begin 
-  have HcovUi := opens.is_basis_iff_cover.1 HB (OC.Uis i),
-  have HUs := classical.indefinite_description _ HcovUi,
-  rcases HUs with ⟨Us, HUs⟩,
-  have HUs' := classical.indefinite_description _ HUs,
-  rcases HUs' with ⟨HUsB, HUsUi⟩,
-  exact ⟨Us, ⟨HUsB, HUsUi⟩⟩,
-end
-
-def basis_in_covering.val : OC.γ → set (opens X) :=
-λ i, (basis_in_covering i).val
-
 lemma refine_cover_with_basis {X : Type u} [T : topological_space X]
 (B : set (opens X)) (HB : opens.is_basis B) (OC : covering opens.univ) :
 ∃ (D : set (opens X)),
     (D ⊆ B)
-  ∧ (∀ i, ∃ V ∈ D, V ⊆ OC.Uis i)
+  ∧ (∀ V ∈ D, ∃ i, V ⊆ OC.Uis i)
   ∧ (Sup D = opens.univ) :=
 begin
-  existsi [⋃ basis_in_covering.val],
-  split,
+  existsi [λ V, V ∈ B ∧ ∃ i : OC.γ, V ⊆ OC.Uis i],
+  refine ⟨_, _, _⟩,
   { intros U HU,
-    rcases HU with ⟨Ui, ⟨i, Hi⟩, HxUi⟩,
-    rw ←Hi at HxUi,
-    cases Hi,
-    rcases (basis_in_covering i).property with ⟨HUiB, HUiU⟩,
-    exact HUiB HxUi, },
-  { split,
-    { intros i,
-      have HUs := subtype.exists_of_subtype (basis_in_covering i),
-      cases (classical.indefinite_description _ HUs) with Us Usprop,
-      cases Usprop with HUsB HUsUi,
-      cases (classical.prop_decidable (Us = ∅)) with Hne He,
-      { have HU := set.ne_empty_iff_exists_mem.1 Hne,
-        cases HU with U HU,
-        existsi U,
-        have : U ∈ ⋃basis_in_covering.val,
-          existsi Us,
-          use i,
-          show (basis_in_covering i).val = Us,
-            cases (basis_in_covering i),
-            simp,
-            apply
-            sorry, },
-      {  } },
-    {  } }
+    exact HU.1, },
+  { intros V HV,
+    exact HV.2, },
+  { apply opens.ext,
+    apply set.ext,
+    intros x,
+    split,
+    { intros Hx,
+      simp [opens.univ], },
+    { intros Hx,
+      rw ←OC.Hcov at Hx,
+      rcases Hx with ⟨U, HU, HxU⟩,
+      rcases HU with ⟨OU, HOU, HOUval⟩,
+      rcases HOU with ⟨i, HOU⟩,
+      rw ←HOUval at HxU,
+      have HU' := opens.is_basis_iff_nbhd.1 HB HxU,
+      rcases HU' with ⟨U', ⟨BU', HxU', HU'OU⟩⟩,
+      use U',
+      simp,
+      refine ⟨⟨_, _⟩, _⟩,
+      { exact U'.2, },
+      { rw ←HOU at HU'OU,
+        exact ⟨BU', ⟨i, HU'OU⟩⟩, },
+      { exact HxU', } } }
 end
 
-
-
---   existsi λ V, V ∈ B ∧ ∃ U ∈ c, V ⊆ U,
---   split,intros V HV,exact HV.1,
---   split,intros V HV,exact HV.2,
---   apply set.subset.antisymm,simp,
---   intros x Hx,
---   rw ←Hcov at Hx,
---   cases Hx with U HU,
---   cases HU with HU Hx,
---   cases (mem_subset_basis_of_mem_open HB U Hx (Oc U HU)) with V HV,
---   cases HV with HV1 HV2,
---   existsi V,
---   existsi _,exact HV2.1,
---   split,exact HV1,
---   existsi U,
---   existsi HU,
---   exact HV2.2
--- end
-
 -- a cover by basis elements has a finite subcover
+
 lemma basis_quasi_compact {R : Type u} [comm_ring R] :
 ∀ F : set R, @set.univ (X R) = set.Union (λ fF : {f // f ∈ F}, Spec.D' fF.val) →
 ∃ G : set R, G ⊆ F ∧ set.finite G ∧

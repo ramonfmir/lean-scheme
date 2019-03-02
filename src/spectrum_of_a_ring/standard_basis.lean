@@ -59,6 +59,6 @@ begin
   cases HU with fU HU,
   cases HV with fV HV,
   rw [HU, HV],
-  rw ←tag00E0.lemma15, -- Not the best name.
+  rw ←Spec.D'.product_eq_inter,
   use [fU * fV],
 end
