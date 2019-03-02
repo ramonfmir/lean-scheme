@@ -8,6 +8,8 @@ import group_theory.submonoid
 import spectrum_of_a_ring.spectrum
 import spectrum_of_a_ring.properties
 
+open topological_space
+
 local attribute [instance] classical.prop_decidable
 
 universe u
@@ -109,6 +111,24 @@ parameter (α)
 
 instance zariski_topology : topological_space (Spec α) :=
 topological_space.of_closed (Spec.closed α) Spec.H1 Spec.H2 Spec.H3
+
+-- D(f) as an open set not just a set that happens to be open.
+
+lemma D_fs_open : ∀ (f : α), is_open (Spec.D' f) := λ f, 
+⟨{f}, by simp [Spec.D', Spec.V', Spec.V]⟩
+
+lemma V_fs_closed : ∀ (f : α), is_closed (Spec.V' f) := λ f, 
+⟨{f}, by simp [Spec.D', Spec.V', Spec.V]⟩
+
+def Spec.DO : α → opens (Spec α) := λ x, ⟨Spec.D' x, D_fs_open x⟩
+
+--def Spec.VC : α → closeds (Spec α) := λ x, ⟨Spec.V' x, V_fs_closed x⟩
+
+def Spec.open.univ : opens (Spec α) := ⟨Spec.univ α, is_open_univ⟩
+
+def Spec.open.empty : opens (Spec α) := ⟨Spec.empty α, is_open_empty⟩
+
+-- T0 space.
 
 section spec_t0_space
 

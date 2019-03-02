@@ -9,7 +9,6 @@ import linear_algebra.linear_combination
 import preliminaries.opens
 import preliminaries.covering
 import spectrum_of_a_ring.standard_basis
-import tactic.find
 
 noncomputable theory
 
@@ -41,7 +40,7 @@ end facts
 
 variables {α : Type u} [comm_ring α]
 
-section quasi_compact
+section refinement
 
 local attribute [instance] classical.prop_decidable
 
@@ -85,20 +84,24 @@ begin
       { exact HxU', } } }
 end
 
+end refinement
+
 -- A cover by basis elements has a finite subcover.
+
+section quasi_compact
 
 parameters (R : Type u) [comm_ring R]
 
 lemma D_fs_quasi_compact : 
-∀ S : set R, (Spec.D' '' S) ⊆ D_fs R ∧ ⋃₀ (Spec.D' '' S) = Spec.univ R →
+∀ S : set R, ⋃₀ (Spec.D' '' S) = Spec.univ R →
 ∃ F ⊆ S, 
     set.finite F 
   ∧ ⋃₀ (Spec.D' '' F) = Spec.univ R :=
 begin
-  rintros S ⟨HSDfs, HScov⟩,
+  rintros S HScov,
   -- We get that V(S) = ∅.
   have HVS : Spec.V S = ∅,
-    rw Spec.basic_opens_union at HScov,
+    rw Spec.D'.union at HScov,
     rw ←set.compl_compl (Spec.V S),
     rw HScov,
     exact set.compl_univ,
@@ -117,7 +120,7 @@ begin
   { -- Prove it's finite.
     apply set.finite_mem_finset, },
   { -- ⋃ D(fᵢ) = Spec(R)
-    rw Spec.basic_opens_union,
+    rw Spec.D'.union,
     simp [Spec.univ],
     rw ←set.compl_empty,
     congr,
@@ -131,11 +134,37 @@ begin
     apply ideal.span_mem_finset, }
 end
 
-def set.to_indexed {A : Type*} (S : set A) 
-: ∃ γ, ∃ f : γ → A, set.range f = S := 
+lemma D_fs.subset : ∀ {D}, D ⊆ D_fs R → ∃ S, (Spec.DO R '' S) = D :=
 begin
-  use [S, λ x, x],
-  simp [set.range],
+  intros D HD,
+  use {f : R | ∃ U : opens (Spec R), U ∈ D ∧ U.1 = Spec.D' f },
+  apply set.ext,
+  intros x,
+  split,
+  { intros Hx,
+    rcases Hx with ⟨f, ⟨Hf, Hx⟩⟩,
+    rcases Hf with ⟨Df, ⟨HDf, HDfval⟩⟩,
+    rw ←Hx,
+    have Heq : Df = Spec.DO R f,
+      apply opens.ext,
+      exact HDfval,
+    rw ←Heq,
+    exact HDf, },
+  { intros Hx,
+    have HxD := HD Hx,
+    rcases HxD with ⟨f, Hf⟩,
+    simp,
+    use [f, x],
+    { exact ⟨Hx, Hf⟩, },
+    { apply opens.ext,
+      exact Hf.symm, } }
+end
+
+lemma Spec.DO.val_eq_D' : subtype.val ∘ Spec.DO R = Spec.D' :=
+begin
+  rw function.funext_iff,
+  intros f,
+  simp [Spec.DO],
 end
 
 lemma Spec.quasi_compact.aux : compact (Spec.univ R) :=
@@ -143,7 +172,53 @@ begin
   rw compact_iff_finite_subcover,
   intros C HC Hcov,
   replace Hcov := set.subset.antisymm Hcov (λ x Hx, trivial),
-  
+  let OC := covering.from_cover (@opens.univ (Spec R) _) C HC Hcov,
+  have BDfs : opens.is_basis (D_fs R) := D_fs_basis R,
+  have BC := @refine_cover_with_basis (Spec R) _ (D_fs R) BDfs OC,
+  rcases BC with ⟨D, ⟨BD, HDUi, HUD⟩⟩,
+  have HS := D_fs.subset BD,
+  rcases HS with ⟨S, HS⟩,
+  rw ←HS at HUD,
+  replace HUD := subtype.ext.1 HUD,
+  rw opens.Sup_s at HUD,
+  rw ←set.image_comp at HUD,
+  rw Spec.DO.val_eq_D' at HUD,
+  have HF := D_fs_quasi_compact S HUD,
+  rcases HF with ⟨F, HFS, ⟨HFfin, HFcov⟩⟩,
+  have HUD : ∀ {U}, U ∈ Spec.DO R '' F → U ∈ D,
+    intros U HU,
+    rcases HU with ⟨f, ⟨Hf, HU⟩⟩,
+    replace Hf := HFS Hf,
+    rw ←HS,
+    exact ⟨f, ⟨Hf, HU⟩⟩,
+  let Fisaux : ∀ {U}, U ∈ (Spec.DO R '' F) → set (Spec R) :=
+    λ U HU, (OC.Uis (classical.some (HDUi U (HUD HU)))).1,
+  let Finsprop := λ U HU, classical.some_spec (HDUi U (HUD HU)),
+  let Fis : { f // f ∈ F } → set (Spec R) :=
+    λ U, Fisaux ⟨U, ⟨U.2, rfl⟩⟩,
+  use [set.range Fis],
+  have HFis : set.range Fis ⊆ C,
+    intros U HU,
+    rcases HU with ⟨f, Hf⟩,
+    rw ←Hf,
+    simp [Fis],
+    apply covering.from_cover.Uis,
+  use [HFis],
+  split,
+  { constructor,
+    replace HFfin := set.finite.fintype HFfin,
+    apply @set.fintype_range _ _ _ Fis HFfin, },
+  { intros x Hx,
+    have Hx' := Hx,
+    have HUis : (⋃OC.Uis).val = Spec.univ R := (subtype.ext.1 OC.Hcov),
+    rw ←HFcov at Hx,
+    rcases Hx with ⟨U, ⟨⟨f, ⟨Hf, HDf⟩⟩, HxU⟩⟩,
+    rw ←HDf at HxU,
+    use [Fis ⟨f, Hf⟩],
+    use [⟨f, Hf⟩],
+    have HDfUi := Finsprop ⟨Spec.D' f, D_fs_open R f⟩ ⟨f, ⟨Hf, rfl⟩⟩,
+    simp [Fis],
+    exact HDfUi HxU, },
 end
 
 lemma Spec.compact : compact_space (Spec R) :=
@@ -152,52 +227,4 @@ begin
   apply Spec.quasi_compact.aux,
 end
 
--- -- now deduce main result from compact basis result
--- lemma lemma_quasi_compact {R : Type u} [comm_ring R] : compact (@set.univ (X R)) :=
--- begin
---   rw compact_iff_finite_subcover,
---   intros c HOc Hccov,
---   let B := {U : set (X R) | ∃ (f : R), U = Spec.D' f},
---   have HB : topological_space.is_topological_basis B := D_f_form_basis R,
---   cases (refine_cover_with_basis B HB c HOc (set.subset.antisymm (by simp) Hccov)) with d Hd,
---   have HdB : ∀ V ∈ d, ∃ f : R, V = Spec.D' f := λ _ HV,Hd.1 HV,
---   have H := basis_quasi_compact (λ f, (Spec.D' f) ∈ d),
---   have Hdcov : (⋃ (fHf : {f // Spec.D' f ∈ d}), Spec.D' (fHf.val)) = set.univ,
---   { apply set.subset.antisymm,simp,
---     rw ←Hd.2.2,
---     intros x Hx,cases Hx with V HV,cases HV with HVd HxV,
---     existsi V,
---     existsi _,
---     exact HxV,
---     cases Hd.1 HVd with f Hf,
---     rw Hf at HVd,
---     existsi (⟨f,HVd⟩ : {f // Spec.D' f ∈ d}),
---     exact Hf
---   },
---   cases H (eq.symm Hdcov) with G HG,
---   let m : {g // g ∈ G} → set (X R) := λ gG,classical.some (Hd.2.1 (Spec.D' gG.val) (HG.1 gG.property)),
---   have mH : ∀ (gG : {g // g ∈ G}), ∃ (H : (m gG) ∈ c), Spec.D' (gG.val) ⊆ (m gG)
---       := λ (gG : {g // g ∈ G}), classical.some_spec (Hd.2.1 (Spec.D' gG.val) (HG.1 gG.property)),
---   existsi set.range m,
---   existsi _,split,
---   { have HGfin : set.finite G := HG.2.1,
---     exact let ⟨HF⟩ := HGfin in ⟨@set.fintype_range _ _ _ m HF⟩,
---   },
---   { rw HG.2.2,
---     intros x Hx,
---     cases Hx with U HU,cases HU with HU HxU,cases HU with gG HU,
---     change U = Spec.D' (gG.val)  at HU,
---     cases mH gG with H1 H2,
---     existsi m gG,
---     existsi _,
---     { apply H2,
---       rw ←HU,
---       exact HxU },
---     existsi gG,refl
---   },
---   intros U HU,cases HU with gG HU,
---   cases (mH gG) with Hc,
---   rw HU at Hc,exact Hc,
--- end
-
-
+end quasi_compact

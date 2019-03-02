@@ -34,7 +34,7 @@ set.ext $ λ x, ⟨
   λ ⟨x', Hx', Hval⟩, Hval ▸ Hx',
   λ Hx, by simp [HS x Hx]; by exact Hx⟩ 
 
-def covering.from_cover {A : Type*} [topological_space A]
+@[reducible] def covering.from_cover {A : Type*} [topological_space A]
 (U     : opens A)
 (C     : set (set A))
 (HC    : ∀ (t : set A), t ∈ C → is_open t)
@@ -68,5 +68,20 @@ def covering.from_cover {A : Type*} [topological_space A]
           exact HU, },
         { exact HxU, }  }
     end, }
+
+lemma covering.from_cover.Uis {A : Type*} [topological_space A]
+(U     : opens A)
+(C     : set (set A))
+(HC    : ∀ (t : set A), t ∈ C → is_open t)
+(Hcov : U.1 = ⋃₀ C)
+: ∀ i, ((covering.from_cover U C HC Hcov).Uis i).1 ∈ C :=
+begin
+  intros i,
+  simp [covering.from_cover] at *,
+  cases i with i Hi,
+  simp,
+  simp [opens.from_sets] at *,
+  exact Hi,
+end
 
 end covering

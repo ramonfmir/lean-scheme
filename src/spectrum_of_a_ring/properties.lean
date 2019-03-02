@@ -7,6 +7,8 @@
 import spectrum_of_a_ring.spectrum
 import commutative_algebra.find_maximal_ideal
 
+open lattice
+
 noncomputable theory
 
 local attribute [instance] classical.prop_decidable
@@ -172,7 +174,7 @@ end
 -- Lemma 16.
 -- ⋃D(fi) is the complement of V({fi}).
 
-lemma Spec.basic_opens_union (F : set R) : ⋃₀ ((Spec.D') '' F) = -Spec.V F :=
+lemma Spec.D'.union (F : set R) : ⋃₀ ((Spec.D') '' F) = -Spec.V F :=
 begin
   apply set.ext,
   intros x,

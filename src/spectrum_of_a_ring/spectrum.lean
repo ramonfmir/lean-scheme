@@ -28,6 +28,8 @@ parameter (α)
 
 def Spec.univ := @set.univ Spec
 
+def Spec.empty := (∅ : set Spec)
+
 def Spec.closed : set (set Spec) := {A | ∃ E, Spec.V  E = A}
 
 def Spec.open : set (set Spec) := {A | ∃ U, Spec.D U = A}

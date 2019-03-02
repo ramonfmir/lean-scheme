@@ -14,6 +14,9 @@ variables {α : Type u} [topological_space α]
 instance : has_inter (opens α) :=
 { inter := λ U V, inf U V }
 
+@[simp] lemma opens.inter (U V : opens α) :
+U ∩ V = ⟨U.1 ∩ V.1, is_open_inter U.2 V.2⟩ := rfl
+
 instance : has_union (opens α) :=
 { union := λ U V, sup U V }
 
