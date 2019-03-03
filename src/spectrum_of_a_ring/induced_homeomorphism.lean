@@ -12,7 +12,7 @@ import spectrum_of_a_ring.induced_continuous_map
 
 universes u
 
-section move
+--section move
 
 -- TODO : should be somewhere else.
 
@@ -28,16 +28,38 @@ section move
 
 -- end move
 
-section
-
 open localization_alt
 
-parameters {R : Type u} [comm_ring R] (f : R) 
-parameters {Rf : Type u} [comm_ring Rf] (h : R → Rf) [is_ring_hom h] [HL : is_localization (powers f) h]
+section homeomorphism
+
+parameters {R : Type u} [comm_ring R] 
+parameters {Rf : Type u} [comm_ring Rf] {h : R → Rf} [is_ring_hom h]
+parameters {f : R} (HL : is_localization (powers f) h) 
+
+def φ : Spec Rf → Spec R := Zariski.induced h
+
+-- There is no f^n in h⁻¹(I).
 
 include HL
 
-def φ : Spec Rf → Spec R := Zariski.induced h
+lemma powers_f_not_preimage (I : ideal Rf) (PI : ideal.is_prime I)
+: ∀ fn ∈ powers f, fn ∉ ideal.preimage h I :=
+begin
+  have PIinv := ideal.is_prime.preimage h I PI,
+  intros fn Hfn HC,
+  replace HC : h fn ∈ I := HC,
+  have Hinvfn := HL.1 ⟨fn, Hfn⟩,
+  rcases Hinvfn with ⟨s, Hs⟩,
+  simp at Hs,
+  have Hone := @ideal.mul_mem_right _ _ I _ s HC,
+  rw Hs at Hone,
+  apply PI.1,
+  exact (ideal.eq_top_iff_one _).2 Hone,
+end
+
+lemma h_powers_f_not_mem (I : ideal Rf) (PI : ideal.is_prime I)
+: ∀ fn ∈ powers f, h fn ∉ I :=
+λ fn Hfn HC, (powers_f_not_preimage I PI) fn Hfn HC
 
 lemma phi_injective : function.injective φ :=
 begin
@@ -45,30 +67,10 @@ begin
   rcases x with ⟨I, PI⟩,
   rcases y with ⟨J, PJ⟩,
   simp [φ, Zariski.induced] at Hxy,
+  have HhfnI := h_powers_f_not_mem I PI,
+  have HhfnJ := h_powers_f_not_mem J PJ,
   rcases HL with ⟨Hinv, Hden, Hker⟩,
-  have PIinv := ideal.is_prime.preimage h I PI,
-  have PJinv := ideal.is_prime.preimage h J PJ,
-  -- There is no f^n in h⁻¹(I) or h⁻¹(J).
-  have HfnIinv : ∀ fn ∈ powers f, fn ∉ ideal.preimage h I,
-    intros fn Hfn HC,
-    replace HC : h fn ∈ I := HC,
-    have Hinvfn := Hinv ⟨fn, Hfn⟩,
-    rcases Hinvfn with ⟨s, Hs⟩,
-    simp at Hs,
-    have Hone := @ideal.mul_mem_right _ _ I _ s HC,
-    rw Hs at Hone,
-    apply PI.1,
-    exact (ideal.eq_top_iff_one _).2 Hone,
-  have HfnJinv : ∀ fn ∈ powers f, fn ∉ ideal.preimage h J,
-    rw ←Hxy,
-    exact HfnIinv,
-  have HhfnI : ∀ fn ∈ powers f, h fn ∉ I,
-    intros fn' Hfn' HC,
-    exact HfnIinv fn' Hfn' HC,
-  have HhfnJ : ∀ fn ∈ powers f, h fn ∉ J,
-    intros fn' Hfn' HC,
-    exact HfnJinv fn' Hfn' HC,  
-  -- Proceed. TODO : very similar branches.
+  -- TODO : very similar branches.
   simp,
   apply ideal.ext,
   intros x,
@@ -106,12 +108,54 @@ begin
     cases H,
     { exfalso,
       exact HhfnI fn.1 fn.2 H, },
-    { exact H, } }
+    { exact H, } },
 end
 
 lemma phi_opens : ∀ U : set (Spec Rf), is_open U ↔ is_open (φ '' U) :=
 begin
-  sorry,
+  intros U,
+  have HL' := HL,
+  rcases HL' with ⟨Hinv, Hden, Hker⟩,
+  split,
+  { intros OU,
+    cases OU with E HE,
+    have HU : U = Spec.D E,
+      simp [Spec.D],
+      rw HE, 
+      rw set.compl_compl,
+    rw HU,
+    let S := { x | ∃ (r) (s ∈ powers f) (y ∈ E), x = f * r ∧ h s * y = h r },
+    existsi S,
+    apply set.ext,
+    rintros ⟨I, PI⟩,
+    split,
+    { intros HSJinv HC,
+      rcases HC with ⟨⟨J, PJ⟩, HP, HφP⟩,
+      rw ←HφP at HSJinv,
+      simp [φ, Zariski.induced, Spec.V, ideal.preimage] at HSJinv,
+      replace HSJinv : S ⊆ h ⁻¹' J.1 := HSJinv,
+      apply HP,
+      intros x Hx,
+      rcases (Hden x) with ⟨⟨fn, r⟩, Hhr⟩,
+      simp at Hhr,
+      rcases (Hinv fn) with ⟨s, Hfn⟩,
+      have HfrS : f * r ∈ S := ⟨r, fn.1, fn.2, x, Hx, ⟨rfl, Hhr⟩⟩,
+      replace HfrS := HSJinv HfrS,
+      have HhfrJ : h (f * r) ∈ J := HfrS,
+      rw is_ring_hom.map_mul h at HhfrJ,
+      replace HhfrJ := PJ.2 HhfrJ, 
+      have Hfpow : f ∈ powers f := ⟨1, by simp⟩,
+      have : h f ∉ J := h_powers_f_not_mem J PJ f Hfpow,
+      have : h fn ∉ J := h_powers_f_not_mem J PJ fn fn.2,
+      cases HhfrJ,
+      { contradiction, },
+      { rw ←Hhr at HhfrJ,
+        replace HhfrJ := PJ.2 HhfrJ,
+        cases HhfrJ,
+        { contradiction, },
+        { exact HhfrJ, } } },
+    { sorry, } },
+  { sorry, }
 end
 
 lemma phi_image_Df : φ '' Spec.univ Rf = Spec.D'(f) :=
@@ -119,7 +163,7 @@ begin
   sorry,
 end
 
-end
+end homeomorphism
 
 #exit
 
