@@ -12,6 +12,22 @@ import spectrum_of_a_ring.induced_continuous_map
 
 universes u
 
+section move
+
+-- TODO : should be somewhere else.
+
+-- lemma ideal.mem_succ_pow {R : Type u} [comm_ring R] (I : ideal R) :
+-- ∀ x : R, (x ∈ I → ∀ n : ℕ, x ^ nat.succ n ∈ I) :=
+-- begin
+--   intros x Hx n,
+--   induction n with n Hn,
+--   { simp [Hx], },
+--   { rw pow_succ,
+--     apply ideal.mul_mem_left I Hn, }
+-- end
+
+-- end move
+
 section
 
 open localization_alt
@@ -21,21 +37,76 @@ parameters {Rf : Type u} [comm_ring Rf] (h : R → Rf) [is_ring_hom h] [HL : is_
 
 include HL
 
-@[reducible] def φ : Spec Rf → Spec R := Zariski.induced h
+def φ : Spec Rf → Spec R := Zariski.induced h
 
 lemma phi_injective : function.injective φ :=
 begin
-  intros x y hxy,
+  intros x y Hxy,
   rcases x with ⟨I, PI⟩,
   rcases y with ⟨J, PJ⟩,
+  simp [φ, Zariski.induced] at Hxy,
+  rcases HL with ⟨Hinv, Hden, Hker⟩,
+  have PIinv := ideal.is_prime.preimage h I PI,
+  have PJinv := ideal.is_prime.preimage h J PJ,
+  -- There is no f^n in h⁻¹(I) or h⁻¹(J).
+  have HfnIinv : ∀ fn ∈ powers f, fn ∉ ideal.preimage h I,
+    intros fn Hfn HC,
+    replace HC : h fn ∈ I := HC,
+    have Hinvfn := Hinv ⟨fn, Hfn⟩,
+    rcases Hinvfn with ⟨s, Hs⟩,
+    simp at Hs,
+    have Hone := @ideal.mul_mem_right _ _ I _ s HC,
+    rw Hs at Hone,
+    apply PI.1,
+    exact (ideal.eq_top_iff_one _).2 Hone,
+  have HfnJinv : ∀ fn ∈ powers f, fn ∉ ideal.preimage h J,
+    rw ←Hxy,
+    exact HfnIinv,
+  have HhfnI : ∀ fn ∈ powers f, h fn ∉ I,
+    intros fn' Hfn' HC,
+    exact HfnIinv fn' Hfn' HC,
+  have HhfnJ : ∀ fn ∈ powers f, h fn ∉ J,
+    intros fn' Hfn' HC,
+    exact HfnJinv fn' Hfn' HC,  
+  -- Proceed. TODO : very similar branches.
   simp,
   apply ideal.ext,
   intros x,
   split,
   { intros Hx,
-    sorry, },
+    have Hdenx := Hden x,
+    rcases Hdenx with ⟨⟨fn, r⟩, Hhr⟩,
+    simp at Hhr,
+    have Hinvfn := Hinv fn,
+    rcases Hinvfn with ⟨s, Hfn⟩,
+    have H := @ideal.mul_mem_left _ _ I (h fn) _ Hx,
+    rw Hhr at H,
+    replace H : r ∈ ideal.preimage h I := H,
+    rw Hxy at H, 
+    replace H : h r ∈ J := H,
+    rw ←Hhr at H,
+    replace H := PJ.2 H,
+    cases H,
+    { exfalso,
+      exact HhfnJ fn.1 fn.2 H, },
+    { exact H, } },
   { intros Hx,
-    sorry, }
+    have Hdenx := Hden x,
+    rcases Hdenx with ⟨⟨fn, r⟩, Hhr⟩,
+    simp at Hhr,
+    have Hinvfn := Hinv fn,
+    rcases Hinvfn with ⟨s, Hfn⟩,
+    have H := @ideal.mul_mem_left _ _ J (h fn) _ Hx,
+    rw Hhr at H,
+    replace H : r ∈ ideal.preimage h J := H,
+    rw ←Hxy at H, 
+    replace H : h r ∈ I := H,
+    rw ←Hhr at H,
+    replace H := PI.2 H,
+    cases H,
+    { exfalso,
+      exact HhfnI fn.1 fn.2 H, },
+    { exact H, } }
 end
 
 lemma phi_opens : ∀ U : set (Spec Rf), is_open U ↔ is_open (φ '' U) :=
@@ -53,12 +124,14 @@ end
 #exit
 
 lemma lemma_standard_open (R : Type u) [comm_ring R] (f : R) : 
-  let φ := Zariski.induced $ localization.of_comm_ring R (powers f) in
-  topological_space.open_immersion' φ ∧ φ '' set.univ = Spec.D'(f) :=
+  let φ := Zariski.induced (localization.away R (powers f)) in
+  function.injective φ ∧ φ '' set.univ = Spec.D'(f) :=
 ⟨⟨Zariski.induced.continuous _,
   λ x y hxy, subtype.eq $ set.ext $ λ z,
     quotient.induction_on z $ λ ⟨r, s, hs⟩,
-    ⟨λ hr, have h1 : _ := localization.mul_denom R _ r s hs,
+    ⟨λ hr, 
+
+        have h1 : _ := localization.mul_denom R _ r s hs,
        have h2 : localization.of_comm_ring R (powers f) r ∈ x.val,
          from eq.rec (@@is_ideal.mul_right _ x.2.1.1 hr) h1,
        have h3 : r ∈ (Zariski.induced (localization.of_comm_ring R (powers f)) y).1,
