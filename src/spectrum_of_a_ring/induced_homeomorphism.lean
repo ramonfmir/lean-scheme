@@ -1,19 +1,56 @@
 /-
-Lemma 10.16.6. Let R be a ring. Let f∈R. The map R→Rf induces via the functoriality of Spec a homeomorphism
-Spec(Rf)⟶D(f)⊂Spec(R).
-The inverse is given by 𝔭↦𝔭⋅Rf.
+  The map R → R[1/f] induces a homeomorphism Spec(R[1/f]) → D(f).
 
-Proof. This is a special case of Lemma 10.16.5 (=tag 00E3)
+  https://stacks.math.columbia.edu/tag/00E4
 -/
 
-import analysis.topology.topological_space analysis.topology.continuity tag00E2 localization
-import Kenny_comm_alg.Zariski
-import mathlib_someday.topology 
+import topology.basic
+import ring_theory.localization
+import preliminaries.localisation
+import spectrum_of_a_ring.zariski_topology
+import spectrum_of_a_ring.induced_continuous_map
 
 universes u
 
-/-- tag 00E4 -/
--- note: this should be in mathlib as a structure
+section
+
+open localization_alt
+
+parameters {R : Type u} [comm_ring R] (f : R) 
+parameters {Rf : Type u} [comm_ring Rf] (h : R → Rf) [is_ring_hom h] [HL : is_localization (powers f) h]
+
+include HL
+
+@[reducible] def φ : Spec Rf → Spec R := Zariski.induced h
+
+lemma phi_injective : function.injective φ :=
+begin
+  intros x y hxy,
+  rcases x with ⟨I, PI⟩,
+  rcases y with ⟨J, PJ⟩,
+  simp,
+  apply ideal.ext,
+  intros x,
+  split,
+  { intros Hx,
+    sorry, },
+  { intros Hx,
+    sorry, }
+end
+
+lemma phi_opens : ∀ U : set (Spec Rf), is_open U ↔ is_open (φ '' U) :=
+begin
+  sorry,
+end
+
+lemma phi_image_Df : φ '' Spec.univ Rf = Spec.D'(f) :=
+begin
+  sorry,
+end
+
+end
+
+#exit
 
 lemma lemma_standard_open (R : Type u) [comm_ring R] (f : R) : 
   let φ := Zariski.induced $ localization.of_comm_ring R (powers f) in

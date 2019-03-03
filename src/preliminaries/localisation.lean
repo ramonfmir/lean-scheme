@@ -12,14 +12,14 @@ variables {A : Type u} {B : Type v} {C : Type w}
 variables [comm_ring A] [comm_ring B] [comm_ring C]
 variables (S : set A) [is_submonoid S] (f : A → B) [is_ring_hom f]
 
-/- This is essentially the same logic as units.ext, but in more 
-   convenient form.
--/
+-- This is essentially the same logic as units.ext, but in more convenient form.
+
 lemma comm_monoid.inv_unique {M : Type*} [comm_monoid M]
   {a ai₁ ai₂ : M} (e₁ : a * ai₁ = 1) (e₂ : a * ai₂ = 1) : ai₁ = ai₂ :=
 by rw [← mul_one ai₁, ← e₂, ← mul_assoc, mul_comm ai₁, e₁, one_mul]
 
-/-- preserve definitional equality -/
+-- Preserve definitional equality.
+
 def ideal.mk (I : set A) (J : ideal A) (H : I = J) : ideal A :=
 { carrier := I,
   zero := H.symm ▸ J.zero,
@@ -29,25 +29,6 @@ def ideal.mk (I : set A) (J : ideal A) (H : I = J) : ideal A :=
 def ker : ideal A :=
 ideal.mk {x | f x = 0} (ideal.comap f ⊥) $
 set.ext $ λ x, by simp
-
--- def ker : ideal A := 
--- {
---   carrier := λ a, f a = 0,
---   zero := is_ring_hom.map_zero f,
---   add := begin
---    intros a1 a2 fa1z fa2z, 
---    change f a1 = 0 at fa1z,
---    change f a2 = 0 at fa2z,
---    show f (a1 + a2) = 0,
---    simp[is_ring_hom.map_add f,fa1z,fa2z]
---   end,
---   smul := begin
---    intros a1 a2 fa2z,
---    change f a2 = 0 at fa2z,
---    show f (a1 * a2) = 0,
---    simp[is_ring_hom.map_mul f,fa2z],
---   end
--- }
 
 def inverts_data (S : set A) (f : A → B) : Type* :=
 Π s : S, {si : B // (f s) * si = 1}
