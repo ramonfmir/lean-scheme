@@ -111,6 +111,97 @@ begin
     { exact H, } },
 end
 
+-- Map from I → h(I)Rf.
+
+lemma localisation_map_ideal (I : ideal R) : ideal Rf :=
+{ carrier := { x | ∃ (y ∈ h '' I) (r : Rf), x = y * r },
+  zero := -- ⟨0, ⟨I.2, is_ring_hom.map_zero h⟩⟩
+    begin
+      use [h 0, 0],
+      exact ⟨I.2, rfl⟩,
+      use 1,
+      rw mul_one,
+      rw ←is_ring_hom.map_zero h,
+    end,
+  add := 
+    begin
+      intros x y Hx Hy,
+      rcases Hx with ⟨a, ⟨Ha, ⟨r, Hx⟩⟩⟩,
+      rcases Hy with ⟨b, ⟨Hb, ⟨t, Hy⟩⟩⟩,
+      rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
+      rcases Hb with ⟨w, ⟨Hw, Hb⟩⟩,
+      rw ←Ha at Hx,
+      rw ←Hb at Hy,
+      rw [Hx, Hy],
+      rcases HL with ⟨Hinv, Hden, Hker⟩,
+      rcases (Hden r) with ⟨⟨fn, l⟩, Hl⟩,
+      rcases (Hinv fn) with ⟨hfninv, Hfn⟩,
+      simp at Hl,
+      rw mul_comm at Hfn,
+      rcases (Hden t) with ⟨⟨fm, k⟩, Hk⟩,
+      rcases (Hinv fm) with ⟨hfminv, Hfm⟩,
+      simp at Hk,
+      rw mul_comm at Hfm,
+      -- Get rid of r.
+      rw ←one_mul (_ + _),
+      rw ←Hfn,
+      rw mul_assoc,
+      rw mul_add,
+      rw mul_comm _ r,
+      rw ←mul_assoc _ r _,
+      rw Hl,
+      -- Get rid of t.
+      rw ←one_mul (_ * _),
+      rw ←Hfm,
+      rw mul_assoc,
+      rw ←mul_assoc (h _) _ _,
+      rw mul_comm (h _),
+      rw mul_assoc _ (h _) _,
+      rw mul_add,
+      rw ←mul_assoc _ _ t,
+      rw add_comm,
+      rw ←mul_assoc (h fm) _ _,
+      rw mul_comm (h fm),
+      rw mul_assoc _ _ t,
+      rw Hk,
+      -- Rearrange.
+      repeat { rw ←is_ring_hom.map_mul h, },
+      rw ←mul_assoc _ _ v,
+      rw mul_assoc ↑fn,
+      rw mul_comm w,
+      rw ←mul_assoc ↑fn,
+      rw ←is_ring_hom.map_add h,
+      rw ←mul_assoc,
+      rw mul_comm,
+      -- Ready to prove it.
+      have HyI : ↑fn * k * w + ↑fm * l * v ∈ ↑I,
+        apply I.3,
+        { apply I.4,
+          exact Hw, },
+        { apply I.4,
+          exact Hv, },
+      use [h (↑fn * k * w + ↑fm * l * v)],
+      use [⟨↑fn * k * w + ↑fm * l * v, ⟨HyI, rfl⟩⟩],
+      use [hfminv * hfninv],
+    end,
+  smul := 
+    begin
+      intros c x Hx,
+      rcases Hx with ⟨a, ⟨Ha, ⟨r, Hx⟩⟩⟩,
+      rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
+      rw [Hx, ←Ha],
+      rw mul_comm _ r,
+      unfold has_scalar.smul,
+      rw mul_comm r,
+      rw mul_comm c,
+      rw mul_assoc,
+      use [h v],
+      use [⟨v, ⟨Hv, rfl⟩⟩],
+      use [r * c],
+    end, }
+
+
+
 lemma phi_opens : ∀ U : set (Spec Rf), is_open U ↔ is_open (φ '' U) :=
 begin
   intros U,
@@ -129,6 +220,22 @@ begin
     apply set.ext,
     rintros ⟨I, PI⟩,
     split,
+    swap,
+    { intros HI,
+      simp at HI,
+      replace HI : ∀ (J : ideal Rf) [PJ : ideal.is_prime J], 
+        (⟨J, PJ⟩ : Spec Rf) ∈ Spec.D E → ¬φ ⟨J, PJ⟩ = ⟨I, PI⟩
+        := λ J PJ, HI ⟨J, PJ⟩,
+      intros x Hx,
+      apply classical.by_contradiction,
+      intros HC,
+      simp at HC,
+      rcases Hx with ⟨r, s, Hspow, y, HyE, ⟨Hx, Hy⟩⟩,
+      have hI : ideal Rf := localisation_map_ideal I,
+      have HI' := HI hI PI,
+      },
+
+
     { intros HSJinv HC,
       rcases HC with ⟨⟨J, PJ⟩, HP, HφP⟩,
       rw ←HφP at HSJinv,
@@ -154,7 +261,7 @@ begin
         cases HhfrJ,
         { contradiction, },
         { exact HhfrJ, } } },
-    { sorry, } },
+     },
   { sorry, }
 end
 
