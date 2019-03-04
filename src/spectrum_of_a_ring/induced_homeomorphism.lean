@@ -9,6 +9,7 @@ import ring_theory.localization
 import preliminaries.localisation
 import spectrum_of_a_ring.zariski_topology
 import spectrum_of_a_ring.induced_continuous_map
+import tactic.find
 
 universes u
 
@@ -113,7 +114,7 @@ end
 
 -- Map from I → h(I)Rf.
 
-lemma localisation_map_ideal (I : ideal R) : ideal Rf :=
+def localisation_map_ideal (I : ideal R) : ideal Rf :=
 { carrier := { x | ∃ (y ∈ h '' I) (r : Rf), x = y * r },
   zero := -- ⟨0, ⟨I.2, is_ring_hom.map_zero h⟩⟩
     begin
@@ -200,7 +201,41 @@ lemma localisation_map_ideal (I : ideal R) : ideal Rf :=
       use [r * c],
     end, }
 
+-- Localisation map preserves primes.
 
+lemma localisation_map_ideal.is_prime (I : ideal R) [PI : ideal.is_prime I] 
+(Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
+: ideal.is_prime (localisation_map_ideal I) :=
+begin
+  constructor,
+  { intros HC,
+    rw ideal.eq_top_iff_one at HC,
+    have HC' := HC,
+    rcases HC with ⟨a, ⟨Ha, ⟨r, Hone⟩⟩⟩,
+    rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
+    rcases HL with ⟨Hinv, Hden, Hker⟩,
+    rcases (Hden r) with ⟨⟨fn, l⟩, Hl⟩,
+    rcases (Hinv fn) with ⟨hfninv, Hfn⟩,
+    simp at Hl,
+    rw ←Hfn at HC',
+    rcases HC' with ⟨b, ⟨Hb, ⟨t, Hy⟩⟩⟩,
+    rcases Hb with ⟨w, ⟨Hw, Hb⟩⟩,
+    rcases (Hden t) with ⟨⟨fm, k⟩, Hk⟩,
+    rcases (Hinv fm) with ⟨hfminv, Hfm⟩,
+    simp at Hk,
+
+    
+    
+    apply PI.1,
+    rw ideal.eq_top_iff_one,
+
+    --ideal.eq_top_of_unit_mem, 
+    },
+  { }
+end
+
+#check imp_iff_not_or
+#find (_ → _) → (_ → _)
 
 lemma phi_opens : ∀ U : set (Spec Rf), is_open U ↔ is_open (φ '' U) :=
 begin
@@ -224,12 +259,18 @@ begin
     { intros HI,
       simp at HI,
       replace HI : ∀ (J : ideal Rf) [PJ : ideal.is_prime J], 
-        (⟨J, PJ⟩ : Spec Rf) ∈ Spec.D E → ¬φ ⟨J, PJ⟩ = ⟨I, PI⟩
+        (⟨J, PJ⟩ : Spec Rf) ∈ -Spec.V E → ¬φ ⟨J, PJ⟩ = ⟨I, PI⟩
         := λ J PJ, HI ⟨J, PJ⟩,
+      rw imp_iff_not_or at HI,
       intros x Hx,
       apply classical.by_contradiction,
       intros HC,
       simp at HC,
+      replace HI : ∀ (J : ideal Rf) [PJ : ideal.is_prime J], 
+        φ ⟨J, PJ⟩ = ⟨I, PI⟩ → (⟨J, PJ⟩ : Spec Rf) ∈ Spec.V E
+        := λ J PJ Hφ,
+       
+
       rcases Hx with ⟨r, s, Hspow, y, HyE, ⟨Hx, Hy⟩⟩,
       have hI : ideal Rf := localisation_map_ideal I,
       have HI' := HI hI PI,
