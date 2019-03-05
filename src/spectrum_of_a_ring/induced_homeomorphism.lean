@@ -217,6 +217,10 @@ begin
     rcases (Hden r) with ⟨⟨fn, l⟩, Hl⟩,
     rcases (Hinv fn) with ⟨hfninv, Hfn⟩,
     simp at Hl,
+    
+
+
+
     rw ←Hfn at HC',
     rcases HC' with ⟨b, ⟨Hb, ⟨t, Hy⟩⟩⟩,
     rcases Hb with ⟨w, ⟨Hw, Hb⟩⟩,
@@ -228,14 +232,11 @@ begin
     
     apply PI.1,
     rw ideal.eq_top_iff_one,
-
+    sorry,
     --ideal.eq_top_of_unit_mem, 
     },
-  { }
+  { sorry, }
 end
-
-#check imp_iff_not_or
-#find (_ → _) → (_ → _)
 
 lemma phi_opens : ∀ U : set (Spec Rf), is_open U ↔ is_open (φ '' U) :=
 begin
@@ -258,10 +259,17 @@ begin
     swap,
     { intros HI,
       simp at HI,
-      replace HI : ∀ (J : ideal Rf) [PJ : ideal.is_prime J], 
+      replace HI : ∀ (J : ideal Rf) (PJ : ideal.is_prime J), 
         (⟨J, PJ⟩ : Spec Rf) ∈ -Spec.V E → ¬φ ⟨J, PJ⟩ = ⟨I, PI⟩
         := λ J PJ, HI ⟨J, PJ⟩,
-      rw imp_iff_not_or at HI,
+      have HI' : ∀ (J : ideal Rf) [PJ : ideal.is_prime J], 
+        φ ⟨J, PJ⟩ = ⟨I, PI⟩ → (⟨J, PJ⟩ : Spec Rf) ∈ Spec.V E,
+        intros J PJ Hφ,
+        have H := HI J PJ,
+        intros x Hx,
+        apply classical.by_contradiction,
+        sorry,
+
       intros x Hx,
       apply classical.by_contradiction,
       intros HC,
@@ -271,9 +279,10 @@ begin
         := λ J PJ Hφ,
        
 
-      rcases Hx with ⟨r, s, Hspow, y, HyE, ⟨Hx, Hy⟩⟩,
-      have hI : ideal Rf := localisation_map_ideal I,
-      have HI' := HI hI PI,
+      -- rcases Hx with ⟨r, s, Hspow, y, HyE, ⟨Hx, Hy⟩⟩,
+      -- have hI : ideal Rf := localisation_map_ideal I,
+      -- have HI' := HI hI PI,
+      sorry,
       },
 
 

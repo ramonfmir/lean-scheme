@@ -159,7 +159,7 @@ instance stalk_of_rings_is_ring : comm_ring (stalk_of_rings_on_standard_basis F 
         use [set.subset.refl _, HUVWsub],
         dsimp,
         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
-        repeat { rw ←presheaf_on_basis.Hcomp' },
+        repeat { erw ←presheaf_on_basis.Hcomp' },
         rw add_assoc,
     end,
     zero := (stalk_of_rings_has_zero Bstandard F x).zero,
