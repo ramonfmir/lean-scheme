@@ -329,12 +329,6 @@ instance stalk_of_rings_is_ring : comm_ring (stalk_of_rings_on_standard_basis F 
     end,
 }
 
-section stalk_universal_property
-
-
-
-end stalk_universal_property
-
 end stalk_is_ring
 
 end stalk_of_rings_on_standard_basis

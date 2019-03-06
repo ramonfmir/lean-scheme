@@ -56,7 +56,7 @@ section sheaf_of_types
 variables {α : Type u} [T : topological_space α]
 include T
 
-instance : has_coe (sheaf_of_types α) (presheaf α) := 
+instance sheaf.to_presheaf : has_coe (sheaf_of_types α) (presheaf α) := 
 ⟨λ S, S.F⟩
 
 def is_sheaf_of_types (F : presheaf α) :=
