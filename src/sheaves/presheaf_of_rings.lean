@@ -6,7 +6,7 @@
 
 import sheaves.presheaf
 
-universe u
+universes u v
 
 -- Definition of a presheaf of rings.
 
@@ -15,12 +15,16 @@ extends presheaf α :=
 (Fring           : ∀ (U), comm_ring (F U))
 (res_is_ring_hom : ∀ (U V) (HVU : V ⊆ U), is_ring_hom (res U V HVU))
 
+instance {α : Type u} [topological_space α] 
+: has_coe (presheaf_of_rings α) (presheaf α) 
+:= ⟨λ F, F.to_presheaf⟩
+
 attribute [instance] presheaf_of_rings.Fring
 attribute [instance] presheaf_of_rings.res_is_ring_hom
 
 namespace presheaf_of_rings
 
-variables {α : Type u} [topological_space α]
+variables {α : Type u} {β : Type v} [topological_space α] [topological_space β]
 
 -- Morphism of presheaf of rings.
 

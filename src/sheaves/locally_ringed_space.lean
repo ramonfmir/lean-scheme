@@ -1,9 +1,10 @@
 import topology.basic
+import topology.continuity
 import sheaves.presheaf_of_rings
 import sheaves.stalk_of_rings
 import sheaves.stalk_of_rings_is_ring
 
-universes u w
+universes u v w
 
 open topological_space
 
@@ -77,8 +78,38 @@ lemma to_stalk.rec_is_ring_hom : is_ring_hom (to_stalk.rec F x S G hg) :=
 
 end stalk_universal_property
 
--- Locally ringed spaces
+-- Locally ringed spaces.
 
-structure locally_ringed_space {X : Type u} [topological_space X] :=
+structure locally_ringed_space (X : Type u) [topological_space X] :=
 (F       : sheaf_of_rings X)
 (Hstalks : ∀ x, is_local_ring (stalk_of_rings F.F x))
+
+-- Morphism of locally ringed spaces.
+
+section fmap
+
+parameters {A : Type u} [topological_space A]
+parameters {B : Type v} [topological_space B] 
+parameters (f : A → B) (Hf : continuous f) 
+
+def cts_inv : opens B → opens A := 
+λ U, ⟨f ⁻¹' U.1, Hf U.1 U.2⟩ 
+
+lemma cts_inv_mono : ∀ {V U}, V ⊆ U → cts_inv V ⊆ cts_inv U :=
+λ V U HVU, set.preimage_mono HVU
+
+structure fmap (F : presheaf A) (G : presheaf B) :=
+(map      : ∀ (U), G U → F (cts_inv U))
+(commutes : ∀ (U V) (HVU : V ⊆ U),
+  (map V) ∘ (G.res U V HVU)
+= (F.res (cts_inv U) (cts_inv V) (cts_inv_mono HVU)) ∘ (map U))
+
+end fmap
+
+-- TODO: Work on coercions.
+
+structure morphism {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
+(XO : locally_ringed_space X) (YO : locally_ringed_space Y) :=
+(f  : X → Y)
+[Hf : continuous f]
+(fO : fmap f Hf XO.F.F.to_presheaf YO.F.F.to_presheaf)
