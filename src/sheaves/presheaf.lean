@@ -10,7 +10,7 @@ universes u v
 
 -- Definition of a presheaf.
 
-open topological_space
+open topological_space lattice
 
 structure presheaf (α : Type u) [T : topological_space α] := 
 (F     : opens α → Type v)

@@ -9,22 +9,6 @@ section stalk_of_rings_is_ring
 parameters {α : Type u} [topological_space α] 
 parameters (F : presheaf_of_rings α) (x : α)
 
--- Zero.
-
-private def stalk_of_rings_zero : stalk_of_rings F x := 
-⟦{U := opens.univ, HxU := trivial, s:= 0}⟧
-
-instance stalk_of_rings_has_zero : has_zero (stalk_of_rings F x) := 
-{zero := stalk_of_rings_zero}
-
--- One.
-
-private def stalk_of_rings_one : stalk_of_rings F x := 
-⟦{U := opens.univ, HxU := trivial, s:= 1}⟧
-
-instance stalk_of_rings_has_one : has_one (stalk_of_rings F x) := 
-{one := stalk_of_rings_one}
-
 -- Add.
 
 private def stalk_of_rings_add_aux : 
@@ -38,8 +22,8 @@ s := F.res s.U _ (set.inter_subset_left _ _) s.s +
      F.res t.U _ (set.inter_subset_right _ _) t.s}⟧
 
 instance stalk_of_rings_has_add : has_add (stalk_of_rings F x) := 
-{add := quotient.lift₂ (stalk_of_rings_add_aux) $
-begin
+{ add := quotient.lift₂ (stalk_of_rings_add_aux) $
+  begin
     intros a1 a2 b1 b2 H1 H2, 
     let F' := F.to_presheaf,
     rcases H1 with ⟨U1, ⟨HxU1, ⟨HU1a1U, HU1b1U, HresU1⟩⟩⟩,
@@ -60,9 +44,125 @@ begin
     repeat { rw ←(presheaf.Hcomp' F') at HresU2' },
     repeat { rw ←(presheaf.Hcomp' F') },
     rw [HresU1', HresU2'],
-end}
+  end }
 
--- -- Mul. TODO: Basically the same as add, what can be done about this?
+instance stalk_of_rings_add_semigroup : add_semigroup (stalk_of_rings F x) :=
+{ add := stalk_of_rings_has_add.add,
+  add_assoc := 
+  begin
+    intros a b c,
+    refine quotient.induction_on₃ a b c _,
+    rintros ⟨U, HxU, sU⟩ ⟨V, HxV, sV⟩ ⟨W, HxW, sW⟩,
+    have HUVWsub : U ∩ V ∩ W ⊆ U ∩ (V ∩ W) 
+    := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨HxU, ⟨HxV, HxW⟩⟩,
+    apply quotient.sound,
+    use [U ∩ V ∩ W, ⟨⟨HxU, HxV⟩, HxW⟩],
+    use [set.subset.refl _, HUVWsub],
+    dsimp,
+    repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+    repeat { erw ←presheaf.Hcomp' },
+    rw add_assoc,
+  end }
+
+instance stalk_of_rings_add_comm_semigroup : add_comm_semigroup (stalk_of_rings F x) :=
+{ add_comm := 
+  begin
+    intros a b,
+    refine quotient.induction_on₂ a b _,
+    rintros ⟨U, HxU, sU⟩ ⟨V, HxV, sV⟩,
+    apply quotient.sound,
+    have HUVUV : U ∩ V ⊆ U ∩ V := λ x HxUV, HxUV,
+    have HUVVU : U ∩ V ⊆ V ∩ U := λ x ⟨HxU, HxV⟩, ⟨HxV, HxU⟩,
+    use [U ∩ V, ⟨HxU, HxV⟩, HUVUV, HUVVU],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+    repeat { rw ←presheaf.Hcomp' },
+    rw add_comm,
+  end,
+  ..stalk_of_rings_add_semigroup }
+
+-- Zero.
+
+private def stalk_of_rings_zero : stalk_of_rings F x := 
+⟦{U := opens.univ, HxU := trivial, s:= 0}⟧
+
+instance stalk_of_rings_has_zero : has_zero (stalk_of_rings F x) := 
+{ zero := stalk_of_rings_zero }
+
+instance stalk_of_rings_add_comm_monoid : add_comm_monoid (stalk_of_rings F x) :=
+{ zero := stalk_of_rings_zero,
+  zero_add := 
+  begin
+    intros a,
+    refine quotient.induction_on a _,
+    rintros ⟨U, HxU, sU⟩,
+    apply quotient.sound,
+    have HUsub : U ⊆ opens.univ ∩ U := λ x HxU, ⟨trivial, HxU⟩,
+    use [U, HxU, HUsub, set.subset.refl U],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+    repeat { rw ←presheaf.Hcomp' },
+    erw (is_ring_hom.map_zero ((F.to_presheaf).res _ _ _));
+    try { apply_instance },
+    rw zero_add,
+    refl,
+  end,
+  add_zero := 
+  begin
+    intros a,
+    refine quotient.induction_on a _,
+    rintros ⟨U, HxU, sU⟩,
+    apply quotient.sound,
+    have HUsub : U ⊆ U ∩ opens.univ := λ x HxU, ⟨HxU, trivial⟩,
+    use [U, HxU, HUsub, set.subset.refl U],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+    repeat { erw ←presheaf.Hcomp' },
+    dsimp,
+    erw (is_ring_hom.map_zero ((F.to_presheaf).res _ _ _));
+    try { apply_instance },
+    rw add_zero,
+    refl,
+  end,
+  ..stalk_of_rings_add_comm_semigroup }
+
+-- Neg.
+
+private def stalk_sub_aux : 
+stalk.elem F.to_presheaf x → 
+stalk F.to_presheaf x :=
+λ s, ⟦{U := s.U, HxU := s.HxU, s := -s.s}⟧
+
+instance stalk_of_rings_has_neg : has_neg (stalk_of_rings F x) :=
+{ neg := quotient.lift stalk_sub_aux $ 
+  begin
+    intros a b H,
+    rcases H with ⟨U, ⟨HxU, ⟨HUaU, HUbU, HresU⟩⟩⟩,
+    apply quotient.sound,
+    use [U, HxU, HUaU, HUbU],
+    repeat { rw @is_ring_hom.map_neg _ _ _ _ _ (F.res_is_ring_hom _ _ _) },
+    rw HresU,
+  end }
+
+instance stalk_of_rings_add_comm_group : add_comm_group (stalk_of_rings F x) :=
+{ neg := stalk_of_rings_has_neg.neg,
+  add_left_neg := 
+  begin
+    intros a,
+    refine quotient.induction_on a _,
+    rintros ⟨U, HxU, sU⟩,
+    apply quotient.sound,
+    have HUUU : U ⊆ U ∩ U := λ x HxU, ⟨HxU, HxU⟩,
+    have HUuniv : U ⊆ opens.univ := λ x HxU, trivial,
+    use [U, HxU, HUUU, HUuniv],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+    repeat { rw ←presheaf.Hcomp' },
+    erw (is_ring_hom.map_neg ((F.to_presheaf).res _ _ _));
+    try { apply_instance },
+    rw add_left_neg,
+    erw (is_ring_hom.map_zero ((F.to_presheaf).res _ _ _));
+    try { apply_instance },
+  end,
+  ..stalk_of_rings_add_comm_monoid }
+
+-- Mul.
 
 private def stalk_of_rings_mul_aux : 
 stalk.elem F.to_presheaf x → 
@@ -75,8 +175,8 @@ s := F.res s.U _ (set.inter_subset_left _ _) s.s *
      F.res t.U _ (set.inter_subset_right _ _) t.s}⟧
 
 instance stalk_of_rings_has_mul : has_mul (stalk_of_rings F x) := 
-{mul := quotient.lift₂ (stalk_of_rings_mul_aux) $ 
-begin
+{ mul := quotient.lift₂ (stalk_of_rings_mul_aux) $ 
+  begin
     intros a1 a2 b1 b2 H1 H2, 
     let F' := F.to_presheaf,
     rcases H1 with ⟨U1, ⟨HxU1, ⟨HU1a1U, HU1b1U, HresU1⟩⟩⟩,
@@ -97,230 +197,125 @@ begin
     repeat { rw ←(presheaf.Hcomp' F') at HresU2' },
     repeat { rw ←(presheaf.Hcomp' F') },
     rw [HresU1', HresU2'],
-end}
+  end }
 
-instance stalk_of_rings_is_ring : comm_ring (stalk_of_rings F x) := 
-{   add := stalk_of_rings_has_add.add,
-    add_assoc := sorry,
-    zero := stalk_of_rings_zero,
-    zero_add := sorry,
-    add_zero := sorry,
-    neg := sorry,
-    add_left_neg := sorry,
-    add_comm := sorry,
-    mul := stalk_of_rings_has_mul.mul,
-    mul_assoc := sorry,
-    one := stalk_of_rings_one,
-    one_mul := sorry,
-    mul_one := sorry,
-    left_distrib := sorry,
-    right_distrib := sorry,
-    mul_comm := sorry,
-}
+instance stalk_of_rings_mul_semigroup : semigroup (stalk_of_rings F x) :=
+{ mul := stalk_of_rings_has_mul.mul,
+  mul_assoc :=
+  begin
+    intros a b c,
+    refine quotient.induction_on₃ a b c _,
+    rintros ⟨U, HxU, sU⟩ ⟨V, HxV, sV⟩ ⟨W, HxW, sW⟩,
+    have HUVWsub : U ∩ V ∩ W ⊆ U ∩ (V ∩ W) 
+    := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨HxU, ⟨HxV, HxW⟩⟩,
+    apply quotient.sound,
+    use [U ∩ V ∩ W, ⟨⟨HxU, HxV⟩, HxW⟩],
+    use [set.subset.refl _, HUVWsub],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
+    repeat { rw ←presheaf.Hcomp' },
+    rw mul_assoc,
+  end }
 
--- Neg.
+instance stalk_of_rings_mul_comm_semigroup : comm_semigroup (stalk_of_rings F x) :=
+{ mul_comm := 
+  begin
+    intros a b,
+    refine quotient.induction_on₂ a b _,
+    rintros ⟨U, HxU, sU⟩ ⟨V, HxV, sV⟩,
+    apply quotient.sound,
+    have HUVUV : U ∩ V ⊆ U ∩ V := λ x HxUV, HxUV,
+    have HUVVU : U ∩ V ⊆ V ∩ U := λ x ⟨HxU, HxV⟩, ⟨HxV, HxU⟩,
+    use [U ∩ V, ⟨HxU, HxV⟩, HUVUV, HUVVU],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
+    repeat { rw ←presheaf.Hcomp' },
+    rw mul_comm,
+  end,
+  ..stalk_of_rings_mul_semigroup }
 
--- private def stalk_sub_aux : 
--- stalk_on_basis.elem F.to_presheaf_on_basis x → 
--- stalk_on_basis F.to_presheaf_on_basis x :=
--- λ s, ⟦{U := s.U, BU := s.BU, Hx := s.Hx, s := -s.s}⟧
+-- One.
 
--- instance stalk_of_rings_has_neg : has_neg (stalk_of_rings_on_standard_basis F x) :=
--- {neg := quotient.lift (stalk_sub_aux F x) $ 
--- begin
---     intros a b H,
---     rcases H with ⟨U, ⟨BU, ⟨HxU, ⟨HUaU, HUbU, HresU⟩⟩⟩⟩,
---     apply quotient.sound,
---     use [U, BU, HxU, HUaU, HUbU],
---     repeat { rw @is_ring_hom.map_neg _ _ _ _ _ (F.res_is_ring_hom _ _ _) },
---     rw HresU,
--- end}
+private def stalk_of_rings_one : stalk_of_rings F x := 
+⟦{U := opens.univ, HxU := trivial, s:= 1}⟧
 
--- -- Stalks are rings.
+instance stalk_of_rings_has_one : has_one (stalk_of_rings F x) := 
+{ one := stalk_of_rings_one }
 
--- instance stalk_of_rings_is_ring : comm_ring (stalk_of_rings_on_standard_basis F x) :=
--- {   add := (stalk_of_rings_has_add Bstandard F x).add,
---     add_assoc := 
---     begin
---         intros a b c,
---         refine quotient.induction_on₃ a b c _,
---         rintros ⟨U, BU, HxU, sU⟩ ⟨V, BV, HxV, sV⟩ ⟨W, BW, HxW, sW⟩,
---         have BUVW := Bstandard.2 (Bstandard.2 BU BV) BW,
---         have HUVWsub : U ∩ V ∩ W ⊆ U ∩ (V ∩ W) 
---         := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨HxU, ⟨HxV, HxW⟩⟩,
---         apply quotient.sound,
---         use [U ∩ V ∩ W, BUVW, ⟨⟨HxU, HxV⟩, HxW⟩],
---         use [set.subset.refl _, HUVWsub],
---         dsimp,
---         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
---         repeat { erw ←presheaf_on_basis.Hcomp' },
---         rw add_assoc,
---     end,
---     zero := (stalk_of_rings_has_zero Bstandard F x).zero,
---     zero_add := 
---     begin
---         intros a,
---         refine quotient.induction_on a _,
---         rintros ⟨U, BU, HxU, sU⟩,
---         apply quotient.sound,
---         have HUsub : U ⊆ opens.univ ∩ U := λ x HxU, ⟨trivial, HxU⟩,
---         use [U, BU, HxU, HUsub, set.subset.refl U],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         erw (is_ring_hom.map_zero ((F.to_presheaf_on_basis).res _ _ _));
---         try { apply_instance },
---         rw zero_add,
---         refl,
---     end,
---     add_zero :=
---     begin
---         intros a,
---         refine quotient.induction_on a _,
---         rintros ⟨U, BU, HxU, sU⟩,
---         apply quotient.sound,
---         have HUsub : U ⊆ U ∩ opens.univ := λ x HxU, ⟨HxU, trivial⟩,
---         use [U, BU, HxU, HUsub, set.subset.refl U],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         dsimp, -- TODO: Can I get rid of this???
---         erw (is_ring_hom.map_zero ((F.to_presheaf_on_basis).res _ _ _));
---         try { apply_instance },
---         rw add_zero,
---         refl,
---     end,
---     neg := has_neg.neg,
---     add_left_neg := 
---     begin
---         intros a,
---         refine quotient.induction_on a _,
---         rintros ⟨U, BU, HxU, sU⟩,
---         apply quotient.sound,
---         have HUUU : U ⊆ U ∩ U := λ x HxU, ⟨HxU, HxU⟩,
---         have HUuniv : U ⊆ opens.univ := λ x HxU, trivial,
---         use [U, BU, HxU, HUUU, HUuniv],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         erw (is_ring_hom.map_neg ((F.to_presheaf_on_basis).res _ _ _));
---         try { apply_instance },
---         rw add_left_neg,
---         erw (is_ring_hom.map_zero ((F.to_presheaf_on_basis).res _ _ _));
---         try { apply_instance },
---     end,
---     add_comm := 
---     begin
---         intros a b,
---         refine quotient.induction_on₂ a b _,
---         rintros ⟨U, BU, HxU, sU⟩ ⟨V, BV, HxV, sV⟩,
---         apply quotient.sound,
---         have BUV : U ∩ V ∈ B := Bstandard.2 BU BV,
---         have HUVUV : U ∩ V ⊆ U ∩ V := λ x HxUV, HxUV,
---         have HUVVU : U ∩ V ⊆ V ∩ U := λ x ⟨HxU, HxV⟩, ⟨HxV, HxU⟩,
---         use [U ∩ V, BUV, ⟨HxU, HxV⟩, HUVUV, HUVVU],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         rw add_comm,
---     end,
---     mul := (stalk_of_rings_has_mul Bstandard F x).mul,
---     mul_assoc := 
---     begin
---         intros a b c,
---         refine quotient.induction_on₃ a b c _,
---         rintros ⟨U, BU, HxU, sU⟩ ⟨V, BV, HxV, sV⟩ ⟨W, BW, HxW, sW⟩,
---         have BUVW := Bstandard.2 (Bstandard.2 BU BV) BW,
---         have HUVWsub : U ∩ V ∩ W ⊆ U ∩ (V ∩ W) 
---         := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨HxU, ⟨HxV, HxW⟩⟩,
---         apply quotient.sound,
---         use [U ∩ V ∩ W, BUVW, ⟨⟨HxU, HxV⟩, HxW⟩],
---         use [set.subset.refl _, HUVWsub],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         rw mul_assoc,
---     end,
---     one := (stalk_of_rings_has_one Bstandard F x).one,
---     one_mul := 
---     begin
---         intros a,
---         refine quotient.induction_on a _,
---         rintros ⟨U, BU, HxU, sU⟩,
---         apply quotient.sound,
---         have HUsub : U ⊆ opens.univ ∩ U := λ x HxU, ⟨trivial, HxU⟩,
---         use [U, BU, HxU, HUsub, set.subset.refl U],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         erw (is_ring_hom.map_one ((F.to_presheaf_on_basis).res _ _ _));
---         try { apply_instance },
---         rw one_mul,
---         refl,
---     end,
---     mul_one := 
---     begin
---         intros a,
---         refine quotient.induction_on a _,
---         rintros ⟨U, BU, HxU, sU⟩,
---         apply quotient.sound,
---         have HUsub : U ⊆ U ∩ opens.univ := λ x HxU, ⟨HxU, trivial⟩,
---         use [U, BU, HxU, HUsub, set.subset.refl U],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         dsimp, -- TODO: Same problem here..!!!
---         erw (is_ring_hom.map_one ((F.to_presheaf_on_basis).res _ _ _));
---         try { apply_instance },
---         rw mul_one,
---         refl,
---     end,
---     left_distrib := 
---     begin
---         intros a b c,
---         refine quotient.induction_on₃ a b c _,
---         rintros ⟨U, BU, HxU, sU⟩ ⟨V, BV, HxV, sV⟩ ⟨W, BW, HxW, sW⟩,
---         have BUVW := Bstandard.2 (Bstandard.2 BU BV) BW,
---         have HUVWsub : U ∩ V ∩ W ⊆ U ∩ (V ∩ W) 
---         := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨HxU, ⟨HxV, HxW⟩⟩,
---         have HUVWsub2 : U ∩ V ∩ W ⊆ U ∩ V ∩ (U ∩ W)
---         := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨⟨HxU, HxV⟩, ⟨HxU, HxW⟩⟩,
---         apply quotient.sound,
---         use [U ∩ V ∩ W, BUVW, ⟨⟨HxU, HxV⟩, HxW⟩, HUVWsub, HUVWsub2],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
---         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
---         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         rw mul_add,
---     end,
---     right_distrib := 
---     begin
---         intros a b c,
---         refine quotient.induction_on₃ a b c _,
---         rintros ⟨U, BU, HxU, sU⟩ ⟨V, BV, HxV, sV⟩ ⟨W, BW, HxW, sW⟩,
---         have BUVW := Bstandard.2 (Bstandard.2 BU BV) BW,
---         have HUVWrfl : U ∩ V ∩ W ⊆ U ∩ V ∩ W := λ x Hx, Hx,
---         have HUVWsub : U ∩ V ∩ W ⊆ U ∩ W ∩ (V ∩ W)
---         := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨⟨HxU, HxW⟩, ⟨HxV, HxW⟩⟩,
---         apply quotient.sound,
---         use [U ∩ V ∩ W, BUVW, ⟨⟨HxU, HxV⟩, HxW⟩, HUVWrfl, HUVWsub],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
---         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
---         repeat { rw (F.res_is_ring_hom _ _ _).map_add },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         rw add_mul,
---     end,
---     mul_comm := 
---     begin
---         intros a b,
---         refine quotient.induction_on₂ a b _,
---         rintros ⟨U, BU, HxU, sU⟩ ⟨V, BV, HxV, sV⟩,
---         apply quotient.sound,
---         have BUV : U ∩ V ∈ B := Bstandard.2 BU BV,
---         have HUVUV : U ∩ V ⊆ U ∩ V := λ x HxUV, HxUV,
---         have HUVVU : U ∩ V ⊆ V ∩ U := λ x ⟨HxU, HxV⟩, ⟨HxV, HxU⟩,
---         use [U ∩ V, BUV, ⟨HxU, HxV⟩, HUVUV, HUVVU],
---         repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
---         repeat { rw ←presheaf_on_basis.Hcomp' },
---         rw mul_comm,
---     end,
--- }
+instance stalk_of_rings_mul_comm_monoid : comm_monoid (stalk_of_rings F x) :=
+{ one := stalk_of_rings_one,
+  one_mul := 
+  begin
+    intros a,
+    refine quotient.induction_on a _,
+    rintros ⟨U, HxU, sU⟩,
+    apply quotient.sound,
+    have HUsub : U ⊆ opens.univ ∩ U := λ x HxU, ⟨trivial, HxU⟩,
+    use [U, HxU, HUsub, set.subset.refl U],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
+    repeat { rw ←presheaf.Hcomp' },
+    erw (is_ring_hom.map_one ((F.to_presheaf).res _ _ _));
+    try { apply_instance },
+    rw one_mul,
+    refl,
+  end,
+  mul_one := 
+  begin
+    intros a,
+    refine quotient.induction_on a _,
+    rintros ⟨U, HxU, sU⟩,
+    apply quotient.sound,
+    have HUsub : U ⊆ U ∩ opens.univ := λ x HxU, ⟨HxU, trivial⟩,
+    use [U, HxU, HUsub, set.subset.refl U],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
+    repeat { rw ←presheaf.Hcomp' },
+    dsimp, 
+    erw (is_ring_hom.map_one ((F.to_presheaf).res _ _ _));
+    try { apply_instance },
+    rw mul_one,
+    refl,
+  end,
+  ..stalk_of_rings_mul_comm_semigroup }
+
+-- Ring.
+
+instance stalk_of_rings_is_comm_ring : comm_ring (stalk_of_rings F x) := 
+{ left_distrib := 
+  begin
+    intros a b c,
+    refine quotient.induction_on₃ a b c _,
+    rintros ⟨U, HxU, sU⟩ ⟨V, HxV, sV⟩ ⟨W, HxW, sW⟩,
+    have HUVWsub : U ∩ V ∩ W ⊆ U ∩ (V ∩ W) 
+    := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨HxU, ⟨HxV, HxW⟩⟩,
+    have HUVWsub2 : U ∩ V ∩ W ⊆ U ∩ V ∩ (U ∩ W)
+    := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨⟨HxU, HxV⟩, ⟨HxU, HxW⟩⟩,
+    apply quotient.sound,
+    use [U ∩ V ∩ W, ⟨⟨HxU, HxV⟩, HxW⟩, HUVWsub, HUVWsub2],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
+    repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+    repeat { rw ←presheaf.Hcomp' },
+    repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
+    repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+    repeat { rw ←presheaf.Hcomp' },
+    rw mul_add,
+  end,
+  right_distrib := 
+  begin
+    intros a b c,
+    refine quotient.induction_on₃ a b c _,
+    rintros ⟨U, HxU, sU⟩ ⟨V, HxV, sV⟩ ⟨W, HxW, sW⟩,
+    have HUVWrfl : U ∩ V ∩ W ⊆ U ∩ V ∩ W := λ x Hx, Hx,
+    have HUVWsub : U ∩ V ∩ W ⊆ U ∩ W ∩ (V ∩ W)
+    := λ x ⟨⟨HxU, HxV⟩, HxW⟩, ⟨⟨HxU, HxW⟩, ⟨HxV, HxW⟩⟩,
+    apply quotient.sound,
+    use [U ∩ V ∩ W, ⟨⟨HxU, HxV⟩, HxW⟩, HUVWrfl, HUVWsub],
+    repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
+    repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+    repeat { rw ←presheaf.Hcomp' },
+    repeat { rw (F.res_is_ring_hom _ _ _).map_mul },
+    repeat { rw (F.res_is_ring_hom _ _ _).map_add },
+    repeat { rw ←presheaf.Hcomp' },
+    rw add_mul,
+  end,
+  ..stalk_of_rings_add_comm_group,
+  ..stalk_of_rings_mul_comm_monoid }
 
 end stalk_of_rings_is_ring

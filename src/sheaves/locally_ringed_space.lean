@@ -21,35 +21,30 @@ def to_stalk (U : opens α) (HxU : x ∈ U) (s : F.F U) : stalk_of_rings F x
 := ⟦{U := U, HxU := HxU, s := s}⟧
 
 lemma to_stalk.is_ring_hom (U) (HxU) : is_ring_hom (to_stalk F x U HxU) :=
-{ map_one := quotient.sound $
+{ map_one := quotient.sound $ ⟨U, HxU, set.subset.refl _, λ x Hx, trivial,
     begin
-        use [U, HxU, (set.subset.refl _), (λ x Hx, trivial)],
-        erw (F.res_is_ring_hom U U _).map_one,
-        erw (F.res_is_ring_hom opens.univ U _).map_one,
-    end,
-  map_add := λ y z, quotient.sound $
+        erw (F.res_is_ring_hom _ _ _).map_one, 
+        erw (F.res_is_ring_hom _ _ _).map_one,
+    end⟩,
+  map_add := λ y z, quotient.sound $ ⟨U, HxU, set.subset.refl _, λ x Hx, ⟨Hx, Hx⟩,
     begin
-        use [U, HxU, (set.subset.refl _), (λ x Hx, ⟨Hx, Hx⟩)],
         erw ←(F.res_is_ring_hom _ _ _).map_add,
-        rw presheaf.Hcomp',
-    end, 
-  map_mul := λ y z, quotient.sound $
+        erw presheaf.Hcomp',
+    end⟩, 
+  map_mul := λ y z, quotient.sound $ ⟨U, HxU, set.subset.refl _, λ x Hx, ⟨Hx, Hx⟩,
     begin
-        use [U, HxU, (set.subset.refl _), (λ x Hx, ⟨Hx, Hx⟩)],
         erw ←(F.res_is_ring_hom _ _ _).map_mul,
-        rw presheaf.Hcomp',
-    end, }
+        erw presheaf.Hcomp',
+    end⟩ }
 
 include hg
 
 protected def to_stalk.rec (y : stalk_of_rings F x) : S :=
-begin
-    apply quotient.lift_on' y (λ Us, G Us.1 Us.3),
-    rintros ⟨U, HxU, s⟩ ⟨V, HxV, t⟩ ⟨W, HxW, HWU, HWV, Hres⟩,
+quotient.lift_on' y (λ Us, G Us.1 Us.3) $ 
+λ ⟨U, HxU, s⟩ ⟨V, HxV, t⟩ ⟨W, HxW, HWU, HWV, Hres⟩,
+begin 
     dsimp,
-    rw ←hg W U HWU s,
-    rw ←hg W V HWV t,
-    rw Hres,
+    rw [←hg W U HWU s, ←hg W V HWV t, Hres],
 end
 
 theorem to_stalk.rec_to_stalk (U HxU s) 

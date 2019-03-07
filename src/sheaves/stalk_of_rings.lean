@@ -6,8 +6,6 @@
 -/
 
 import topology.basic
-import ring_theory.localization
-import linear_algebra.multivariate_polynomial
 import sheaves.stalk
 import sheaves.presheaf_of_rings
 import sheaves.sheaf_of_rings
