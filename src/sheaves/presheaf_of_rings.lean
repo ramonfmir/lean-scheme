@@ -36,7 +36,7 @@ extends presheaf.morphism F.to_presheaf G.to_presheaf :=
 
 def are_isomorphic (F G : presheaf_of_rings α) := 
 ∃ (fg : morphism F G) (gf : morphism G F),
-    presheaf.morphism.is_identity (fg.to_morphism ⊚ gf.to_morphism)
-  ∧ presheaf.morphism.is_identity (gf.to_morphism ⊚ fg.to_morphism)
+    presheaf.morphism.is_identity (presheaf.morphism.comp fg.to_morphism gf.to_morphism)
+  ∧ presheaf.morphism.is_identity (presheaf.morphism.comp gf.to_morphism fg.to_morphism)
 
 end presheaf_of_rings

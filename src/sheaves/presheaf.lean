@@ -64,15 +64,13 @@ def comp
       rw [function.comp.assoc, ←fg.commutes U V HVU]
     end }
 
-infixl `⊚`:80 := comp
-
 def is_identity {F : presheaf α} (ff : morphism F F) :=
   ∀ (U), ff.map U = id
 
 def is_isomorphism {F G : presheaf α} (fg : morphism F G) :=
   ∃ gf : morphism G F, 
-    is_identity (fg ⊚ gf)
-  ∧ is_identity (gf ⊚ fg)
+    is_identity (comp fg gf)
+  ∧ is_identity (comp gf fg)
 
 end morphism
 
@@ -80,7 +78,7 @@ end morphism
 
 def are_isomorphic (F G : presheaf α) :=
 ∃ (fg : morphism F G) (gf : morphism G F),
-    morphism.is_identity (fg ⊚ gf)
-  ∧ morphism.is_identity (gf ⊚ fg)
+    morphism.is_identity (morphism.comp fg gf)
+  ∧ morphism.is_identity (morphism.comp gf fg)
 
 end presheaf

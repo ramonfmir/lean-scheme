@@ -1,5 +1,6 @@
 import topology.basic
 import topology.continuity
+import ring_theory.localization
 import sheaves.presheaf_of_rings
 import sheaves.stalk_of_rings
 import sheaves.stalk_of_rings_is_ring
@@ -8,10 +9,10 @@ universes u v w
 
 open topological_space
 
+section stalk_universal_property
+
 variables {α : Type u} [topological_space α] 
 variables (F : presheaf_of_rings α) (x : α)
-
-section stalk_universal_property
 
 variables (S : Type w) [comm_ring S] [decidable_eq S]
 variables (G : Π U, F.F U → S) [HG : Π U, is_ring_hom (G U)]
@@ -76,35 +77,84 @@ end stalk_universal_property
 -- Locally ringed spaces.
 
 structure locally_ringed_space (X : Type u) [topological_space X] :=
-(F       : sheaf_of_rings X)
-(Hstalks : ∀ x, is_local_ring (stalk_of_rings F.F x))
+(O       : sheaf_of_rings X)
+(Hstalks : ∀ x, is_local_ring (stalk_of_rings O.F x))
 
 -- Morphism of locally ringed spaces.
 
 section fmap
 
-parameters {A : Type u} [topological_space A]
-parameters {B : Type v} [topological_space B] 
-parameters (f : A → B) (Hf : continuous f) 
+variables {A : Type u} [topological_space A]
+variables {B : Type v} [topological_space B] 
+variables (f : A → B) (Hf : continuous f) 
 
 def cts_inv : opens B → opens A := 
 λ U, ⟨f ⁻¹' U.1, Hf U.1 U.2⟩ 
 
-lemma cts_inv_mono : ∀ {V U}, V ⊆ U → cts_inv V ⊆ cts_inv U :=
+lemma cts_inv_mono : ∀ {V U}, V ⊆ U → cts_inv f Hf V ⊆ cts_inv f Hf U :=
 λ V U HVU, set.preimage_mono HVU
 
 structure fmap (F : presheaf A) (G : presheaf B) :=
-(map      : ∀ (U), G U → F (cts_inv U))
+(map      : ∀ (U), G U → F (cts_inv f Hf U))
 (commutes : ∀ (U V) (HVU : V ⊆ U),
   (map V) ∘ (G.res U V HVU)
-= (F.res (cts_inv U) (cts_inv V) (cts_inv_mono HVU)) ∘ (map U))
+= (F.res (cts_inv f Hf U) (cts_inv f Hf V) (cts_inv_mono f Hf HVU)) ∘ (map U))
 
 end fmap
 
+section fmap_comp
+
+variables {A : Type u} [topological_space A] {F : presheaf A}
+variables {B : Type v} [topological_space B] {G : presheaf B}
+variables {C : Type w} [topological_space C] {H : presheaf C}
+variables {f : A → B} [Hf : continuous f] 
+variables {g : B → C} [Hg : continuous g]
+
+def fmap_comp (FG : fmap f Hf F G) (GH : fmap g Hg G H) 
+: fmap (g ∘ f) (continuous.comp Hf Hg) F H :=
+{ map := λ U, (FG.map (cts_inv g Hg U)) ∘ (GH.map U),
+  commutes := 
+  begin
+    intros U V HVU,
+    rw function.comp.assoc _ _ (H.res _ _ _),
+    rw GH.commutes,
+    rw ←function.comp.assoc _ _ (GH.map _),
+    rw FG.commutes,
+    refl,
+  end, }
+
+end fmap_comp
+
+-- Morphism of locally ringed spaces.
 -- TODO: Work on coercions.
 
 structure morphism {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
-(XO : locally_ringed_space X) (YO : locally_ringed_space Y) :=
+(OX : locally_ringed_space X) (OY : locally_ringed_space Y) :=
 (f  : X → Y)
-[Hf : continuous f]
-(fO : fmap f Hf XO.F.F.to_presheaf YO.F.F.to_presheaf)
+(Hf : continuous f)
+(fO : fmap f Hf OX.O.F.to_presheaf OY.O.F.to_presheaf)
+
+namespace morphism
+
+variables {A : Type u} [topological_space A]
+variables {B : Type v} [topological_space B] 
+variables {C : Type w} [topological_space C] 
+variable {OA : locally_ringed_space A}
+variable {OB : locally_ringed_space B}
+variable {OC : locally_ringed_space C}
+
+def comp (F : morphism OA OB) (G : morphism OB OC) : morphism OA OC :=
+{ f := G.f ∘ F.f,
+  Hf := continuous.comp F.Hf G.Hf,
+  fO := @fmap_comp _ _ _ _ _ _ _ _ _ _ F.Hf _ G.Hf F.fO G.fO, }
+
+infixl `⊚`:80 := comp
+
+def is_identity (F : morphism OA OA) := F.f = id
+
+def is_isomorphism (F : morphism OA OB) :=
+  ∃ G : morphism OB OA, 
+    is_identity (F ⊚ G)
+  ∧ is_identity (G ⊚ F)
+
+end morphism
