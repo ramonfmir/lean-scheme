@@ -76,6 +76,8 @@ end stalk_universal_property
 
 -- Locally ringed spaces.
 
+section locally_ringed_spaces
+
 structure locally_ringed_space (X : Type u) [topological_space X] :=
 (O       : sheaf_of_rings X)
 (Hstalks : ∀ x, is_local_ring (stalk_of_rings O.F x))
@@ -134,7 +136,7 @@ structure morphism {X : Type u} {Y : Type v} [topological_space X] [topological_
 (Hf : continuous f)
 (fO : fmap f Hf OX.O.F.to_presheaf OY.O.F.to_presheaf)
 
-namespace morphism
+section morphism
 
 variables {A : Type u} [topological_space A]
 variables {B : Type v} [topological_space B] 
@@ -157,4 +159,11 @@ def is_isomorphism (F : morphism OA OB) :=
     is_identity (F ⊚ G)
   ∧ is_identity (G ⊚ F)
 
+def are_isomorphic (OX : locally_ringed_space A) (OY : locally_ringed_space B) :=
+∃ (F : morphism OX OY), is_isomorphism F
+
+infixl `≅`:80 := are_isomorphic
+
 end morphism
+
+end locally_ringed_spaces
