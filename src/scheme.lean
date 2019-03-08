@@ -193,7 +193,7 @@ end
 def res_presheaf (OX : presheaf_of_rings X) 
 : presheaf_of_rings {x // x ∈ U} :=
 { F := λ V, OX.F (f_op U V), 
-  res := λ V W H, OX.res (f_op U V) (f_op U W) (λ x ⟨y, ⟨Hy, Hx⟩⟩, ⟨y, ⟨H Hy, Hx⟩⟩),
+  res := λ V W H, OX.res (f_op U V) (f_op U W) (f_op.mono U H),
   Hid := λ V, by apply OX.Hid,
   Hcomp := λ V1 V2 V3 HV3V2 HV2V1, by apply OX.Hcomp,
   Fring := λ U, by apply OX.Fring,
@@ -256,11 +256,8 @@ def res_presheaf (OX : presheaf_of_rings X)
         exact HxUi, }
     end }
 
-set_option trace.check true
-#check set.inter_subset_left
-set_option class.instance_max_depth 80
 
-def res_sheaf {X : Type u} [topological_space X] (OX : sheaf_of_rings X) (U : opens X) 
+def res_sheaf (OX : sheaf_of_rings X)
 : sheaf_of_rings {x // x ∈ U} :=
 { F := res_presheaf U OX.F,
   locality := 
@@ -272,33 +269,36 @@ def res_sheaf {X : Type u} [topological_space X] (OX : sheaf_of_rings X) (U : op
   gluing := 
     begin
       intros V OC s H,
-
       have := (OX.gluing (f_op.covering U OC) s),
       dsimp [f_op.covering] at this,
-      --dsimp at H,
       apply this,
       intros j k,
-
       replace H := H j k,
-      unfold res_to_inter_left at H, 
-      unfold res_to_inter_right at H, 
-      have : (res_presheaf U OX.F).res (OC.Uis j) (OC.Uis j ∩ OC.Uis k) (set.inter_subset_left _ _) (s j)
-        = ((OX.F).to_presheaf).res (f_op U (OC.Uis j)) 
-            (f_op U (OC.Uis j) ∩ f_op U (OC.Uis k)) (set.inter_subset_left _ _) (s j),
-
-      dsimp at H,
-      erw f_op.inter at H,
-
-      simp [res_to_inter_right] at H,
-      simp [res_to_inter_left] at H,
-      simp [res_to_inter_left],
-      simp [res_to_inter_right],
-      have : ((OX.F).to_presheaf).res (f_op U (OC.Uis j)) (f_op U (OC.Uis j ∩ OC.Uis k)) _ (s j) =
-      ((OX.F).to_presheaf).res (f_op U (OC.Uis j)) (f_op U (OC.Uis j) ∩ f_op U (OC.Uis k)) _ (s j),
-      sorry,
+      simp [res_to_inter_left] at *, 
+      simp [res_to_inter_right] at *, 
+      convert H,
+      { simp [coe_fn],
+        simp [has_coe_to_fun.coe],
+        apply congr_arg,
+        dsimp,
+        apply subtype.eq,
+        simp,
+        repeat { rw subtype.val_image, },
+        rw set.inter_def,
+        rw set.inter_def,
+        simp,
+        apply set.ext,
+        intros x,
+        split,
+        { rintros ⟨⟨A, B⟩, ⟨C, D⟩⟩,
+          exact ⟨A, B, D⟩, },
+        { rintros ⟨A, B, C⟩,
+          exact ⟨⟨A, B⟩, ⟨A, C⟩⟩, } }, 
+      rw f_op.inter,
+      rw f_op.inter,
     end, }
 
-def res {X : Type u} [topological_space X] (OX : locally_ringed_space X) (U : opens X) 
+def res (OX : locally_ringed_space X)
 : locally_ringed_space U :=
 begin
   sorry,
@@ -306,7 +306,7 @@ end
 
 end restrictions
 
-#print filter.mk
+-- Not a correct definition!
 
 structure scheme (X : Type u) [topological_space X] :=
 (carrier    : locally_ringed_space X)
@@ -314,4 +314,5 @@ structure scheme (X : Type u) [topological_space X] :=
   ∀ x, ∃ U : opens X, 
       x ∈ U 
     ∧ ∃ R [comm_ring R] (OSpecR : locally_ringed_space (Spec R)), 
-      (res carrier U) ≅ OSpecR)
+      (nonempty ((res U carrier) ≅ OSpecR) ))
+  

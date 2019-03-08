@@ -44,6 +44,7 @@ def gluing (F : presheaf α) :=
 
 end sheaf_condition
 
+ 
 -- Definition of a sheaf of types.
 
 structure sheaf_of_types (α : Type u) [T : topological_space α] :=
