@@ -1,6 +1,8 @@
 import ring_theory.localization
 import preliminaries.localisation
 
+import spectrum_of_a_ring.properties
+
 import sheaves.presheaf_of_rings_on_basis
 import sheaves.sheaf_on_basis
 import sheaves.locally_ringed_space
@@ -10,20 +12,18 @@ import spectrum_of_a_ring.standard_basis
 
 universe u
 
-#check localization.away
-
-variables {R : Type u} [comm_ring R]
+variables {R : Type u} [comm_ring R] {Hnz : (0 : R) ≠ 1}
 
 -- Assume :
 -- - φ : R → Rg
 -- - D(g) ⊆ D(f)
--- To show: inverts (powers f) φ
+-- To show: inverts (powers f) (φ g)
 
 open localization_alt
 
 def φ (f : R) : R → localization.away f :=  λ x, ⟦⟨x, 1⟩⟧
 
-instance φ_ring_hom (f : R) : is_ring_hom (φ f) := 
+instance φ_ring_hom (g : R) : is_ring_hom (φ g) := 
 { map_one := rfl, 
   map_add := 
     begin
@@ -38,11 +38,11 @@ instance φ_ring_hom (f : R) : is_ring_hom (φ f) :=
       simp,
     end }
 
-noncomputable lemma φ_is_localisation_data (f : R) : is_localization_data (powers f) (φ f) :=
+noncomputable lemma φ_is_localisation_data (g : R) : is_localization_data (powers g) (φ g) :=
 { inverts := 
     begin
-      intros fn,
-      use ⟦⟨1, fn⟩⟧,
+      intros gn,
+      use ⟦⟨1, gn⟩⟧,
       apply quotient.sound,
       use [1, ⟨0, rfl⟩],
       simp,
@@ -51,8 +51,8 @@ noncomputable lemma φ_is_localisation_data (f : R) : is_localization_data (powe
     begin
       intros x,
       have Hx := quotient.exists_rep x,
-      rcases (classical.indefinite_description _ Hx) with ⟨⟨r, fn⟩, Heq⟩,
-      use ⟨fn, r⟩,
+      rcases (classical.indefinite_description _ Hx) with ⟨⟨r, gn⟩, Heq⟩,
+      use ⟨gn, r⟩,
       rw ←Heq,
       apply quotient.sound,
       use [1, ⟨0, rfl⟩],
@@ -67,10 +67,23 @@ noncomputable lemma φ_is_localisation_data (f : R) : is_localization_data (powe
       use ⟨⟨x, ⟨r, Hr⟩⟩, Hx⟩,
     end, }
 
+include Hnz
+
 lemma localisation_inverts (f g : R) (H : Spec.D'(g) ⊆ Spec.D'(f)) 
-: inverts (powers f) (φ f) :=
+: inverts (powers f) (φ g) :=
 begin
-  sorry,
+  rintros ⟨fn, Hfn⟩,
+  unfold Spec.D' at H,
+  rw set.compl_subset_compl at H,
+  unfold Spec.V' at H,
+  -- Find a prime ideal containing f.
+  -- Assume that f is not a unit.
+  -- then (f) ≠ ⊤
+  -- So find maximal ideal using property.
+  -- Call it P.
+  -- then g ∈ P.
+  -- Need (f) ⊆ (g). g^e = af
+  -- I think this might not be the right approach.
 end
 
 -- Use this to get a map ψ : Rf → Rg by the universal property.
@@ -90,7 +103,7 @@ def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basi
       rw set.compl_subset_compl at HVU,
       unfold Spec.V' at HVU,
       rcases (classical.indefinite_description _ (quotient.exists_rep x)) with ⟨⟨r, fn⟩, Heq⟩,
-      cases this,
+      sorry,
     end,
   Hid := sorry,
   Hcomp := sorry,
