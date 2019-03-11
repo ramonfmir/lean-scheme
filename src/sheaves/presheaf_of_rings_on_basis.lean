@@ -37,7 +37,9 @@ F.to_presheaf_on_basis G.to_presheaf_on_basis :=
 
 def are_isomorphic (F G : presheaf_of_rings_on_basis α HB) := 
 ∃ (fg : morphism F G) (gf : morphism G F),
-    presheaf_on_basis.morphism.is_identity (fg.to_morphism ⊚ gf.to_morphism)
-  ∧ presheaf_on_basis.morphism.is_identity (gf.to_morphism ⊚ fg.to_morphism)
+    presheaf_on_basis.morphism.is_identity 
+      (presheaf_on_basis.morphism.comp fg.to_morphism gf.to_morphism)
+  ∧ presheaf_on_basis.morphism.is_identity 
+      (presheaf_on_basis.morphism.comp gf.to_morphism fg.to_morphism)
 
 end presheaf_of_rings_on_basis
