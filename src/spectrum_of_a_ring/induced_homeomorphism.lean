@@ -112,123 +112,69 @@ begin
     { exact H, } },
 end
 
--- Map from I → h(I)Rf.
-
-def localisation_map_ideal (I : ideal R) : ideal Rf :=
-{ carrier := { x | ∃ (y ∈ h '' I) (r : Rf), x = y * r },
-  zero := -- ⟨0, ⟨I.2, is_ring_hom.map_zero h⟩⟩
-    begin
-      use [h 0, 0],
-      exact ⟨I.2, rfl⟩,
-      use 1,
-      rw mul_one,
-      rw ←is_ring_hom.map_zero h,
-    end,
-  add := 
-    begin
-      intros x y Hx Hy,
-      rcases Hx with ⟨a, ⟨Ha, ⟨r, Hx⟩⟩⟩,
-      rcases Hy with ⟨b, ⟨Hb, ⟨t, Hy⟩⟩⟩,
-      rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
-      rcases Hb with ⟨w, ⟨Hw, Hb⟩⟩,
-      rw ←Ha at Hx,
-      rw ←Hb at Hy,
-      rw [Hx, Hy],
-      rcases HL with ⟨Hinv, Hden, Hker⟩,
-      rcases (Hden r) with ⟨⟨fn, l⟩, Hl⟩,
-      rcases (Hinv fn) with ⟨hfninv, Hfn⟩,
-      simp at Hl,
-      rw mul_comm at Hfn,
-      rcases (Hden t) with ⟨⟨fm, k⟩, Hk⟩,
-      rcases (Hinv fm) with ⟨hfminv, Hfm⟩,
-      simp at Hk,
-      rw mul_comm at Hfm,
-      -- Get rid of r.
-      rw ←one_mul (_ + _),
-      rw ←Hfn,
-      rw mul_assoc,
-      rw mul_add,
-      rw mul_comm _ r,
-      rw ←mul_assoc _ r _,
-      rw Hl,
-      -- Get rid of t.
-      rw ←one_mul (_ * _),
-      rw ←Hfm,
-      rw mul_assoc,
-      rw ←mul_assoc (h _) _ _,
-      rw mul_comm (h _),
-      rw mul_assoc _ (h _) _,
-      rw mul_add,
-      rw ←mul_assoc _ _ t,
-      rw add_comm,
-      rw ←mul_assoc (h fm) _ _,
-      rw mul_comm (h fm),
-      rw mul_assoc _ _ t,
-      rw Hk,
-      -- Rearrange.
-      repeat { rw ←is_ring_hom.map_mul h, },
-      rw ←mul_assoc _ _ v,
-      rw mul_assoc ↑fn,
-      rw mul_comm w,
-      rw ←mul_assoc ↑fn,
-      rw ←is_ring_hom.map_add h,
-      rw ←mul_assoc,
-      rw mul_comm,
-      -- Ready to prove it.
-      have HyI : ↑fn * k * w + ↑fm * l * v ∈ ↑I,
-        apply I.3,
-        { apply I.4,
-          exact Hw, },
-        { apply I.4,
-          exact Hv, },
-      use [h (↑fn * k * w + ↑fm * l * v)],
-      use [⟨↑fn * k * w + ↑fm * l * v, ⟨HyI, rfl⟩⟩],
-      use [hfminv * hfninv],
-    end,
-  smul := 
-    begin
-      intros c x Hx,
-      rcases Hx with ⟨a, ⟨Ha, ⟨r, Hx⟩⟩⟩,
-      rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
-      rw [Hx, ←Ha],
-      rw mul_comm _ r,
-      unfold has_scalar.smul,
-      rw mul_comm r,
-      rw mul_comm c,
-      rw mul_assoc,
-      use [h v],
-      use [⟨v, ⟨Hv, rfl⟩⟩],
-      use [r * c],
-    end, }
-
 -- Localisation map preserves primes.
+
+lemma ring_hom.pow {A : Type u} [comm_ring A] {B : Type u} [comm_ring B]
+(m : A → B) [is_ring_hom m] (a : A)
+: ∀ (n : ℕ), m (a ^ n) = (m a) ^ n :=
+begin
+  intros n,
+  induction n,
+  { simp,
+    exact is_ring_hom.map_one m, },
+  { rw pow_succ,
+    rw pow_succ,
+    rw is_ring_hom.map_mul m,
+    rw n_ih, }
+end
+
+#check linear_map.ker_eq_top
+
+#print ker
+
+lemma lll (I : ideal R) [PI : ideal.is_prime I] 
+(Hfn : (0 : R) ∈ powers f)
+: (ideal.map h ⊤ : ideal Rf) = ⊥  :=
+begin
+  have HL' := HL,
+  rcases HL' with ⟨Hinv, Hden, Hker⟩,
+  apply ideal.ext,
+  intros x,
+  split,
+  swap,
+  { intros H,
+    simp at H,
+    rw H,
+    rw ←is_ring_hom.map_zero h,
+    apply ideal.mem_map_of_mem,
+    simp, },
+  { intros Hx,
+    rcases (Hden x) with ⟨⟨a, b⟩, Hab⟩,
+    simp at Hab,
+    rcases (Hinv a) with ⟨w, Hw⟩,
+    -- cases a with a Ha,
+    -- cases Ha with m Ha,
+    -- simp at Hab,
+    have : ∀ (y : R), y ∈ submonoid_ann (powers f),
+      intros y,
+      simp [submonoid_ann, set.range, ann_aux],
+      use [⟨y, ⟨0, Hfn⟩⟩],
+      simp,
+    unfold ker at Hker,
+     }
+end
 
 lemma localisation_map_ideal.is_prime (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
-: ideal.is_prime (localisation_map_ideal I) :=
+: ideal.is_prime (ideal.map h I) :=
 begin
+  have HL' := HL,
+  rcases HL' with ⟨Hinv, Hden, Hker⟩,
   constructor,
   { intros HC,
     rw ideal.eq_top_iff_one at HC,
-    have HC' := HC,
-    rcases HC with ⟨a, ⟨Ha, ⟨r, Hone⟩⟩⟩,
-    rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
-    rcases HL with ⟨Hinv, Hden, Hker⟩,
-    rcases (Hden r) with ⟨⟨fn, l⟩, Hl⟩,
-    rcases (Hinv fn) with ⟨hfninv, Hfn⟩,
-    simp at Hl,
-
-    rw ←Hfn at HC',
-    rcases HC' with ⟨b, ⟨Hb, ⟨t, Hy⟩⟩⟩,
-    rcases Hb with ⟨w, ⟨Hw, Hb⟩⟩,
-    rcases (Hden t) with ⟨⟨fm, k⟩, Hk⟩,
-    rcases (Hinv fm) with ⟨hfminv, Hfm⟩,
-    simp at Hk,
-    
-    apply PI.1,
-    rw ideal.eq_top_iff_one,
-    sorry,
-    --ideal.eq_top_of_unit_mem, 
+    rcases (Hden 1),
+    -- a/f^n, ...
     },
   { sorry, }
 end

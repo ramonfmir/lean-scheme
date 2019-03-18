@@ -12,6 +12,8 @@ import spectrum_of_a_ring.standard_basis
 
 universe u
 
+local attribute [instance] classical.prop_decidable
+
 variables {R : Type u} [comm_ring R] {Hnz : (0 : R) ≠ 1}
 
 -- Assume :
@@ -76,14 +78,13 @@ begin
   unfold Spec.D' at H,
   rw set.compl_subset_compl at H,
   unfold Spec.V' at H,
-  -- Find a prime ideal containing f.
-  -- Assume that f is not a unit.
-  -- then (f) ≠ ⊤
-  -- So find maximal ideal using property.
-  -- Call it P.
-  -- then g ∈ P.
-  -- Need (f) ⊆ (g). g^e = af
-  -- I think this might not be the right approach.
+  -- Proof by contradiction.
+  by_contra,
+  rw not_exists at a,
+  -- (φ (f)) is not a unit.
+  -- Hence (φ (f)) ⊆ M, M maximal.
+  -- M prime.
+  -- 
 end
 
 -- Use this to get a map ψ : Rf → Rg by the universal property.
