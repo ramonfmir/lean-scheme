@@ -12,9 +12,11 @@ import spectrum_of_a_ring.standard_basis
 
 universe u
 
+open topological_space
+
 local attribute [instance] classical.prop_decidable
 
-variables {R : Type u} [comm_ring R] {Hnz : (0 : R) ≠ 1}
+variables {R : Type u} [comm_ring R] --{Hnz : (0 : R) ≠ 1}
 
 -- Assume :
 -- - φ : R → Rg
@@ -89,9 +91,21 @@ end
 
 -- Use this to get a map ψ : Rf → Rg by the universal property.
 
+#check localization.loc R
+
+def S (U : opens (Spec R)) : set R := { r : R | U.1 ⊆ Spec.D'(r) }
+
+instance S.is_submonoid (U : opens (Spec R)) : is_submonoid (S U) :=
+{ one_mem := 
+    begin
+      have : Spec.V'(1:R) = ⊥,
+        sorry,
+    end, 
+  mul_mem := sorry, }
+
 def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basis R) := 
 { -- F(D(f)) = R[1/f]
-  F := λ U BU, localization.away (classical.some BU),
+  F := λ U BU, begin end,
   res := 
     begin
       intros U V BU BV HVU x,

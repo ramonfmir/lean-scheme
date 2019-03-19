@@ -33,6 +33,10 @@ open localization_alt
 
 section homeomorphism
 
+#check nonempty 
+#check subsingleton
+#print subsingleton
+
 parameters {R : Type u} [comm_ring R] 
 parameters {Rf : Type u} [comm_ring Rf] {h : R → Rf} [is_ring_hom h]
 parameters {f : R} (HL : is_localization (powers f) h) 
@@ -42,6 +46,8 @@ def φ : Spec Rf → Spec R := Zariski.induced h
 -- There is no f^n in h⁻¹(I).
 
 include HL
+
+#check submodule.span_induction
 
 lemma powers_f_not_preimage (I : ideal Rf) (PI : ideal.is_prime I)
 : ∀ fn ∈ powers f, fn ∉ ideal.preimage h I :=
@@ -112,7 +118,7 @@ begin
     { exact H, } },
 end
 
--- Localisation map preserves primes.
+-- Random stuff.
 
 lemma ring_hom.pow {A : Type u} [comm_ring A] {B : Type u} [comm_ring B]
 (m : A → B) [is_ring_hom m] (a : A)
@@ -128,13 +134,9 @@ begin
     rw n_ih, }
 end
 
-#check linear_map.ker_eq_top
-
-#print ker
-
-lemma lll (I : ideal R) [PI : ideal.is_prime I] 
+lemma localization.zero (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : (0 : R) ∈ powers f)
-: (ideal.map h ⊤ : ideal Rf) = ⊥  :=
+: (ideal.map h I : ideal Rf) = ⊥  :=
 begin
   have HL' := HL,
   rcases HL' with ⟨Hinv, Hden, Hker⟩,
@@ -152,17 +154,100 @@ begin
     rcases (Hden x) with ⟨⟨a, b⟩, Hab⟩,
     simp at Hab,
     rcases (Hinv a) with ⟨w, Hw⟩,
-    -- cases a with a Ha,
-    -- cases Ha with m Ha,
-    -- simp at Hab,
-    have : ∀ (y : R), y ∈ submonoid_ann (powers f),
+    have Hall : ∀ (y : R), y ∈ submonoid_ann (powers f),
       intros y,
       simp [submonoid_ann, set.range, ann_aux],
       use [⟨y, ⟨0, Hfn⟩⟩],
       simp,
+    have Htop : submonoid_ann (powers f) = ⊤,
+      apply ideal.ext,
+      intros x,
+      split,
+      { intros Hx,
+        cases Hx,
+        unfold ann_aux at Hx_w, },
+      { intros Hx,
+        exact (Hall x), },
     unfold ker at Hker,
-     }
+    rw Htop at Hker,
+    have Hx : (1 : R) ∈ (⊤ : ideal R),
+      trivial,
+    rw ←Hker at Hx,
+    replace Hx : h 1 = 0 := Hx,
+    rw (is_ring_hom.map_one h) at Hx,
+    rw ←mul_one x,
+    rw Hx,
+    simp, },
 end
+
+#check function.surjective_iff_has_right_inverse
+#check ideal.map
+
+lemma lll (Hz : (0 : R) ∉ powers f) : ∀ a, h a = 1 → a = 1 :=
+begin
+  have HL' := HL,
+  rcases HL' with ⟨Hinv, Hden, Hker⟩,
+  -- have Hz : (0 : R) ∉ powers f,
+  --   intros H,
+  --   have := Hfn 0 H,
+  --   apply this,
+  --   simp,
+  intros a Ha,
+  rw ←is_ring_hom.map_one h at Ha,
+  have : h a - h 1 = 0,
+    rw Ha,
+    simp,
+  rw ←(is_ring_hom.map_sub h) at this,
+  have : a - 1 ∈ ker h := this,
+  rw Hker at this,
+  cases this with w Hw,
+  cases w with w Huv,
+  cases w with u v,
+  simp at Huv,
+  simp at Hw,
+  rw Hw at Huv,
+end
+
+lemma localisation_map_ideal.not_top (I : ideal R) [PI : ideal.is_prime I] 
+(Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
+: ideal.map h I ≠ ⊤ :=
+begin
+  have HL' := HL,
+  rcases HL' with ⟨Hinv, Hden, Hker⟩,
+  intros HI,
+  have : (0 : R) ∉ powers f,
+    intros H,
+    have := Hfn 0 H,
+    apply this,
+    simp,
+  
+  rcases (Hden 1) with ⟨⟨a, b⟩, Hab⟩,
+  simp at Hab,
+  have : h a - h b = 0,
+    rw Hab,
+    simp,
+  rw ←(is_ring_hom.map_sub h) at this,
+  have : ↑a - b ∈ ker h := this,
+  rw Hker at this,
+  cases this with w Hw,
+  cases w with w Huv,
+  cases w with u v,
+  simp at Huv,
+  simp at Hw,
+  rw Hw at Huv,
+
+  -- h(1) ∈ h(I)R[1/S]
+  -- 
+  -- x - y = z
+  -- z * f^n = 0
+  -- f^n * (x - y) = 0
+  -- f^n * x = f^n * y
+
+    -- assume not zero ring?????
+  --simp [ideal.map, ideal.span, submodule.span] at Hone, 
+end
+
+#check @submodule.span_induction
 
 lemma localisation_map_ideal.is_prime (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
@@ -173,7 +258,16 @@ begin
   constructor,
   { intros HC,
     rw ideal.eq_top_iff_one at HC,
-    rcases (Hden 1),
+    apply PI.1,
+    rw ideal.eq_top_iff_one,
+    suffices Hsuff : 1 ∈ h '' I,
+      cases Hsuff with a Ha,
+      cases Ha with Ha Hb,
+
+    simp [ideal.map, ideal.span] at HC,
+    have := @submodule.span_induction _ _ _ _ _ _ _ (λ y, y ∈ h '' I) HC,
+    eapply submodule.span_induction HC,
+    
     -- a/f^n, ...
     },
   { sorry, }
