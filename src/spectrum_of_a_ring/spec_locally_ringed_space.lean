@@ -71,8 +71,6 @@ noncomputable lemma φ_is_localisation_data (g : R) : is_localization_data (powe
       use ⟨⟨x, ⟨r, Hr⟩⟩, Hx⟩,
     end, }
 
-include Hnz
-
 lemma localisation_inverts (f g : R) (H : Spec.D'(g) ⊆ Spec.D'(f)) 
 : inverts (powers f) (φ g) :=
 begin
@@ -98,10 +96,14 @@ def S (U : opens (Spec R)) : set R := { r : R | U.1 ⊆ Spec.D'(r) }
 instance S.is_submonoid (U : opens (Spec R)) : is_submonoid (S U) :=
 { one_mem := 
     begin
-      have : Spec.V'(1:R) = ⊥,
-        sorry,
+      intros x Hx,
+      exact @ideal.is_prime.one_not_mem _ _ x.1 x.2,
     end, 
-  mul_mem := sorry, }
+  mul_mem := 
+    begin
+      intros f g Hf Hg,
+      show U.1 ⊆ Spec.D'(f*g),
+    end, }
 
 def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basis R) := 
 { -- F(D(f)) = R[1/f]
