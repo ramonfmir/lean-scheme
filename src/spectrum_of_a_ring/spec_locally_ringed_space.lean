@@ -103,29 +103,85 @@ instance S.is_submonoid (U : opens (Spec R)) : is_submonoid (S U) :=
     begin
       intros f g Hf Hg,
       show U.1 ⊆ Spec.D'(f*g),
+      rw Spec.D'.product_eq_inter,
+      exact set.subset_inter Hf Hg,
     end, }
 
+lemma S.rev_mono {U V : opens (Spec R)} (HVU : V ⊆ U) : S U ⊆ S V :=
+begin
+  intros x Hx,
+  apply set.subset.trans HVU Hx,
+end
+
+#check @quotient.lift
+#check quotient.mk
+#check quotient.
+
 def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basis R) := 
-{ -- F(D(f)) = R[1/f]
-  F := λ U BU, begin end,
+{ -- F(D(f)) = R[1/S] ≅ R[1/f]
+  F := λ U BU, localization.loc R (S U),
   res := 
     begin
-      intros U V BU BV HVU x,
-      cases (classical.indefinite_description _ BU) with f HU,
-      cases (classical.indefinite_description _ BV) with g HV,
-      replace HVU : V.val ⊆ U.val := HVU,
-      rw HU at HVU,
-      rw HV at HVU,
-      unfold Spec.D' at HVU,
-      rw set.compl_subset_compl at HVU,
-      unfold Spec.V' at HVU,
-      rcases (classical.indefinite_description _ (quotient.exists_rep x)) with ⟨⟨r, fn⟩, Heq⟩,
-      sorry,
+      intros U V BU BV HVU,
+      have H := S.rev_mono HVU,
+      apply quotient.lift (λ (x : R × (S U)), ⟦(x.1, (⟨x.2.1, H x.2.2⟩ : (S V)))⟧),
+      { rintros ⟨a1, b1, Hb1⟩ ⟨a2, b2, Hb2⟩ ⟨t, Ht, Habt⟩,
+        simp,
+        simp at Habt,
+        use [t, H Ht],
+        exact Habt, },
     end,
-  Hid := sorry,
-  Hcomp := sorry,
-  Fring := sorry,
-  res_is_ring_hom := sorry, }
+  Hid := 
+    begin
+      intros U BU,
+      simp,
+      apply funext,
+      intros x,
+      simp,
+      apply quotient.induction_on x,
+      intros a,
+      simp,
+    end,
+  Hcomp := 
+    begin
+      intros U V W BU BV BW HWV HVU,
+      apply funext,
+      intros x,
+      simp,
+      apply quotient.induction_on x,
+      intros a,
+      simp,
+    end,
+  Fring := 
+    begin
+      intros U BU,
+      simp,
+      apply_instance,
+    end,
+  res_is_ring_hom := 
+    begin
+      intros U V BU BV HVU,
+      simp,
+      exact 
+      { map_one := 
+          begin
+            refl,
+          end,
+        map_add := 
+          begin
+            intros x y,
+            apply quotient.induction_on₂ x y,
+            rintros ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, 
+            refl,
+          end,
+        map_mul := 
+          begin
+            intros x y,
+            apply quotient.induction_on₂ x y,
+            rintros ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, 
+            refl,
+          end, },
+    end, }
 
 -- def structure_presheaf : presheaf_of_rings (Spec R) :=
 -- presheaf_on_basis_to_presheaf structure_presheaf_on_basis

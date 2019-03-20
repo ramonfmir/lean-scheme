@@ -33,10 +33,6 @@ open localization_alt
 
 section homeomorphism
 
-#check nonempty 
-#check subsingleton
-#print subsingleton
-
 parameters {R : Type u} [comm_ring R] 
 parameters {Rf : Type u} [comm_ring Rf] {h : R → Rf} [is_ring_hom h]
 parameters {f : R} (HL : is_localization (powers f) h) 
@@ -46,8 +42,6 @@ def φ : Spec Rf → Spec R := Zariski.induced h
 -- There is no f^n in h⁻¹(I).
 
 include HL
-
-#check submodule.span_induction
 
 lemma powers_f_not_preimage (I : ideal Rf) (PI : ideal.is_prime I)
 : ∀ fn ∈ powers f, fn ∉ ideal.preimage h I :=
@@ -136,7 +130,7 @@ end
 
 lemma localization.zero (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : (0 : R) ∈ powers f)
-: (ideal.map h I : ideal Rf) = ⊥  :=
+: (ideal.map h I : ideal Rf) = ⊥ :=
 begin
   have HL' := HL,
   rcases HL' with ⟨Hinv, Hden, Hker⟩,
@@ -180,34 +174,6 @@ begin
     simp, },
 end
 
-#check function.surjective_iff_has_right_inverse
-#check ideal.map
-
-lemma lll (Hz : (0 : R) ∉ powers f) : ∀ a, h a = 1 → a = 1 :=
-begin
-  have HL' := HL,
-  rcases HL' with ⟨Hinv, Hden, Hker⟩,
-  -- have Hz : (0 : R) ∉ powers f,
-  --   intros H,
-  --   have := Hfn 0 H,
-  --   apply this,
-  --   simp,
-  intros a Ha,
-  rw ←is_ring_hom.map_one h at Ha,
-  have : h a - h 1 = 0,
-    rw Ha,
-    simp,
-  rw ←(is_ring_hom.map_sub h) at this,
-  have : a - 1 ∈ ker h := this,
-  rw Hker at this,
-  cases this with w Hw,
-  cases w with w Huv,
-  cases w with u v,
-  simp at Huv,
-  simp at Hw,
-  rw Hw at Huv,
-end
-
 lemma localisation_map_ideal.not_top (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
 : ideal.map h I ≠ ⊤ :=
@@ -235,7 +201,7 @@ begin
   simp at Huv,
   simp at Hw,
   rw Hw at Huv,
-
+  sorry,
   -- h(1) ∈ h(I)R[1/S]
   -- 
   -- x - y = z
@@ -243,11 +209,12 @@ begin
   -- f^n * (x - y) = 0
   -- f^n * x = f^n * y
 
-    -- assume not zero ring?????
+  -- assume not zero ring?????
   --simp [ideal.map, ideal.span, submodule.span] at Hone, 
 end
 
-#check @submodule.span_induction
+-- Need that:
+-- x ∈ ideal.sapn h I → x = h(Σ xᵢ)
 
 lemma localisation_map_ideal.is_prime (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
@@ -256,21 +223,46 @@ begin
   have HL' := HL,
   rcases HL' with ⟨Hinv, Hden, Hker⟩,
   constructor,
-  { intros HC,
-    rw ideal.eq_top_iff_one at HC,
-    apply PI.1,
-    rw ideal.eq_top_iff_one,
-    suffices Hsuff : 1 ∈ h '' I,
-      cases Hsuff with a Ha,
-      cases Ha with Ha Hb,
-
-    simp [ideal.map, ideal.span] at HC,
-    have := @submodule.span_induction _ _ _ _ _ _ _ (λ y, y ∈ h '' I) HC,
-    eapply submodule.span_induction HC,
-    
-    -- a/f^n, ...
-    },
-  { sorry, }
+  { exact localisation_map_ideal.not_top I Hfn, },
+  { intros x y Hxy,
+    rcases (Hden x) with ⟨⟨s₁, r₁⟩, H1⟩,
+    rcases (Hden y) with ⟨⟨s₂, r₂⟩, H2⟩,
+    rcases (Hden (x * y)) with ⟨⟨s₃, r₃⟩, H3⟩,
+    simp at H1,
+    simp at H2,
+    simp at H3,
+    -- x ∈ I → h x ∈ ideal.map h I
+    -- h x ∉ ideal.map h I → x ∉ I
+    have Hzero : h (s₁ * s₂ * r₃ - s₃ * r₁ * r₂) = 0,
+      rw (is_ring_hom.map_sub h),
+      repeat { rw (is_ring_hom.map_mul h),},
+      rw [←H1, ←H2, ←H3],
+      ring,
+    replace Hzero : (s₁ * s₂ * r₃ - s₃ * r₁ * r₂ : R) ∈ ker h := Hzero,
+    rw Hker at Hzero,
+    rcases Hzero with ⟨⟨⟨k, t⟩, Hzero⟩, Hk⟩,
+    simp at Hzero,
+    simp only [ann_aux] at Hk,
+    rw Hk at Hzero,
+    have HI : (0 : R) ∈ I, 
+      simp,
+    rw ←Hzero at HI,
+    replace HI := PI.2 HI,
+    cases HI,
+    { -- R/I
+      rw ←(submodule.quotient.eq I) at HI,
+      -- φ : Rf → R/I surjective. (because R → Rf → R/I surjective)
+      -- First, well defined....
+      -- We show ker φ = h(I)Rf
+      -- Isomorphism Rf/h(I)Rf and R/I
+      -- Integral domain iso.
+      -- h(I)Rf prime.
+      have HhI : h (s₁ * s₂ * r₃ - s₃ * r₁ * r₂) ∈ ideal.map h I,
+        exact ideal.mem_map_of_mem HI,
+      rw (is_ring_hom.map_sub h) at HhI,
+      repeat { rw (is_ring_hom.map_mul h) at HhI, },
+       },
+    { sorry, } }
 end
 
 lemma phi_opens : ∀ U : set (Spec Rf), is_open U ↔ is_open (φ '' U) :=
