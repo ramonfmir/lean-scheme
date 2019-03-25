@@ -13,21 +13,7 @@ import tactic.find
 
 universes u
 
---section move
-
--- TODO : should be somewhere else.
-
--- lemma ideal.mem_succ_pow {R : Type u} [comm_ring R] (I : ideal R) :
--- ∀ x : R, (x ∈ I → ∀ n : ℕ, x ^ nat.succ n ∈ I) :=
--- begin
---   intros x Hx n,
---   induction n with n Hn,
---   { simp [Hx], },
---   { rw pow_succ,
---     apply ideal.mul_mem_left I Hn, }
--- end
-
--- end move
+local attribute [instance] classical.prop_decidable
 
 open localization_alt
 
@@ -174,6 +160,113 @@ begin
     simp, },
 end
 
+def localisation_map_ideal (I : ideal R) : ideal Rf :=
+{ carrier := { x | ∃ (y ∈ h '' I) (r : Rf), x = y * r },
+  zero := -- ⟨0, ⟨I.2, is_ring_hom.map_zero h⟩⟩
+    begin
+      use [h 0, 0],
+      exact ⟨I.2, rfl⟩,
+      use 1,
+      rw mul_one,
+      rw ←is_ring_hom.map_zero h,
+    end,
+  add := 
+    begin
+      intros x y Hx Hy,
+      rcases Hx with ⟨a, ⟨Ha, ⟨r, Hx⟩⟩⟩,
+      rcases Hy with ⟨b, ⟨Hb, ⟨t, Hy⟩⟩⟩,
+      rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
+      rcases Hb with ⟨w, ⟨Hw, Hb⟩⟩,
+      rw ←Ha at Hx,
+      rw ←Hb at Hy,
+      rw [Hx, Hy],
+      rcases HL with ⟨Hinv, Hden, Hker⟩,
+      rcases (Hden r) with ⟨⟨fn, l⟩, Hl⟩,
+      rcases (Hinv fn) with ⟨hfninv, Hfn⟩,
+      simp at Hl,
+      rw mul_comm at Hfn,
+      rcases (Hden t) with ⟨⟨fm, k⟩, Hk⟩,
+      rcases (Hinv fm) with ⟨hfminv, Hfm⟩,
+      simp at Hk,
+      rw mul_comm at Hfm,
+      -- Get rid of r.
+      rw ←one_mul (_ + _),
+      rw ←Hfn,
+      rw mul_assoc,
+      rw mul_add,
+      rw mul_comm _ r,
+      rw ←mul_assoc _ r _,
+      rw Hl,
+      -- Get rid of t.
+      rw ←one_mul (_ * _),
+      rw ←Hfm,
+      rw mul_assoc,
+      rw ←mul_assoc (h _) _ _,
+      rw mul_comm (h _),
+      rw mul_assoc _ (h _) _,
+      rw mul_add,
+      rw ←mul_assoc _ _ t,
+      rw add_comm,
+      rw ←mul_assoc (h fm) _ _,
+      rw mul_comm (h fm),
+      rw mul_assoc _ _ t,
+      rw Hk,
+      -- Rearrange.
+      repeat { rw ←is_ring_hom.map_mul h, },
+      rw ←mul_assoc _ _ v,
+      rw mul_assoc ↑fn,
+      rw mul_comm w,
+      rw ←mul_assoc ↑fn,
+      rw ←is_ring_hom.map_add h,
+      rw ←mul_assoc,
+      rw mul_comm,
+      -- Ready to prove it.
+      have HyI : ↑fn * k * w + ↑fm * l * v ∈ ↑I,
+        apply I.3,
+        { apply I.4,
+          exact Hw, },
+        { apply I.4,
+          exact Hv, },
+      use [h (↑fn * k * w + ↑fm * l * v)],
+      use [⟨↑fn * k * w + ↑fm * l * v, ⟨HyI, rfl⟩⟩],
+      use [hfminv * hfninv],
+    end,
+  smul := 
+    begin
+      intros c x Hx,
+      rcases Hx with ⟨a, ⟨Ha, ⟨r, Hx⟩⟩⟩,
+      rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
+      rw [Hx, ←Ha],
+      rw mul_comm _ r,
+      unfold has_scalar.smul,
+      rw mul_comm r,
+      rw mul_comm c,
+      rw mul_assoc,
+      use [h v],
+      use [⟨v, ⟨Hv, rfl⟩⟩],
+      use [r * c],
+    end, }
+
+lemma localisation_map_ideal.not_top (I : ideal R) [PI : ideal.is_prime I] 
+(Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I) 
+: ideal.map h I = localisation_map_ideal I :=
+begin
+  have HL' := HL,
+  rcases HL' with ⟨Hinv, Hden, Hker⟩,
+  apply le_antisymm,
+  { have Hgen : h '' I ⊆ localisation_map_ideal I,
+      intros x Hx,
+      use [x, Hx, 1],
+      simp,
+    replace Hgen := ideal.span_mono Hgen,
+    rw ideal.span_eq at Hgen,
+    exact Hgen, },
+  { intros x Hx,
+    rcases Hx with ⟨y, ⟨z, ⟨HzI, Hzy⟩⟩, ⟨r, Hr⟩⟩,
+    rw [Hr, ←Hzy],
+    exact ideal.mul_mem_right _ (ideal.mem_map_of_mem HzI), }
+end
+
 lemma localisation_map_ideal.not_top (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
 : ideal.map h I ≠ ⊤ :=
@@ -216,6 +309,8 @@ end
 -- Need that:
 -- x ∈ ideal.sapn h I → x = h(Σ xᵢ)
 
+#check inverts_data (powers f) ⊤ 
+
 lemma localisation_map_ideal.is_prime (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
 : ideal.is_prime (ideal.map h I) :=
@@ -257,10 +352,9 @@ begin
       -- Isomorphism Rf/h(I)Rf and R/I
       -- Integral domain iso.
       -- h(I)Rf prime.
-      have HhI : h (s₁ * s₂ * r₃ - s₃ * r₁ * r₂) ∈ ideal.map h I,
-        exact ideal.mem_map_of_mem HI,
-      rw (is_ring_hom.map_sub h) at HhI,
-      repeat { rw (is_ring_hom.map_mul h) at HhI, },
+      have : inverts_data (powers f) (ideal.quotient.mk I),
+        intros s,
+        rcases (classical.indefinite_description _ (Hinv s)) with ⟨w, Hw⟩,
        },
     { sorry, } }
 end
