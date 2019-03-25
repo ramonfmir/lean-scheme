@@ -247,8 +247,7 @@ def localisation_map_ideal (I : ideal R) : ideal Rf :=
       use [r * c],
     end, }
 
-lemma localisation_map_ideal.not_top (I : ideal R) [PI : ideal.is_prime I] 
-(Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I) 
+lemma localisation_map_ideal.eq (I : ideal R) [PI : ideal.is_prime I] 
 : ideal.map h I = localisation_map_ideal I :=
 begin
   have HL' := HL,
@@ -273,43 +272,62 @@ lemma localisation_map_ideal.not_top (I : ideal R) [PI : ideal.is_prime I]
 begin
   have HL' := HL,
   rcases HL' with ⟨Hinv, Hden, Hker⟩,
-  intros HI,
-  have : (0 : R) ∉ powers f,
-    intros H,
-    have := Hfn 0 H,
-    apply this,
+  intros HC,
+  rw localisation_map_ideal.eq at HC,
+  rw ideal.eq_top_iff_one at HC,
+  rcases HC with ⟨x, ⟨y, ⟨HyI, Hyx⟩⟩, ⟨r, Hr⟩⟩,
+  rcases (Hden x) with ⟨⟨q, p⟩, Hpq⟩,
+  simp at Hpq,
+  rw ←Hyx at Hpq,
+  have Hz : h (q * y - p) = 0,
+    rw (is_ring_hom.map_sub h),
+    rw (is_ring_hom.map_mul h),
+    rw Hpq,
     simp,
-  
-  rcases (Hden 1) with ⟨⟨a, b⟩, Hab⟩,
-  simp at Hab,
-  have : h a - h b = 0,
-    rw Hab,
-    simp,
-  rw ←(is_ring_hom.map_sub h) at this,
-  have : ↑a - b ∈ ker h := this,
-  rw Hker at this,
-  cases this with w Hw,
-  cases w with w Huv,
-  cases w with u v,
+  replace Hz : ↑q * y - p ∈ ker h := Hz,
+  rw Hker at Hz,
+  rcases Hz with ⟨⟨⟨u, v⟩, Huv⟩, Hz⟩,
+  simp at Hz,
   simp at Huv,
-  simp at Hw,
-  rw Hw at Huv,
-  sorry,
-  -- h(1) ∈ h(I)R[1/S]
-  -- 
-  -- x - y = z
-  -- z * f^n = 0
-  -- f^n * (x - y) = 0
-  -- f^n * x = f^n * y
-
-  -- assume not zero ring?????
-  --simp [ideal.map, ideal.span, submodule.span] at Hone, 
+  rw Hz at Huv,
+  have HzI : (0 : R) ∈ I := ideal.zero_mem I,
+  rw ←Huv at HzI,
+  replace HzI := PI.2 HzI,
+  cases HzI,
+  { have HqyI : ↑q * y ∈ I := ideal.mul_mem_left I HyI,
+    have HpI := (ideal.neg_mem_iff I).1 ((ideal.add_mem_iff_left I HqyI).1 HzI), 
+    rcases (Hden r) with ⟨⟨b, a⟩, Hab⟩,
+    simp at Hab,
+    rw Hyx at Hpq,
+    have Hz2 : h (q * b - p * a) = 0,
+      rw (is_ring_hom.map_sub h),
+      repeat { rw (is_ring_hom.map_mul h), },
+      rw [←Hab, ←Hpq],
+      rw ←mul_comm r,
+      rw mul_assoc,
+      rw ←mul_assoc x,
+      rw ←Hr,
+      simp,
+    replace Hz2 : ↑q * ↑b - p * a ∈ ker h := Hz2,
+    rw Hker at Hz2,
+    rcases Hz2 with ⟨⟨⟨w, z⟩, Hwz⟩, Hz2⟩,
+    simp at Hz2,
+    simp at Hwz,
+    rw Hz2 at Hwz,
+    have HzI : (0 : R) ∈ I := ideal.zero_mem I,
+    rw ←Hwz at HzI,
+    replace HzI := PI.2 HzI,
+    cases HzI with HzI HzI,
+    { have HnpaI : -(p * a) ∈ I 
+        := (ideal.neg_mem_iff I).2 (ideal.mul_mem_right I HpI),
+      have HC := (ideal.add_mem_iff_right I HnpaI).1 HzI,
+      replace HC := PI.2 HC,
+      cases HC,
+      { exact Hfn q q.2 HC, },
+      { exact Hfn b b.2 HC, }, },
+    { exact Hfn z z.2 HzI, } },
+  { exact Hfn v v.2 HzI, }
 end
-
--- Need that:
--- x ∈ ideal.sapn h I → x = h(Σ xᵢ)
-
-#check inverts_data (powers f) ⊤ 
 
 lemma localisation_map_ideal.is_prime (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
