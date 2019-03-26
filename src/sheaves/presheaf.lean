@@ -5,6 +5,7 @@
 -/
 
 import topology.basic
+import topology.opens
 
 universes u v
 

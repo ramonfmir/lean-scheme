@@ -68,9 +68,9 @@ end
 
 -- Definition of R[1/a].
 
-def Ra := localization.away a
+@[reducible] def Ra := localization.away a
 
-instance Ra_comm_ring : comm_ring Ra := localization.away.comm_ring a
+instance Ra_comm_ring : comm_ring Ra := by apply_instance
 instance powers_a_submonoid : is_submonoid (powers a) := powers.is_submonoid a
 
 lemma one_powers_a : (1:R) ∈ powers a := powers_a_submonoid.one_mem
@@ -79,8 +79,9 @@ lemma one_powers_a : (1:R) ∈ powers a := powers_a_submonoid.one_mem
 
 def b1 : Ra := ⟦⟨b, 1, one_powers_a⟩⟧ 
 
-def Rab := localization.loc Ra (powers b1)
-instance Afg_comm_ring : comm_ring Rab := localization.away.comm_ring b1
+@[reducible] def Rab := localization Ra (powers b1)
+
+instance Afg_comm_ring : comm_ring Rab := by apply_instance
 instance powers_b1_submonoid : is_submonoid (powers b1) := powers.is_submonoid b1
 
 lemma one_powers_b1 : (1:Ra) ∈ powers b1 := powers_b1_submonoid.one_mem
@@ -123,7 +124,8 @@ begin
   { intros Hx,
     have Hbn := elem_powers_b1_bn.1 Hx,
     rcases Hbn with ⟨n, Hx⟩,
-    use [b ^ n, ⟨n, rfl⟩],
+    existsi (b ^ n),
+    existsi (⟨n, by simp⟩ : b ^ n ∈ powers b),
     exact Hx, },
   { rintros ⟨y, ⟨n, Hy⟩, Hx⟩,
     rw ←Hy at Hx,
@@ -238,12 +240,20 @@ begin
   have Hy' := Hy,
   rcases Hy with ⟨n, Hy⟩,
   rcases Hz with ⟨m, Hz⟩,
-  have HyzkSab : (a * b)^(max n m) ∈ powers (a * b) := ⟨(max n m), rfl⟩,
+  have HyzkSab : (a * b)^(max n m) ∈ powers (a * b) := ⟨(max n m), by simp⟩,
   rw powers_closure_eq at HyzkSab,
-  use (⟨(a * b)^(max n m), HyzkSab⟩, xR * homogenizer n m),
-  apply quotient.sound; use [w, Hw]; simp,
+  simp,
+  existsi (a * b)^(max n m),
+  existsi HyzkSab,
+  existsi xR * homogenizer n m,
+  apply quotient.sound, 
+  use [w, Hw]; simp,
   rw Hweq,
-  apply quotient.sound; use [y, Hy']; simp,
+  apply quotient.sound, 
+  simp,
+  existsi y,
+  existsi Hy',
+  simp,
   rw [←Hy, ←Hz],
   rw mul_comm xR,
   rw ←mul_assoc (b^m),

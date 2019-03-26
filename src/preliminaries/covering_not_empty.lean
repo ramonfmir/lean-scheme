@@ -4,6 +4,7 @@
 -/
 
 import topology.basic
+import topology.opens
 import preliminaries.opens
 import preliminaries.covering
 

@@ -1,5 +1,4 @@
 import topology.basic
-import topology.continuity
 import ring_theory.localization
 import sheaves.presheaf_of_rings
 import sheaves.stalk_of_rings

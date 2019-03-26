@@ -16,7 +16,7 @@ open topological_space
 
 local attribute [instance] classical.prop_decidable
 
-variables {R : Type u} [comm_ring R] --{Hnz : (0 : R) ≠ 1}
+variables {R : Type u} [comm_ring R]
 
 -- Assume :
 -- - φ : R → Rg
@@ -71,25 +71,75 @@ noncomputable lemma φ_is_localisation_data (g : R) : is_localization_data (powe
       use ⟨⟨x, ⟨r, Hr⟩⟩, Hx⟩,
     end, }
 
+-- D(g) ⊆ D(f) → f ∈ R[1/g]*
+
 lemma localisation_inverts (f g : R) (H : Spec.D'(g) ⊆ Spec.D'(f)) 
 : inverts (powers f) (φ g) :=
 begin
+  rcases (φ_is_localisation_data g) with ⟨Hinv, Hden, Hker⟩,
   rintros ⟨fn, Hfn⟩,
+  suffices Hsuff : ∃ si, φ g f * si = 1,
+    rcases Hsuff with ⟨si, Hsi⟩,
+    show ∃ si, φ g fn * si = 1,
+    rcases Hfn with ⟨n, Hfn⟩,
+    rw ←Hfn,
+    clear Hfn,
+    induction n with n Hn,
+    { simp,
+      rw (is_ring_hom.map_one (φ g)),
+      use 1,
+      ring, },
+    { rw pow_succ,
+      rw (is_ring_hom.map_mul (φ g)),
+      rcases Hn with ⟨sin, Hn⟩,
+      existsi (si * sin),
+      rw ←mul_assoc,
+      rw mul_assoc _ _ si,
+      rw mul_comm _ si,
+      rw ←mul_assoc,
+      rw Hsi,
+      rw one_mul,
+      exact Hn, },
   unfold Spec.D' at H,
   rw set.compl_subset_compl at H,
   unfold Spec.V' at H,
-  -- Proof by contradiction.
-  by_contra,
-  rw not_exists at a,
-  -- (φ (f)) is not a unit.
-  -- Hence (φ (f)) ⊆ M, M maximal.
-  -- M prime.
-  -- 
+  by_contra Hne,
+  rw not_exists at Hne,
+  have Hnu : ¬is_unit (φ g f),
+    intros HC,
+    simp [is_unit] at HC,
+    rcases HC with ⟨u, HC⟩,
+    apply (Hne u.inv),
+    rw HC,
+    exact u.3,
+  let F : ideal (localization.away g) := ideal.span {(φ g f)},
+  have HFnT : F ≠ ⊤,
+    intros HC,
+    rw ideal.span_singleton_eq_top at HC,
+    exact (Hnu HC),
+  rcases (ideal.exists_le_maximal F HFnT) with ⟨S, ⟨HMS, HFS⟩⟩,
+  have HfF : φ g f ∈ F,
+    suffices Hsuff : φ g f ∈ {φ g f},
+      exact ideal.subset_span Hsuff,
+    exact set.mem_singleton _,
+  have HfM : φ g f ∈ S := HFS HfF,
+  have PS := ideal.is_maximal.is_prime HMS,
+  have PS' : ideal.is_prime (ideal.comap (φ g) S)
+    := @ideal.is_prime.comap _ _ _ _ (φ g) _ _ PS,
+  let S' : Spec R := ⟨ideal.comap (φ g) S, PS'⟩,
+  have HfS' : f ∈ S'.val,
+    rw ideal.mem_comap,
+    exact HfM,
+  replace HfS' : S' ∈ {P : Spec R | f ∈ P.val} := HfS',
+  have HgS' : g ∈ ideal.comap (φ g) S := H HfS',
+  rw ideal.mem_comap at HgS',
+  rcases (Hinv ⟨g, ⟨1, by simp⟩⟩) with ⟨w, Hw⟩,
+  have HC : φ g g * w ∈ S := ideal.mul_mem_right S HgS',
+  erw Hw at HC,
+  exact (@ideal.is_prime.one_not_mem _ _ S PS) HC,
 end
 
 -- Use this to get a map ψ : Rf → Rg by the universal property.
-
-#check localization.loc R
 
 def S (U : opens (Spec R)) : set R := { r : R | U.1 ⊆ Spec.D'(r) }
 
@@ -119,7 +169,7 @@ end
 
 def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basis R) := 
 { -- F(D(f)) = R[1/S] ≅ R[1/f]
-  F := λ U BU, localization.loc R (S U),
+  F := λ U BU, localization R (S U),
   res := 
     begin
       intros U V BU BV HVU,

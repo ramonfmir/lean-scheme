@@ -1,4 +1,5 @@
 import topology.basic
+import topology.opens
 
 universes u
 
@@ -11,14 +12,8 @@ variables {α : Type u} [topological_space α]
 -- A couple of useful tricks to work avoid using the lattice jargon when 
 -- dealing with opens.
 
-instance : has_inter (opens α) :=
-{ inter := λ U V, inf U V }
-
 @[simp] lemma opens.inter (U V : opens α) :
 U ∩ V = ⟨U.1 ∩ V.1, is_open_inter U.2 V.2⟩ := rfl
-
-instance : has_union (opens α) :=
-{ union := λ U V, sup U V }
 
 prefix `⋃` := supr
 
