@@ -4,7 +4,8 @@
   https://stacks.math.columbia.edu/tag/00E2
 -/
 
-import topology.continuity
+import topology.basic
+import ring_theory.ideal_operations
 import commutative_algebra.ideal_preimage
 import spectrum_of_a_ring.zariski_topology
 
@@ -18,7 +19,7 @@ variables (f : α → β) [is_ring_hom f]
 -- Given φ : A → B, we have Spec(φ) : Spec(B) → Spec(A), 𝔭′⟼φ⁻¹(𝔭′).
 
 @[reducible] def Zariski.induced : Spec β → Spec α :=
-λ ⟨I, PI⟩, ⟨ideal.preimage f I, ideal.is_prime.preimage f I PI⟩
+λ ⟨I, PI⟩, ⟨ideal.comap f I, @ideal.is_prime.comap _ _ _ _ f _ I PI⟩
 
 -- This induced map is continuous.
 

@@ -3,6 +3,7 @@
 -/
 
 import topology.basic
+import topology.opens
 import ring_theory.ideals
 import group_theory.submonoid
 import spectrum_of_a_ring.spectrum
