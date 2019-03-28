@@ -33,13 +33,14 @@ extends presheaf_on_basis.morphism
 F.to_presheaf_on_basis G.to_presheaf_on_basis :=
 (ring_homs : ∀ {U} (BU : U ∈ B), is_ring_hom (map BU))
 
+infix `⟶`:80 := morphism 
+
 -- Isomorphic presheaves of rings on basis.
 
-def are_isomorphic (F G : presheaf_of_rings_on_basis α HB) := 
-∃ (fg : morphism F G) (gf : morphism G F),
-    presheaf_on_basis.morphism.is_identity 
-      (presheaf_on_basis.morphism.comp fg.to_morphism gf.to_morphism)
-  ∧ presheaf_on_basis.morphism.is_identity 
-      (presheaf_on_basis.morphism.comp gf.to_morphism fg.to_morphism)
+structure iso (F G : presheaf_of_rings_on_basis α HB) :=
+(mor : F ⟶ G)
+(inv : G ⟶ F)
+(mor_inv_id : mor.to_morphism ⊚ inv.to_morphism = presheaf_on_basis.id F.to_presheaf)
+(inv_mor_id : inv.to_morphism ⊚ mor.to_morphism = presheaf_on_basis.id G.to_presheaf)
 
 end presheaf_of_rings_on_basis

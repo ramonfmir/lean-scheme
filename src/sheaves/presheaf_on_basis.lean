@@ -52,13 +52,11 @@ structure morphism (F G : presheaf_on_basis α HB) :=
 (commutes : ∀ {U V} (HU : U ∈ B) (HV : V ∈ B) (Hsub : V ⊆ U),
   (G.res HU HV Hsub) ∘ (map HU) = (map HV) ∘ (F.res HU HV Hsub))
 
-namespace morphism
+infix `⟶`:80 := morphism 
 
-definition comp
-  {F G H : presheaf_on_basis α HB}
-  (fg : morphism F G)
-  (gh : morphism G H) :
-  morphism F H :=
+section morphism
+
+def comp {F G H : presheaf_on_basis α HB} (fg : F ⟶ G) (gh : G ⟶ H) : F ⟶ H :=
 { map := λ U HU, gh.map HU ∘ fg.map HU,
   commutes := λ U V BU BV HVU,
     begin
@@ -66,21 +64,20 @@ definition comp
       rw [function.comp.assoc, ←fg.commutes BU BV HVU]
     end }
 
-definition is_identity {F : presheaf_on_basis α HB} (ff : morphism F F) :=
-  ∀ {U} (HU : U ∈ B), ff.map HU = id 
+infix `⊚`:80 := comp
 
-definition is_isomorphism {F G : presheaf_on_basis α HB} (fg : morphism F G) := 
-  ∃ gf : morphism G F, 
-  is_identity (comp fg gf)
-∧ is_identity (comp gf fg)
+def id (F : presheaf_on_basis α HB) : F ⟶ F :=
+{ map := λ U BU, id,
+  commutes := λ U V BU BV HVU, by simp, }
+
+structure iso (F G : presheaf_on_basis α HB) :=
+(mor : F ⟶ G)
+(inv : G ⟶ F)
+(mor_inv_id : mor ⊚ inv = id F)
+(inv_mor_id : inv ⊚ mor = id G)
+
+infix `≅`:80 := iso
 
 end morphism
-
--- Isomorphic presheaves of types on a basis.
-
-def are_isomorphic (F G : presheaf_on_basis α HB) :=
-∃ (fg : morphism F G) (gf : morphism G F),
-    morphism.is_identity (morphism.comp fg gf)
-  ∧ morphism.is_identity (morphism.comp gf fg)
 
 end presheaf_on_basis

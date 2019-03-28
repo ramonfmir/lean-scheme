@@ -32,11 +32,14 @@ structure morphism (F G : presheaf_of_rings α)
 extends presheaf.morphism F.to_presheaf G.to_presheaf :=
 (ring_homs : ∀ (U), is_ring_hom (map U))
 
+infix `⟶`:80 := morphism 
+
 -- Isomorphic presheaves of rings.
 
-def are_isomorphic (F G : presheaf_of_rings α) := 
-∃ (fg : morphism F G) (gf : morphism G F),
-    presheaf.morphism.is_identity (presheaf.morphism.comp fg.to_morphism gf.to_morphism)
-  ∧ presheaf.morphism.is_identity (presheaf.morphism.comp gf.to_morphism fg.to_morphism)
+structure iso (F G : presheaf_of_rings α) :=
+(mor : F ⟶ G)
+(inv : G ⟶ F)
+(mor_inv_id : mor.to_morphism ⊚ inv.to_morphism = presheaf.id F.to_presheaf)
+(inv_mor_id : inv.to_morphism ⊚ mor.to_morphism = presheaf.id G.to_presheaf)
 
 end presheaf_of_rings
