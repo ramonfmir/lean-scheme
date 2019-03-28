@@ -48,7 +48,7 @@ instance stalk_of_rings_has_one : has_one (stalk_of_rings_on_standard_basis F x)
 
 -- Add.
 
-private def stalk_of_rings_add_aux : 
+protected def stalk_of_rings_add_aux : 
 stalk_on_basis.elem F.to_presheaf_on_basis x → 
 stalk_on_basis.elem F.to_presheaf_on_basis x → 
 stalk_on_basis F.to_presheaf_on_basis x :=
@@ -62,7 +62,7 @@ s := F.res s.BU _ (set.inter_subset_left _ _) s.s +
 instance stalk_of_rings_has_add : has_add (stalk_of_rings_on_standard_basis F x) := 
 {add := quotient.lift₂ (stalk_of_rings_add_aux Bstandard F x) $
 begin
-    intros a1 a2 b1 b2 H1 H2, 
+    intros a1 a2 b1 b2 H1 H2,
     let F' := F.to_presheaf_on_basis,
     rcases H1 with ⟨U1, ⟨BU1, ⟨HxU1, ⟨HU1a1U, HU1b1U, HresU1⟩⟩⟩⟩,
     rcases H2 with ⟨U2, ⟨BU2, ⟨HxU2, ⟨HU2a2U, HU2b2U, HresU2⟩⟩⟩⟩,

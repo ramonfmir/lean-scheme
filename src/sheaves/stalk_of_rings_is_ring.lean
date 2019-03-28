@@ -1,6 +1,7 @@
 import topology.basic
 import sheaves.presheaf_of_rings
 import sheaves.stalk_of_rings
+import sheaves.stalk_of_rings_on_basis
 
 universe u
 
