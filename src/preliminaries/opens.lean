@@ -52,4 +52,19 @@ set.preimage_mono HUV
 
 end opens_comap
 
+-- Opens map (assuming that f is an open immersion).
+
+section opens_map
+
+variables {β : Type v} [topological_space β]
+variables {f : α → β} (Hf : ∀ U, is_open (f '' U))
+
+def opens.map : opens α → opens β := 
+λ U, ⟨f '' U, Hf U⟩
+
+lemma opens.map_mono (U V : opens α) (HUV : U ≤ V) : opens.map Hf U ≤ opens.map Hf V := 
+set.image_subset f HUV
+
+end opens_map
+
 end opens
