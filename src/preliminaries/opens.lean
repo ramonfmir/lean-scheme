@@ -1,7 +1,7 @@
 import topology.basic
 import topology.opens
 
-universes u
+universes u v
 
 open topological_space lattice lattice.lattice
 
@@ -36,5 +36,20 @@ end
 lemma opens_supr_subset {γ : Type u} (X : γ → opens α) 
 : ∀ i, X i ⊆ ⋃ X :=
 λ i x, opens_supr_mem X i x
+
+-- Opens comap.
+
+section opens_comap
+
+variables {β : Type v} [topological_space β]
+variables {f : α → β} (Hf : continuous f) 
+
+def opens.comap : opens β → opens α :=
+λ U, ⟨f ⁻¹' U.1, Hf U.1 U.2⟩
+
+def opens.comap_mono (U V : opens β) (HUV : U ≤ V) : opens.comap Hf U ≤ opens.comap Hf V := 
+set.preimage_mono HUV
+
+end opens_comap
 
 end opens

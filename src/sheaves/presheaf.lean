@@ -13,7 +13,7 @@ universes u v
 
 open topological_space lattice
 
-structure presheaf (α : Type u) [T : topological_space α] := 
+structure presheaf (α : Type u) [topological_space α] := 
 (F     : opens α → Type v)
 (res   : ∀ (U V) (HVU : V ⊆ U), F U → F V)
 (Hid   : ∀ (U), res U U (set.subset.refl U) = id)
@@ -22,10 +22,7 @@ structure presheaf (α : Type u) [T : topological_space α] :=
 
 namespace presheaf
 
-variables {α : Type u} [T : topological_space α]
-include T
-
--- Coercing presheaves to F : U → Type.
+variables {α : Type u} [topological_space α]
 
 instance : has_coe_to_fun (presheaf α) :=
 { F := λ _, opens α → Type v,
@@ -51,13 +48,11 @@ structure morphism (F G : presheaf α) :=
 (commutes : ∀ (U V) (HVU : V ⊆ U),
   (G.res U V HVU) ∘ (map U) = (map V) ∘ (F.res U V HVU))
 
-namespace morphism
+infix `⟶`:80 := morphism 
 
-def comp
-  {F G H : presheaf α} 
-  (fg : morphism F G)
-  (gh : morphism G H) : 
-  morphism F H :=
+section morphism
+
+def comp {F G H : presheaf α} (fg : F ⟶ G) (gh : G ⟶ H) : F ⟶ H :=
 { map := λ U, gh.map U ∘ fg.map U,
   commutes := λ U V HVU,
     begin
@@ -65,21 +60,20 @@ def comp
       rw [function.comp.assoc, ←fg.commutes U V HVU]
     end }
 
-def is_identity {F : presheaf α} (ff : morphism F F) :=
-  ∀ (U), ff.map U = id
+infix `⊚`:80 := comp
 
-def is_isomorphism {F G : presheaf α} (fg : morphism F G) :=
-  ∃ gf : morphism G F, 
-    is_identity (comp fg gf)
-  ∧ is_identity (comp gf fg)
+def id (F : presheaf α) : F ⟶ F :=
+{ map := λ U, id,
+  commutes := λ U V HVU, by simp, }
+
+structure iso (F G : presheaf α) :=
+(mor : F ⟶ G)
+(inv : G ⟶ F)
+(mor_inv_id : mor ⊚ inv = id F)
+(inv_mor_id : inv ⊚ mor = id G)
+
+infix `≅`:80 := iso
 
 end morphism
-
--- Isomorphic presheaves of types.
-
-def are_isomorphic (F G : presheaf α) :=
-∃ (fg : morphism F G) (gf : morphism G F),
-    morphism.is_identity (morphism.comp fg gf)
-  ∧ morphism.is_identity (morphism.comp gf fg)
 
 end presheaf

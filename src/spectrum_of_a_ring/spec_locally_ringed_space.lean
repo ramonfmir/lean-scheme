@@ -163,10 +163,6 @@ begin
   apply set.subset.trans HVU Hx,
 end
 
-#check @quotient.lift
-#check quotient.mk
-#check quotient.
-
 def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basis R) := 
 { -- F(D(f)) = R[1/S] ≅ R[1/f]
   F := λ U BU, localization R (S U),
