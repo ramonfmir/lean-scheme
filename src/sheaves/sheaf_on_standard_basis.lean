@@ -15,12 +15,13 @@ universe u
 
 open topological_space
 
-section sheaf_on_standard_basis
+namespace sheaf_on_standard_basis
 
-parameters {α : Type u} [topological_space α] 
-parameters {B : set (opens α)} [HB : opens.is_basis B]
+variables {α : Type u} [topological_space α] 
+variables {B : set (opens α)} {HB : opens.is_basis B}
+variables (Bstd : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ V ∈ B)
 
-parameters {Bstd : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ V ∈ B}
+include Bstd
 
 section properties
 
@@ -41,8 +42,10 @@ def res_to_inter_left (F : presheaf_on_basis α HB) {U V} (BU : U ∈ B) (BV : V
 F.res BU (Bstd.2 BU BV) (set.inter_subset_left U V)
 
 @[simp] lemma res_to_inter_left'
-(F : presheaf_on_basis α HB) {U V} (BU : U ∈ B) (BV : V ∈ B) :
-res_to_inter_left F BU BV = F.res BU (Bstd.2 BU BV) (set.inter_subset_left U V) := rfl
+(F : presheaf_on_basis α HB) {U V} (BU : U ∈ B) (BV : V ∈ B)
+: sheaf_on_standard_basis.res_to_inter_left Bstd F BU BV =
+  F.res BU (Bstd.2 BU BV) (set.inter_subset_left U V) 
+:= rfl
 
 -- Restriction map from V to U ∩ V.
 
@@ -51,8 +54,10 @@ def res_to_inter_right (F : presheaf_on_basis α HB) {U V} (BU : U ∈ B) (BV : 
 F.res BV (Bstd.2 BU BV) (set.inter_subset_right U V)
 
 @[simp] lemma res_to_inter_right'
-(F : presheaf_on_basis α HB) {U V} (BU : U ∈ B) (BV : V ∈ B) :
-res_to_inter_right F BU BV = F.res BV (Bstd.2 BU BV) (set.inter_subset_right U V) := rfl
+(F : presheaf_on_basis α HB) {U V} (BU : U ∈ B) (BV : V ∈ B)
+: sheaf_on_standard_basis.res_to_inter_right Bstd F BU BV = 
+  F.res BV (Bstd.2 BU BV) (set.inter_subset_right U V) 
+:= rfl
 
 -- Sheaf condition.
 
@@ -66,13 +71,13 @@ s = t
 def gluing 
 (F : presheaf_on_basis α HB) {U} (BU : U ∈ B) (OC : covering_standard_basis B U) :=
 ∀ (s : Π i, F (OC.BUis i)),
-(∀ j k, res_to_inter_left F (OC.BUis j) (OC.BUis k) (s j) =
-        res_to_inter_right F (OC.BUis j) (OC.BUis k) (s k)) → 
+(∀ j k, sheaf_on_standard_basis.res_to_inter_left Bstd F (OC.BUis j) (OC.BUis k) (s j) =
+        sheaf_on_standard_basis.res_to_inter_right Bstd F (OC.BUis j) (OC.BUis k) (s k)) → 
 ∃ S, ∀ i, F.res BU (OC.BUis i) (subset_covering i) S = s i
 
 def is_sheaf_on_standard_basis (F : presheaf_on_basis α HB) :=
 ∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U),
-locality F BU OC ∧ gluing F BU OC
+locality Bstd F BU OC ∧ gluing Bstd F BU OC
 
 end sheaf_condition
 
@@ -80,12 +85,12 @@ section cofinal_system
 
 def is_sheaf_on_standard_basis_cofinal_system (F : presheaf_on_basis α HB) :=
 ∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U) (Hfin : fintype OC.γ),
-locality F BU OC ∧ gluing F BU OC
+locality Bstd F BU OC ∧ gluing Bstd F BU OC
 
 theorem cofinal_systems_coverings_standard_case
 (F : presheaf_on_basis α HB) 
-(Hcompact : basis_is_compact)
-: is_sheaf_on_standard_basis_cofinal_system F → is_sheaf_on_standard_basis F :=
+(Hcompact : basis_is_compact Bstd)
+: is_sheaf_on_standard_basis_cofinal_system Bstd F → is_sheaf_on_standard_basis Bstd F :=
 begin
   intros Hcofinal,
   have Hcofinal' := @Hcofinal,
@@ -105,7 +110,9 @@ begin
   -- Gluing.
   { intros s Hinter,
     have Hinterfin 
-    : ∀ (j k), res_to_inter_left F _ _ (s (fγ j)) = res_to_inter_right F _ _ (s (fγ k)) :=
+    : ∀ (j k), 
+      sheaf_on_standard_basis.res_to_inter_left Bstd F _ _ (s (fγ j)) = 
+      sheaf_on_standard_basis.res_to_inter_right Bstd F _ _ (s (fγ k)) :=
     λ j k, Hinter (fγ j) (fγ k),
     have Hglobal := Hglue (λ i, s (fγ i)) Hinterfin,
     rcases Hglobal with ⟨S, HS⟩,
@@ -143,8 +150,10 @@ begin
     have Hglue' := (@Hcofinal' Ui BUi OCfin' Hfinγ).2,
     have Hglue'' := Hglue' (λ j, F.res BU (BVjs j) (HVjU j) S),
     have Hres' : ∀ (j k),
-      res_to_inter_left F (BVjs j) (BVjs k) (F.res BU (BVjs j) (HVjU j) S) = 
-      res_to_inter_right F (BVjs j) (BVjs k) (F.res BU (BVjs k) (HVjU k) S),
+      sheaf_on_standard_basis.res_to_inter_left Bstd 
+        F (BVjs j) (BVjs k) (F.res BU (BVjs j) (HVjU j) S) = 
+      sheaf_on_standard_basis.res_to_inter_right Bstd 
+        F (BVjs j) (BVjs k) (F.res BU (BVjs k) (HVjU k) S),
       intros j k,
       simp,
       rw ←F.Hcomp',

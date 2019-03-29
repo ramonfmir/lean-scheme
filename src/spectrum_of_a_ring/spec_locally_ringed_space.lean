@@ -4,7 +4,7 @@ import preliminaries.localisation
 import spectrum_of_a_ring.properties
 
 import sheaves.presheaf_of_rings_on_basis
-import sheaves.sheaf_on_basis
+import sheaves.sheaf_of_rings_on_basis
 import sheaves.locally_ringed_space
 import spectrum_of_a_ring.spectrum
 import spectrum_of_a_ring.zariski_topology
@@ -17,11 +17,6 @@ open topological_space
 local attribute [instance] classical.prop_decidable
 
 variables {R : Type u} [comm_ring R]
-
--- Assume :
--- - φ : R → Rg
--- - D(g) ⊆ D(f)
--- To show: inverts (powers f) (φ g)
 
 open localization_alt
 
@@ -229,8 +224,8 @@ def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basi
           end, },
     end, }
 
--- def structure_presheaf : presheaf_of_rings (Spec R) :=
--- presheaf_on_basis_to_presheaf structure_presheaf_on_basis
+def structure_presheaf : presheaf_of_rings (Spec R) :=
+  presheaf_on_basis_to_presheaf structure_presheaf_on_basis
 
 def SpecR : locally_ringed_space (Spec R) :=
 { O := sorry, 

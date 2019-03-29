@@ -9,8 +9,9 @@ universes u v w
 open topological_space
 open lattice
 open covering
+open stalk_of_rings_on_standard_basis.
 
-section sheaf_of_ring_on_basis
+section presheaf_of_rings_extension
 
 variables {α : Type u} [topological_space α]
 variables {B : set (opens α)} {HB : opens.is_basis B}
@@ -33,7 +34,7 @@ private def Fext_add_aux (x : α)
 : stalk_of_rings_on_standard_basis Bstd F x
 → stalk_of_rings_on_standard_basis Bstd F x
 → stalk_of_rings_on_standard_basis Bstd F x :=
-(stalk_of_rings_has_add Bstd F x).add
+(stalk_of_rings_on_standard_basis.has_add Bstd F x).add
 
 private def Fext_add : Fext Bstd F U → Fext Bstd F U → Fext Bstd F U 
 := λ ⟨s₁, Hs₁⟩ ⟨s₂, Hs₂⟩, 
@@ -76,14 +77,14 @@ instance Fext_add_comm_semigroup : add_comm_semigroup (Fext Bstd F U) :=
 -- Zero.
 
 private def Fext_zero : Fext Bstd F U := 
-⟨λ x Hx, (stalk_of_rings_has_zero Bstd F x).zero, 
+⟨λ x Hx, (stalk_of_rings_on_standard_basis.has_zero Bstd F x).zero, 
 λ x Hx, ⟨opens.univ, Bstd.1, trivial, 0, (λ y Hy, funext $ λ HyU, rfl)⟩⟩
 
 instance Fext_has_zero : has_zero (Fext Bstd F U) := 
 { zero := Fext_zero Bstd F U }
 
 @[simp] lemma Fext_zero.eq (x : α) (Hx : x ∈ U) 
-: (0 : Fext Bstd F U).val x Hx = (stalk_of_rings_has_zero Bstd F x).zero := rfl
+: (0 : Fext Bstd F U).val x Hx = (stalk_of_rings_on_standard_basis.has_zero Bstd F x).zero := rfl
 
 instance Fext_add_comm_monoid : add_comm_monoid (Fext Bstd F U) :=
 { zero_add := λ a, subtype.eq $ funext $ λ x, funext $ λ HxU, by simp,
@@ -96,7 +97,7 @@ instance Fext_add_comm_monoid : add_comm_monoid (Fext Bstd F U) :=
 private def Fext_neg_aux (x : α) 
 : stalk_of_rings_on_standard_basis Bstd F x
 → stalk_of_rings_on_standard_basis Bstd F x :=
-(stalk_of_rings_has_neg Bstd F x).neg
+(stalk_of_rings_on_standard_basis.has_neg Bstd F x).neg
 
 private def Fext_neg : Fext Bstd F U → Fext Bstd F U :=
 λ ⟨s, Hs⟩, 
@@ -132,7 +133,7 @@ private def Fext_mul_aux (x : α)
 : stalk_of_rings_on_standard_basis Bstd F x
 → stalk_of_rings_on_standard_basis Bstd F x
 → stalk_of_rings_on_standard_basis Bstd F x :=
-(stalk_of_rings_has_mul Bstd F x).mul
+(stalk_of_rings_on_standard_basis.has_mul Bstd F x).mul
 
 private def Fext_mul : Fext Bstd F U → Fext Bstd F U → Fext Bstd F U 
 := λ ⟨s₁, Hs₁⟩ ⟨s₂, Hs₂⟩, 
@@ -168,7 +169,7 @@ instance Fext_mul_semigroup : semigroup (Fext Bstd F U) :=
 { mul_assoc := λ a b c, subtype.eq $ funext $ λ x, funext $ λ HxU,
   begin
     simp,
-    apply (stalk_of_rings_mul_semigroup Bstd F x).mul_assoc,
+    apply (stalk_of_rings_on_standard_basis.mul_semigroup Bstd F x).mul_assoc,
   end,
   ..Fext_has_mul Bstd F U, }
 
@@ -176,14 +177,14 @@ instance Fext_mul_comm_semigroup : comm_semigroup (Fext Bstd F U) :=
 { mul_comm := λ a b, subtype.eq $ funext $ λ x, funext $ λ HxU,
     begin
       simp,
-      apply (stalk_of_rings_mul_comm_semigroup Bstd F x).mul_comm,
+      apply (stalk_of_rings_on_standard_basis.mul_comm_semigroup Bstd F x).mul_comm,
     end,
   ..Fext_mul_semigroup Bstd F U, }
 
 -- One.
 
 private def Fext_one : Fext Bstd F U  := 
-⟨λ x Hx, (stalk_of_rings_has_one Bstd F x).one, 
+⟨λ x Hx, (stalk_of_rings_on_standard_basis.has_one Bstd F x).one, 
 λ x Hx, ⟨opens.univ, Bstd.1, trivial, 1, (λ y Hy, funext $ λ HyU, rfl)⟩⟩
 
 instance Fext_has_one : has_one (Fext Bstd F U) := 
@@ -193,12 +194,12 @@ instance Fext_mul_comm_monoid : comm_monoid (Fext Bstd F U) :=
 { one_mul := λ a, subtype.eq $ funext $ λ x, funext $ λ HxU,
     begin
       simp,
-      apply (stalk_of_rings_mul_comm_monoid Bstd F x).one_mul,
+      apply (stalk_of_rings_on_standard_basis.mul_comm_monoid Bstd F x).one_mul,
     end,
   mul_one := λ a, subtype.eq $ funext $ λ x, funext $ λ HxU,
     begin
       simp,
-      apply (stalk_of_rings_mul_comm_monoid Bstd F x).mul_one,
+      apply (stalk_of_rings_on_standard_basis.mul_comm_monoid Bstd F x).mul_one,
     end,
   ..Fext_has_one Bstd F U,
   ..Fext_mul_comm_semigroup Bstd F U, }
@@ -211,21 +212,32 @@ instance Fext_comm_ring : comm_ring (Fext Bstd F U) :=
       rw Fext_add.eq,
       repeat { rw Fext_mul.eq, },
       rw Fext_add.eq,
-      eapply (stalk_of_rings_comm_ring Bstd F x).left_distrib,
+      eapply (stalk_of_rings_on_standard_basis.comm_ring Bstd F x).left_distrib,
     end,
   right_distrib := λ a b c, subtype.eq $ funext $ λ x, funext $ λ HxU,
     begin
       rw Fext_add.eq,
       repeat { rw Fext_mul.eq, },
       rw Fext_add.eq,
-      eapply (stalk_of_rings_comm_ring Bstd F x).right_distrib,
+      eapply (stalk_of_rings_on_standard_basis.comm_ring Bstd F x).right_distrib,
     end,
   ..Fext_add_comm_group Bstd F U,
   ..Fext_mul_comm_monoid Bstd F U, }
 
 end presheaf_of_rings_on_basis_extension_is_ring
 
--- Presheaf of rings on basis extension is presheaf of rings.
+-- F defined in the whole space to F defined on the basis.
+
+def presheaf_of_rings_to_presheaf_of_rings_on_basis 
+(F : presheaf_of_rings α) : presheaf_of_rings_on_basis α HB :=
+{ F := λ U BU, F U,
+  res := λ U V BU BV HVU, F.res U V HVU,
+  Hid := λ U BU, F.Hid U,
+  Hcomp := λ U V W BU BV BW, F.Hcomp U V W,
+  Fring := λ U BU, F.Fring U,
+  res_is_ring_hom := λ U V BU BV HVU, F.res_is_ring_hom U V HVU, }
+
+-- F defined on the bases extended to the whole space.
 
 definition presheaf_of_rings_on_basis_to_presheaf_of_rings
 (F : presheaf_of_rings_on_basis α HB) : presheaf_of_rings α :=
@@ -257,4 +269,6 @@ definition presheaf_of_rings_on_basis_to_presheaf_of_rings
           refl,
         end, } }
 
-end sheaf_of_ring_on_basis
+notation F `ᵣₑₓₜ`:1 Bstd := presheaf_of_rings_on_basis_to_presheaf_of_rings Bstd F
+
+end presheaf_of_rings_extension

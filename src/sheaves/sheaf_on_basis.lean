@@ -8,6 +8,7 @@
 import preliminaries.covering_on_basis
 import sheaves.presheaf
 import sheaves.presheaf_on_basis
+import sheaves.presheaf_extension
 import sheaves.sheaf
 import sheaves.stalk_on_basis
 
@@ -31,37 +32,7 @@ definition is_sheaf_on_basis (F : presheaf_on_basis α HB) :=
           F.res (OC.BUis j) (OC.BUijks i j k) (subset_covering_basis_inter_right i j k) (s j)) → 
 ∃! S, ∀ i, F.res BU (OC.BUis i) (subset_covering i) S = s i
 
--- F defined in the whole space to F defined on the basis.
-
-definition presheaf_to_presheaf_on_basis 
-(F : presheaf α) : presheaf_on_basis α HB :=
-{ F := λ U BU, F U,
-  res := λ U V BU BV HVU, F.res U V HVU,
-  Hid := λ U BU, F.Hid U,
-  Hcomp := λ U V W BU BV BW, F.Hcomp U V W }
-
--- F defined on the bases extended to the whole space.
-
-definition presheaf_on_basis_to_presheaf
-(F : presheaf_on_basis α HB) : presheaf α :=
-{ F := λ U, {s : Π (x ∈ U), stalk_on_basis F x //
-        ∀ (x ∈ U), ∃ (V) (BV : V ∈ B) (Hx : x ∈ V) (σ : F BV),
-        ∀ (y ∈ U ∩ V), s y = λ _, ⟦{U := V, BU := BV, Hx := H.2, s := σ}⟧},
-  res := λ U W HWU FU, 
-        { val := λ x HxW, (FU.val x $ HWU HxW),
-          property := λ x HxW,
-            begin
-              rcases (FU.property x (HWU HxW)) with ⟨V, ⟨BV, ⟨HxV, ⟨σ, HFV⟩⟩⟩⟩,
-              use [V, BV, HxV, σ],
-              rintros y ⟨HyW, HyV⟩,
-              rw (HFV y ⟨HWU HyW, HyV⟩),
-            end },
-  Hid := λ U, funext $ λ x, subtype.eq rfl,
-  Hcomp := λ U V W HWV HVU, funext $ λ x, subtype.eq rfl}
-
-local notation F `ₑₓₜ`:1 := presheaf_on_basis_to_presheaf F
-
-section presheaf_extension
+section presheaf_extension_preserves_sheaf_condition
 
 -- Presheaf extension preserves sheaf condition.
 
@@ -144,7 +115,7 @@ refine ⟨_, _⟩,
 end
 
 theorem extension_is_sheaf (F : presheaf_on_basis α HB) (HF : is_sheaf_on_basis F)
-: is_sheaf_of_types (F ₑₓₜ) := 
+: is_sheaf (F ₑₓₜ) := 
 begin
   split,
   -- Locality.
@@ -160,8 +131,7 @@ begin
     have Hstj := congr_fun (subtype.mk_eq_mk.1 (Hst j)),
     have HxUj1 : x ∈ OC.Uis j := HUj.symm ▸ HxUj,
     have Hstjx := congr_fun (Hstj x) HxUj1,
-    exact Hstjx,
-  },
+    exact Hstjx, },
   -- Gluing.
   { intros U OC s Hsec,
     existsi (global_section F U OC s Hsec),
@@ -198,10 +168,9 @@ begin
     replace Hsec := congr_fun Hsec,
     have HxOUk : x ∈ OUl.val := HOUleq.symm ▸ HySUiR,
     have HxUl : x ∈ OC.Uis l := HSUil.symm ▸ HxOUk,
-    exact (Hsec ⟨HxUi, HxUl⟩).symm
-  },
+    exact (Hsec ⟨HxUi, HxUl⟩).symm },
 end 
 
-end presheaf_extension
+end presheaf_extension_preserves_sheaf_condition
 
 end sheaf_on_basis

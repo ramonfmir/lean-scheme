@@ -14,7 +14,7 @@ universe u
 
 open topological_space
 
-section stalk_of_rings_on_standard_basis
+namespace stalk_of_rings_on_standard_basis
 
 variables {α : Type u} [topological_space α] 
 variables {B : set (opens α )} {HB : opens.is_basis B}
@@ -32,9 +32,11 @@ stalk_on_basis F.to_presheaf_on_basis x
 
 section stalk_of_rings_on_standard_basis_is_ring
 
+open stalk_of_rings_on_standard_basis
+
 -- Add.
 
-protected def stalk_of_rings_add_aux : 
+protected def add_aux : 
 stalk_on_basis.elem F.to_presheaf_on_basis x → 
 stalk_on_basis.elem F.to_presheaf_on_basis x → 
 stalk_on_basis F.to_presheaf_on_basis x :=
@@ -45,8 +47,8 @@ Hx := ⟨s.Hx, t.Hx⟩,
 s := F.res s.BU _ (set.inter_subset_left _ _) s.s + 
      F.res t.BU _ (set.inter_subset_right _ _) t.s}⟧
 
-instance stalk_of_rings_has_add : has_add (stalk_of_rings_on_standard_basis Bstd F x) := 
-{ add := quotient.lift₂ (stalk_of_rings_add_aux Bstd F x) $
+instance has_add : has_add (stalk_of_rings_on_standard_basis Bstd F x) := 
+{ add := quotient.lift₂ (stalk_of_rings_on_standard_basis.add_aux Bstd F x) $
     begin
       intros a1 a2 b1 b2 H1 H2,
       let F' := F.to_presheaf_on_basis,
@@ -71,7 +73,7 @@ instance stalk_of_rings_has_add : has_add (stalk_of_rings_on_standard_basis Bstd
       rw [HresU1', HresU2'],
     end }
 
-instance stalk_of_rings_add_semigroup : add_semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
+instance add_semigroup : add_semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
 { add_assoc := 
     begin
       intros a b c,
@@ -88,9 +90,9 @@ instance stalk_of_rings_add_semigroup : add_semigroup (stalk_of_rings_on_standar
       repeat { erw ←presheaf_on_basis.Hcomp' },
       rw add_assoc,
     end,
-  ..stalk_of_rings_has_add Bstd F x }
+  ..stalk_of_rings_on_standard_basis.has_add Bstd F x }
 
-instance stalk_of_rings_add_comm_semigroup : add_comm_semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
+instance add_comm_semigroup : add_comm_semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
 { add_comm :=
     begin
       intros a b,
@@ -105,17 +107,17 @@ instance stalk_of_rings_add_comm_semigroup : add_comm_semigroup (stalk_of_rings_
       repeat { rw ←presheaf_on_basis.Hcomp' },
       rw add_comm,
     end,
-  ..stalk_of_rings_add_semigroup Bstd F x }
+  ..stalk_of_rings_on_standard_basis.add_semigroup Bstd F x }
 
 -- Zero.
 
-private def stalk_of_rings_zero : stalk_of_rings_on_standard_basis Bstd F x := 
+protected def zero : stalk_of_rings_on_standard_basis Bstd F x := 
 ⟦{U := opens.univ, BU := Bstd.1, Hx := trivial, s:= 0}⟧
 
-instance stalk_of_rings_has_zero : has_zero (stalk_of_rings_on_standard_basis Bstd F x) := 
-{ zero := stalk_of_rings_zero Bstd F x }
+instance has_zero : has_zero (stalk_of_rings_on_standard_basis Bstd F x) := 
+{ zero := stalk_of_rings_on_standard_basis.zero Bstd F x }
 
-instance stalk_of_rings_add_comm_monoid : add_comm_monoid (stalk_of_rings_on_standard_basis Bstd F x) :=
+instance add_comm_monoid : add_comm_monoid (stalk_of_rings_on_standard_basis Bstd F x) :=
 { zero_add := 
     begin
       intros a,
@@ -147,18 +149,18 @@ instance stalk_of_rings_add_comm_monoid : add_comm_monoid (stalk_of_rings_on_sta
       rw add_zero,
       refl,
     end,
-  ..stalk_of_rings_has_zero Bstd F x,
-  ..stalk_of_rings_add_comm_semigroup Bstd F x }
+  ..stalk_of_rings_on_standard_basis.has_zero Bstd F x,
+  ..stalk_of_rings_on_standard_basis.add_comm_semigroup Bstd F x }
 
 -- Neg.
 
-private def stalk_sub_aux : 
+protected def neg_aux : 
 stalk_on_basis.elem F.to_presheaf_on_basis x → 
 stalk_on_basis F.to_presheaf_on_basis x :=
 λ s, ⟦{U := s.U, BU := s.BU, Hx := s.Hx, s := -s.s}⟧
 
-instance stalk_of_rings_has_neg : has_neg (stalk_of_rings_on_standard_basis Bstd F x) :=
-{ neg := quotient.lift (stalk_sub_aux Bstd F x) $ 
+instance has_neg : has_neg (stalk_of_rings_on_standard_basis Bstd F x) :=
+{ neg := quotient.lift (stalk_of_rings_on_standard_basis.neg_aux Bstd F x) $ 
   begin
     intros a b H,
     rcases H with ⟨U, ⟨BU, ⟨HxU, ⟨HUaU, HUbU, HresU⟩⟩⟩⟩,
@@ -168,7 +170,7 @@ instance stalk_of_rings_has_neg : has_neg (stalk_of_rings_on_standard_basis Bstd
     rw HresU,
   end }
 
-instance stalk_of_rings_add_comm_group : add_comm_group (stalk_of_rings_on_standard_basis Bstd F x) :=
+instance add_comm_group : add_comm_group (stalk_of_rings_on_standard_basis Bstd F x) :=
 { add_left_neg := 
     begin
       intros a,
@@ -186,12 +188,12 @@ instance stalk_of_rings_add_comm_group : add_comm_group (stalk_of_rings_on_stand
       erw (is_ring_hom.map_zero ((F.to_presheaf_on_basis).res _ _ _));
       try { apply_instance },
     end,
-  ..stalk_of_rings_has_neg Bstd F x,
-  ..stalk_of_rings_add_comm_monoid Bstd F x, }
+  ..stalk_of_rings_on_standard_basis.has_neg Bstd F x,
+  ..stalk_of_rings_on_standard_basis.add_comm_monoid Bstd F x, }
 
 -- Mul.
 
-private def stalk_of_rings_mul_aux : 
+protected def mul_aux : 
 stalk_on_basis.elem F.to_presheaf_on_basis x → 
 stalk_on_basis.elem F.to_presheaf_on_basis x → 
 stalk_on_basis F.to_presheaf_on_basis x :=
@@ -202,8 +204,8 @@ Hx := ⟨s.Hx, t.Hx⟩,
 s := F.res s.BU _ (set.inter_subset_left _ _) s.s * 
      F.res t.BU _ (set.inter_subset_right _ _) t.s}⟧
 
-instance stalk_of_rings_has_mul : has_mul (stalk_of_rings_on_standard_basis Bstd F x) := 
-{ mul := quotient.lift₂ (stalk_of_rings_mul_aux Bstd F x) $ 
+instance has_mul : has_mul (stalk_of_rings_on_standard_basis Bstd F x) := 
+{ mul := quotient.lift₂ (stalk_of_rings_on_standard_basis.mul_aux Bstd F x) $ 
     begin
       intros a1 a2 b1 b2 H1 H2, 
       let F' := F.to_presheaf_on_basis,
@@ -228,7 +230,7 @@ instance stalk_of_rings_has_mul : has_mul (stalk_of_rings_on_standard_basis Bstd
       rw [HresU1', HresU2'],
     end}
 
-instance stalk_of_rings_mul_semigroup : semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
+instance mul_semigroup : semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
 { mul_assoc := 
     begin
       intros a b c,
@@ -244,9 +246,9 @@ instance stalk_of_rings_mul_semigroup : semigroup (stalk_of_rings_on_standard_ba
       repeat { rw ←presheaf_on_basis.Hcomp' },
       rw mul_assoc,
     end,
-  ..stalk_of_rings_has_mul Bstd F x }
+  ..stalk_of_rings_on_standard_basis.has_mul Bstd F x }
 
-instance stalk_of_rings_mul_comm_semigroup : comm_semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
+instance mul_comm_semigroup : comm_semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
 { mul_comm := 
     begin
       intros a b,
@@ -261,17 +263,17 @@ instance stalk_of_rings_mul_comm_semigroup : comm_semigroup (stalk_of_rings_on_s
       repeat { rw ←presheaf_on_basis.Hcomp' },
       rw mul_comm,
     end,
-  ..stalk_of_rings_mul_semigroup Bstd F x }
+  ..stalk_of_rings_on_standard_basis.mul_semigroup Bstd F x }
 
 -- One.
 
-private def stalk_of_rings_one : stalk_of_rings_on_standard_basis Bstd F x := 
+protected def one : stalk_of_rings_on_standard_basis Bstd F x := 
 ⟦{U := opens.univ, BU := Bstd.1, Hx := trivial, s:= 1}⟧
 
-instance stalk_of_rings_has_one : has_one (stalk_of_rings_on_standard_basis Bstd F x) := 
-{one := stalk_of_rings_one Bstd F x}
+instance has_one : has_one (stalk_of_rings_on_standard_basis Bstd F x) := 
+{ one := stalk_of_rings_on_standard_basis.one Bstd F x }
 
-instance stalk_of_rings_mul_comm_monoid : comm_monoid (stalk_of_rings_on_standard_basis Bstd F x) :=
+instance mul_comm_monoid : comm_monoid (stalk_of_rings_on_standard_basis Bstd F x) :=
 { one_mul := 
     begin
       intros a,
@@ -303,12 +305,12 @@ instance stalk_of_rings_mul_comm_monoid : comm_monoid (stalk_of_rings_on_standar
       rw mul_one,
       refl,
     end,
-  ..stalk_of_rings_has_one Bstd F x,
-  ..stalk_of_rings_mul_comm_semigroup Bstd F x }
+  ..stalk_of_rings_on_standard_basis.has_one Bstd F x,
+  ..stalk_of_rings_on_standard_basis.mul_comm_semigroup Bstd F x }
 
 -- Stalks of rings on standard basis are rings.
 
-instance stalk_of_rings_comm_ring : comm_ring (stalk_of_rings_on_standard_basis Bstd F x) :=
+instance comm_ring : comm_ring (stalk_of_rings_on_standard_basis Bstd F x) :=
 { left_distrib := 
     begin
       intros a b c,
@@ -348,8 +350,8 @@ instance stalk_of_rings_comm_ring : comm_ring (stalk_of_rings_on_standard_basis 
       repeat { rw ←presheaf_on_basis.Hcomp' },
       rw add_mul,
     end,
-  ..stalk_of_rings_add_comm_group Bstd F x,
-  ..stalk_of_rings_mul_comm_monoid Bstd F x
+  ..stalk_of_rings_on_standard_basis.add_comm_group Bstd F x,
+  ..stalk_of_rings_on_standard_basis.mul_comm_monoid Bstd F x
 }
 
 end stalk_of_rings_on_standard_basis_is_ring

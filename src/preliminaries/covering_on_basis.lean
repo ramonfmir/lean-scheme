@@ -2,7 +2,7 @@ import topology.basic
 import preliminaries.opens
 import preliminaries.covering
 
-universes u 
+universes u v
 
 open topological_space lattice
 
@@ -14,7 +14,8 @@ parameters {B : set (opens α)} [HB : opens.is_basis B]
 -- Open cover for basis.
 
 structure covering_basis (U : opens α) extends covering U :=
-(Uijks     : γ → γ → γ → opens α)
+{Iij       : γ → γ → Type v }
+(Uijks     : Π (i j), Iij i j → opens α)
 (BUis      : ∀ i, Uis i ∈ B)
 (BUijks    : ∀ i j k, Uijks i j k ∈ B)
 (Hintercov : ∀ i j, ⋃ (Uijks i j) = Uis i ∩ Uis j)

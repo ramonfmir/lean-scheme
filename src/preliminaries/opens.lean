@@ -25,7 +25,7 @@ def opens.empty : opens α := ⟨∅, is_open_empty⟩
 
 -- Some useful lemmas. Maybe versions of them are already somewhere.
 
-lemma opens_supr_mem {γ : Type u} (X : γ → opens α) 
+lemma opens_supr_mem {γ : Type*} (X : γ → opens α) 
 : ∀ i x, x ∈ (X i).val → x ∈ (⋃ X).val :=
 λ i x Hx, let Xi := X i in 
 begin
@@ -33,7 +33,7 @@ begin
     exact ⟨Xi.1, ⟨⟨Xi.2, i, by simp⟩, Hx⟩⟩,
 end
 
-lemma opens_supr_subset {γ : Type u} (X : γ → opens α) 
+lemma opens_supr_subset {γ : Type*} (X : γ → opens α) 
 : ∀ i, X i ⊆ ⋃ X :=
 λ i x, opens_supr_mem X i x
 

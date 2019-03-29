@@ -2,7 +2,6 @@ import topology.basic
 import ring_theory.localization
 import sheaves.presheaf_of_rings
 import sheaves.stalk_of_rings
-import sheaves.stalk_of_rings_is_ring
 
 universes u v w
 
@@ -51,8 +50,6 @@ theorem to_stalk.rec_to_stalk (U HxU s)
 : to_stalk.rec F x S G hg (to_stalk F x U HxU s) = G U s := rfl
 
 include HG
-
---set_option pp.all true
 
 lemma to_stalk.rec_is_ring_hom : is_ring_hom (to_stalk.rec F x S G hg) :=
 { map_one := (HG opens.univ).map_one ▸ rfl,
