@@ -42,4 +42,6 @@ structure iso (F G : presheaf_of_rings α) :=
 (mor_inv_id : mor.to_morphism ⊚ inv.to_morphism = presheaf.id F.to_presheaf)
 (inv_mor_id : inv.to_morphism ⊚ mor.to_morphism = presheaf.id G.to_presheaf)
 
+infix `≅`:80 := iso
+
 end presheaf_of_rings

@@ -55,15 +55,39 @@ begin
       exact HyE HfE, } }
 end
 
-lemma D_fs_standard_basis : 
-∀ {U V}, U ∈ D_fs → V ∈ D_fs → U ∩ V ∈ D_fs :=
+--opens.univ ∈ B ∧ 
+
+lemma Spec.V'.empty : Spec.V'((1 : R)) = ∅ :=
 begin
-  intros U V HU HV,
-  cases HU with fU HU,
-  cases HV with fV HV,
-  use [fU * fV],
-  simp [opens.inter],
-  rw [HU, HV, ←Spec.D'.product_eq_inter],
+  simp [Spec.V'],
+  apply set.ext,
+  rintros ⟨I, PI⟩,
+  split,
+  { intros HI,
+    exfalso,
+    replace HI : (1 : R) ∈ I := HI,
+    apply PI.1,
+    rw ideal.eq_top_iff_one,
+    exact HI, },
+  { intros HI,
+    cases HI, }
+end
+
+lemma D_fs_standard_basis : 
+opens.univ ∈ D_fs ∧ ∀ {U V}, U ∈ D_fs → V ∈ D_fs → U ∩ V ∈ D_fs :=
+begin
+  split,
+  { use 1,
+    simp [Spec.D'],
+    rw Spec.V'.empty,
+    rw set.compl_empty,
+    refl, },
+  { intros U V HU HV,
+    cases HU with fU HU,
+    cases HV with fV HV,
+    use [fU * fV],
+    simp [opens.inter],
+    rw [HU, HV, ←Spec.D'.product_eq_inter], }
 end
 
 end standard_basis

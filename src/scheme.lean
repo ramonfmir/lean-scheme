@@ -189,8 +189,7 @@ end
 
 end restrictions
 
--- Not a correct definition!
-
+-- Almost!
 
 structure scheme (α : Type u) [topological_space α] :=
 (carrier    : locally_ringed_space α)
@@ -198,5 +197,5 @@ structure scheme (α : Type u) [topological_space α] :=
   ∀ x, ∃ U : opens α, 
       x ∈ U 
     ∧ ∃ R [comm_ring R], 
-      (nonempty ((res_presheaf U carrier.O.F) ≅ OSpecR)))
+      (nonempty ((res_presheaf U carrier.O.F) ≅ (structure_presheaf R))))
   
