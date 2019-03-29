@@ -23,7 +23,7 @@ def presheaf_to_presheaf_on_basis
 
 -- F defined on the bases extended to the whole space.
 
-def presheaf_on_basis_to_presheaf
+@[reducible] def presheaf_on_basis_to_presheaf
 (F : presheaf_on_basis α HB) : presheaf α :=
 { F := λ U, {s : Π (x ∈ U), stalk_on_basis F x //
         ∀ (x ∈ U), ∃ (V) (BV : V ∈ B) (Hx : x ∈ V) (σ : F BV),

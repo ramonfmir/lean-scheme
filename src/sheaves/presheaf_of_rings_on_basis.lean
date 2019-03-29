@@ -40,7 +40,7 @@ infix `⟶`:80 := morphism
 structure iso (F G : presheaf_of_rings_on_basis α HB) :=
 (mor : F ⟶ G)
 (inv : G ⟶ F)
-(mor_inv_id : mor.to_morphism ⊚ inv.to_morphism = presheaf_on_basis.id F.to_presheaf)
-(inv_mor_id : inv.to_morphism ⊚ mor.to_morphism = presheaf_on_basis.id G.to_presheaf)
+(mor_inv_id : mor.to_morphism ⊚ inv.to_morphism = presheaf_on_basis.id F.to_presheaf_on_basis)
+(inv_mor_id : inv.to_morphism ⊚ mor.to_morphism = presheaf_on_basis.id G.to_presheaf_on_basis)
 
 end presheaf_of_rings_on_basis

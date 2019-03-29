@@ -21,7 +21,7 @@ open covering
 section sheaf_on_basis
 
 parameters {α : Type u} [topological_space α]
-parameters {B : set (opens α)} [HB : opens.is_basis B]
+parameters {B : set (opens α)} {HB : opens.is_basis B}
 
 -- Sheaf condition.
 
