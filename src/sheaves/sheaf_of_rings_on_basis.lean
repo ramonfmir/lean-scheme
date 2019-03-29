@@ -245,11 +245,16 @@ definition presheaf_of_rings_on_basis_to_presheaf_of_rings
   Hcomp := λ U V W HWV HVU, funext $ λ x, subtype.eq rfl,
   Fring := λ U, Fext_comm_ring Bstd F U,
   res_is_ring_hom := λ U V HVU,
-    { map_one := 
+    { map_one := rfl,
+      map_mul := λ x y, subtype.eq $ funext $ λ x, funext $ λ Hx,
         begin
-          sorry,
+          erw Fext_mul.eq,
+          refl,
         end,
-      map_mul := sorry,
-      map_add := sorry, } }
+      map_add := λ x y, subtype.eq $ funext $ λ x, funext $ λ Hx,
+        begin
+          erw Fext_add.eq,
+          refl,
+        end, } }
 
 end sheaf_of_ring_on_basis
