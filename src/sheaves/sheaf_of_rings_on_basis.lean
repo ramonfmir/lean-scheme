@@ -18,79 +18,214 @@ variables (Bstd : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ 
 
 variables (F : presheaf_of_rings_on_basis α HB) (U : opens α) 
 
-def Fext :=
-{ s : Π (x ∈ U), stalk_of_rings_on_standard_basis F x //
+include Bstd
+
+section presheaf_of_rings_on_basis_extension_is_ring
+
+@[reducible] def Fext :=
+{ s : Π (x ∈ U), stalk_of_rings_on_standard_basis Bstd F x //
   ∀ (x ∈ U), ∃ (V) (BV : V ∈ B) (Hx : x ∈ V) (σ : F.to_presheaf_on_basis BV),
   ∀ (y ∈ U ∩ V), s y = λ _, ⟦{U := V, BU := BV, Hx := H.2, s := σ}⟧ }
 
+-- Add.
+
+private def Fext_add_aux (x : α) 
+: stalk_of_rings_on_standard_basis Bstd F x
+→ stalk_of_rings_on_standard_basis Bstd F x
+→ stalk_of_rings_on_standard_basis Bstd F x :=
+(stalk_of_rings_has_add Bstd F x).add
+
+private def Fext_add : Fext Bstd F U → Fext Bstd F U → Fext Bstd F U 
+:= λ ⟨s₁, Hs₁⟩ ⟨s₂, Hs₂⟩, 
+  ⟨λ x Hx, (Fext_add_aux Bstd F x) (s₁ x Hx) (s₂ x Hx),
+  begin
+    intros x Hx,
+    replace Hs₁ := Hs₁ x Hx,
+    replace Hs₂ := Hs₂ x Hx,
+    rcases Hs₁ with ⟨V₁, BV₁, HxV₁, σ₁, Hs₁⟩,
+    rcases Hs₂ with ⟨V₂, BV₂, HxV₂, σ₂, Hs₂⟩,
+    use [V₁ ∩ V₂, Bstd.2 BV₁ BV₂, ⟨HxV₁, HxV₂⟩],
+    let σ₁' := F.res BV₁ (Bstd.2 BV₁ BV₂) (set.inter_subset_left _ _) σ₁,
+    let σ₂' := F.res BV₂ (Bstd.2 BV₁ BV₂) (set.inter_subset_right _ _) σ₂,
+    use [σ₁' + σ₂'],
+    rintros y ⟨HyU, ⟨HyV₁, HyV₂⟩⟩,
+    apply funext,
+    intros Hy,
+    replace Hs₁ := Hs₁ y ⟨HyU, HyV₁⟩,
+    replace Hs₂ := Hs₂ y ⟨HyU, HyV₂⟩,
+    rw Hs₁,
+    rw Hs₂,
+    refl,
+  end⟩
+
+instance Fext_has_add : has_add (Fext Bstd F U) := 
+{ add := Fext_add Bstd F U }
+
+@[simp] lemma Fext_add.eq (x : α) (Hx : x ∈ U) 
+: ∀ (a b : Fext Bstd F U), (a + b).val x Hx = (a.val x Hx) + (b.val x Hx) :=
+λ ⟨s₁, Hs₁⟩ ⟨s₂, Hs₂⟩, rfl
+
+instance Fext_add_semigroup : add_semigroup (Fext Bstd F U) :=
+{ add_assoc := λ a b c, subtype.eq $ funext $ λ x, funext $ λ HxU, by simp,
+  ..Fext_has_add Bstd F U }
+
+instance Fext_add_comm_semigroup : add_comm_semigroup (Fext Bstd F U) :=
+{ add_comm := λ a b, subtype.eq $ funext $ λ x, funext $ λ HxU, by simp,
+  ..Fext_add_semigroup Bstd F U }
+
 -- Zero.
 
-private def Fext_zero : Fext F U := 
+private def Fext_zero : Fext Bstd F U := 
 ⟨λ x Hx, (stalk_of_rings_has_zero Bstd F x).zero, 
-begin
-  intros x Hx,
-  use [opens.univ, Bstd.1, trivial, 0],
-  intros y Hy,
-  apply funext,
-  intros HyU,
-  refl,
-end⟩
+λ x Hx, ⟨opens.univ, Bstd.1, trivial, 0, (λ y Hy, funext $ λ HyU, rfl)⟩⟩
 
-instance Fext_has_zero : has_zero (Fext F U) := 
+instance Fext_has_zero : has_zero (Fext Bstd F U) := 
 { zero := Fext_zero Bstd F U }
+
+@[simp] lemma Fext_zero.eq (x : α) (Hx : x ∈ U) 
+: (0 : Fext Bstd F U).val x Hx = (stalk_of_rings_has_zero Bstd F x).zero := rfl
+
+instance Fext_add_comm_monoid : add_comm_monoid (Fext Bstd F U) :=
+{ zero_add := λ a, subtype.eq $ funext $ λ x, funext $ λ HxU, by simp,
+  add_zero := λ a, subtype.eq $ funext $ λ x, funext $ λ HxU, by simp,
+  ..Fext_has_zero Bstd F U,
+  ..Fext_add_comm_semigroup Bstd F U, }
+
+-- Neg.
+
+private def Fext_neg_aux (x : α) 
+: stalk_of_rings_on_standard_basis Bstd F x
+→ stalk_of_rings_on_standard_basis Bstd F x :=
+(stalk_of_rings_has_neg Bstd F x).neg
+
+private def Fext_neg : Fext Bstd F U → Fext Bstd F U :=
+λ ⟨s, Hs⟩, 
+  ⟨λ x Hx, (Fext_neg_aux Bstd F x) (s x Hx),
+  begin
+    intros x Hx,
+    replace Hs := Hs x Hx,
+    rcases Hs with ⟨V, BV, HxV, σ, Hs⟩,
+    use [V, BV, HxV, -σ],
+    rintros y ⟨HyU, HyV⟩,
+    apply funext,
+    intros Hy,
+    replace Hs := Hs y ⟨HyU, HyV⟩,
+    rw Hs,
+    refl,
+  end⟩
+
+instance Fext_has_neg : has_neg (Fext Bstd F U) :=
+{ neg := Fext_neg Bstd F U, }
+
+@[simp] lemma Fext_neg.eq (x : α) (Hx : x ∈ U) 
+: ∀ (a : Fext Bstd F U), (-a).val x Hx = -(a.val x Hx) :=
+λ ⟨s, Hs⟩, rfl
+
+instance Fext_add_comm_group : add_comm_group (Fext Bstd F U) :=
+{ add_left_neg := λ a, subtype.eq $ funext $ λ x, funext $ λ HxU, by simp,
+  ..Fext_has_neg Bstd F U,
+  ..Fext_add_comm_monoid Bstd F U, }
+
+-- Mul.
+
+private def Fext_mul_aux (x : α) 
+: stalk_of_rings_on_standard_basis Bstd F x
+→ stalk_of_rings_on_standard_basis Bstd F x
+→ stalk_of_rings_on_standard_basis Bstd F x :=
+(stalk_of_rings_has_mul Bstd F x).mul
+
+private def Fext_mul : Fext Bstd F U → Fext Bstd F U → Fext Bstd F U 
+:= λ ⟨s₁, Hs₁⟩ ⟨s₂, Hs₂⟩, 
+  ⟨λ x Hx, (Fext_mul_aux Bstd F x) (s₁ x Hx) (s₂ x Hx),
+  begin
+    intros x Hx,
+    replace Hs₁ := Hs₁ x Hx,
+    replace Hs₂ := Hs₂ x Hx,
+    rcases Hs₁ with ⟨V₁, BV₁, HxV₁, σ₁, Hs₁⟩,
+    rcases Hs₂ with ⟨V₂, BV₂, HxV₂, σ₂, Hs₂⟩,
+    use [V₁ ∩ V₂, Bstd.2 BV₁ BV₂, ⟨HxV₁, HxV₂⟩],
+    let σ₁' := F.res BV₁ (Bstd.2 BV₁ BV₂) (set.inter_subset_left _ _) σ₁,
+    let σ₂' := F.res BV₂ (Bstd.2 BV₁ BV₂) (set.inter_subset_right _ _) σ₂,
+    use [σ₁' * σ₂'],
+    rintros y ⟨HyU, ⟨HyV₁, HyV₂⟩⟩,
+    apply funext,
+    intros Hy,
+    replace Hs₁ := Hs₁ y ⟨HyU, HyV₁⟩,
+    replace Hs₂ := Hs₂ y ⟨HyU, HyV₂⟩,
+    rw Hs₁,
+    rw Hs₂,
+    refl,
+  end⟩
+
+instance Fext_has_mul : has_mul (Fext Bstd F U) :=
+{ mul := Fext_mul Bstd F U }
+
+@[simp] lemma Fext_mul.eq (x : α) (Hx : x ∈ U) 
+: ∀ (a b : Fext Bstd F U), (a * b).val x Hx = (a.val x Hx) * (b.val x Hx) :=
+λ ⟨s₁, Hs₁⟩ ⟨s₂, Hs₂⟩, rfl
+
+instance Fext_mul_semigroup : semigroup (Fext Bstd F U) :=
+{ mul_assoc := λ a b c, subtype.eq $ funext $ λ x, funext $ λ HxU,
+  begin
+    simp,
+    apply (stalk_of_rings_mul_semigroup Bstd F x).mul_assoc,
+  end,
+  ..Fext_has_mul Bstd F U, }
+
+instance Fext_mul_comm_semigroup : comm_semigroup (Fext Bstd F U) :=
+{ mul_comm := λ a b, subtype.eq $ funext $ λ x, funext $ λ HxU,
+    begin
+      simp,
+      apply (stalk_of_rings_mul_comm_semigroup Bstd F x).mul_comm,
+    end,
+  ..Fext_mul_semigroup Bstd F U, }
 
 -- One.
 
-private def Fext_one : Fext F U  := 
+private def Fext_one : Fext Bstd F U  := 
 ⟨λ x Hx, (stalk_of_rings_has_one Bstd F x).one, 
-begin
-  intros x Hx,
-  use [opens.univ, Bstd.1, trivial, 1],
-  intros y Hy,
-  apply funext,
-  intros HyU,
-  refl,  
-end⟩
+λ x Hx, ⟨opens.univ, Bstd.1, trivial, 1, (λ y Hy, funext $ λ HyU, rfl)⟩⟩
 
-instance Fext_has_one : has_one (Fext F U) := 
+instance Fext_has_one : has_one (Fext Bstd F U) := 
 { one := Fext_one Bstd F U }
 
--- Add.
+instance Fext_mul_comm_monoid : comm_monoid (Fext Bstd F U) :=
+{ one_mul := λ a, subtype.eq $ funext $ λ x, funext $ λ HxU,
+    begin
+      simp,
+      apply (stalk_of_rings_mul_comm_monoid Bstd F x).one_mul,
+    end,
+  mul_one := λ a, subtype.eq $ funext $ λ x, funext $ λ HxU,
+    begin
+      simp,
+      apply (stalk_of_rings_mul_comm_monoid Bstd F x).mul_one,
+    end,
+  ..Fext_has_one Bstd F U,
+  ..Fext_mul_comm_semigroup Bstd F U, }
 
-include Bstd
+-- Ring
 
-private def Fext_add_aux (x : α) 
-: stalk_of_rings_on_standard_basis F x
-→ stalk_of_rings_on_standard_basis F x
-→ stalk_of_rings_on_standard_basis F x :=
-(stalk_of_rings_has_add Bstd F x).add
+instance Fext_comm_ring : comm_ring (Fext Bstd F U) :=
+{ left_distrib := λ a b c, subtype.eq $ funext $ λ x, funext $ λ HxU,
+    begin
+      rw Fext_add.eq,
+      repeat { rw Fext_mul.eq, },
+      rw Fext_add.eq,
+      eapply (stalk_of_rings_comm_ring Bstd F x).left_distrib,
+    end,
+  right_distrib := λ a b c, subtype.eq $ funext $ λ x, funext $ λ HxU,
+    begin
+      rw Fext_add.eq,
+      repeat { rw Fext_mul.eq, },
+      rw Fext_add.eq,
+      eapply (stalk_of_rings_comm_ring Bstd F x).right_distrib,
+    end,
+  ..Fext_add_comm_group Bstd F U,
+  ..Fext_mul_comm_monoid Bstd F U, }
 
-private def Fext_add : Fext F U → Fext F U → Fext F U := λ ⟨s₁, Hs₁⟩ ⟨s₂, Hs₂⟩, 
-⟨λ x Hx, (Fext_add_aux Bstd F x) (s₁ x Hx) (s₂ x Hx),
-begin
-  intros x Hx,
-  replace Hs₁ := Hs₁ x Hx,
-  replace Hs₂ := Hs₂ x Hx,
-  rcases Hs₁ with ⟨V₁, BV₁, HxV₁, σ₁, Hs₁⟩,
-  rcases Hs₂ with ⟨V₂, BV₂, HxV₂, σ₂, Hs₂⟩,
-  use [V₁ ∩ V₂, Bstd.2 BV₁ BV₂, ⟨HxV₁, HxV₂⟩],
-  let σ₁' := F.res BV₁ (Bstd.2 BV₁ BV₂) (set.inter_subset_left _ _) σ₁,
-  let σ₂' := F.res BV₂ (Bstd.2 BV₁ BV₂) (set.inter_subset_right _ _) σ₂,
-  use [σ₁' + σ₂'],
-  rintros y ⟨HyU, ⟨HyV₁, HyV₂⟩⟩,
-  apply funext,
-  intros Hy,
-  replace Hs₁ := Hs₁ y ⟨HyU, HyV₁⟩,
-  replace Hs₂ := Hs₂ y ⟨HyU, HyV₂⟩,
-  rw Hs₁,
-  rw Hs₂,
-  refl,
-end⟩
+end presheaf_of_rings_on_basis_extension_is_ring
 
---
-
-instance Fext_is_ring (F : presheaf_of_rings_on_basis α HB) (U : opens α) : comm_ring (Fext F U) :=
-sorry
+-- Presheaf of rings on basis extension is presheaf of rings.
 
 definition presheaf_of_rings_on_basis_to_presheaf_of_rings
 (F : presheaf_of_rings_on_basis α HB) : presheaf_of_rings α :=
@@ -108,12 +243,13 @@ definition presheaf_of_rings_on_basis_to_presheaf_of_rings
             end },
   Hid := λ U, funext $ λ x, subtype.eq rfl,
   Hcomp := λ U V W HWV HVU, funext $ λ x, subtype.eq rfl,
-  Fring := 
-    begin
-      intros U,
-      simp,
-      sorry,
-    end,
-  res_is_ring_hom := sorry, }
+  Fring := λ U, Fext_comm_ring Bstd F U,
+  res_is_ring_hom := λ U V HVU,
+    { map_one := 
+        begin
+          sorry,
+        end,
+      map_mul := sorry,
+      map_add := sorry, } }
 
 end sheaf_of_ring_on_basis
