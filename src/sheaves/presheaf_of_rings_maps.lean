@@ -50,12 +50,14 @@ section pullback
 --   ..presheaf.pullback.morphism Hf' F.to_presheaf G.to_presheaf φ.to_morphism }
 
 structure pullback (F : presheaf_of_rings β) :=
-(f : α → β)
-(Hf' : ∀ U, is_open (f '' U))
+(φ : α → β)
+(Hφ : ∀ U, is_open (φ '' U))
+(range : opens β :=
+  ⟨φ '' set.univ, Hφ set.univ⟩)
 (carrier : presheaf_of_rings α :=
   { Fring := λ U, F.Fring _,
     res_is_ring_hom := λ U V HVU, F.res_is_ring_hom _ _ _,
-    ..presheaf.pullback Hf' F.to_presheaf })
+    ..presheaf.pullback Hφ F.to_presheaf })
 
 end pullback
 

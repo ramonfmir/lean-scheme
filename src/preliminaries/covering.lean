@@ -17,6 +17,12 @@ structure covering (U : opens α) :=
 (Uis  : γ → opens α)
 (Hcov : ⋃ Uis = U)
 
+variable (α)
+
+def covering.univ := covering (@opens.univ α _)
+
+variable {α}
+
 -- If ⋃ Ui = U then for all i, Ui ⊆ U.
 
 lemma subset_covering {U : opens α} {OC : covering U} : 

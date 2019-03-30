@@ -1,4 +1,5 @@
 import topology.basic
+import preliminaries.covering
 import sheaves.presheaf_of_rings_maps
 import sheaves.locally_ringed_space
 import spectrum_of_a_ring.zariski_topology
@@ -8,10 +9,12 @@ open topological_space
 
 universes u
 
+open presheaf_of_rings
+
 structure scheme (α : Type u) [topological_space α] :=
 (carrier    : locally_ringed_space α)
+(cov        : covering.univ α)
 (Haffinecov : 
-  ∀ x, ∃ (U : opens α), 
-      x ∈ U 
-    ∧ ∃ (R) [comm_ring R] (fpU : presheaf_of_rings.pullback carrier.O.F),
-      fpU.carrier ≅ structure_presheaf R)
+  ∀ i, ∃ (R) [comm_ring R] (fpU : pullback carrier.O.F),
+      fpU.range = cov.Uis i
+    ∧ fpU.carrier ≅ structure_presheaf R)
