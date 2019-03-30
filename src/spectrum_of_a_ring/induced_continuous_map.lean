@@ -19,7 +19,7 @@ variables (f : α → β) [is_ring_hom f]
 -- Given φ : A → B, we have Spec(φ) : Spec(B) → Spec(A), 𝔭′⟼φ⁻¹(𝔭′).
 
 @[reducible] def Zariski.induced : Spec β → Spec α :=
-λ ⟨I, PI⟩, ⟨ideal.comap f I, @ideal.is_prime.comap _ _ _ _ f _ I PI⟩
+λ I, ⟨ideal.comap f I.1, @ideal.is_prime.comap _ _ _ _ f _ I.1 I.2⟩
 
 -- This induced map is continuous.
 
@@ -51,3 +51,7 @@ begin
     rw ←HE at HI,
     exact (HI Hz), }
 end 
+
+theorem Zariski.induced.preimage_D (x : α) 
+: Zariski.induced f ⁻¹' (Spec.D' x) = Spec.D' (f x) :=
+set.ext $ λ x, by simp [Spec.D', Spec.V', Zariski.induced]
