@@ -29,7 +29,7 @@ def pushforward (F : presheaf α) : presheaf β :=
     F.Hcomp (opens.comap Hf U) (opens.comap Hf V) (opens.comap Hf W) 
             (opens.comap_mono Hf W V HWV) (opens.comap_mono Hf V U HVU), }
 
-lemma pushforward.morphism (F G : presheaf α) (φ : F ⟶ G) 
+def pushforward.morphism (F G : presheaf α) (φ : F ⟶ G) 
 : pushforward Hf F ⟶ pushforward Hf G :=
 { map := λ U, φ.map (opens.comap Hf U), 
   commutes := λ U V HVU, 
@@ -51,7 +51,7 @@ def pullback (F : presheaf β) : presheaf α :=
     F.Hcomp (opens.map Hf' U) (opens.map Hf' V) (opens.map Hf' W) 
             (opens.map_mono Hf' W V HWV) (opens.map_mono Hf' V U HVU), }
 
-lemma pullback.morphism (F G : presheaf β) (φ : F ⟶ G) : pullback Hf' F ⟶ pullback Hf' G :=
+def pullback.morphism (F G : presheaf β) (φ : F ⟶ G) : pullback Hf' F ⟶ pullback Hf' G :=
 { map := λ U, φ.map (opens.map Hf' U), 
   commutes := λ U V HVU, 
     φ.commutes (opens.map Hf' U) (opens.map Hf' V) (opens.map_mono Hf' V U HVU), }
@@ -60,20 +60,20 @@ end pullback
 
 -- f induces a `map` from a presheaf on β to a presheaf on α.
 
-section fmap
-
 structure fmap (F : presheaf α) (G : presheaf β) :=
 (map      : ∀ (U), G U → F (opens.comap Hf U))
 (commutes : ∀ (U V) (HVU : V ⊆ U),
   (map V) ∘ (G.res U V HVU)
 = (F.res (opens.comap Hf U) (opens.comap Hf V) (opens.comap_mono Hf V U HVU)) ∘ (map U))
 
+namespace fmap
+
 variables {γ : Type w} [topological_space γ]
 variables {g : β → γ} {Hg : continuous g}
 
 variable {Hf}
 
-lemma comp {F : presheaf α} {G : presheaf β} {H : presheaf γ} 
+def comp {F : presheaf α} {G : presheaf β} {H : presheaf γ} 
 (f_ : fmap Hf F G) (g_ : fmap Hg G H) : fmap (continuous.comp Hf Hg) F H :=
 { map := λ U, (f_.map (opens.comap Hg U)) ∘ (g_.map U),
   commutes := 
