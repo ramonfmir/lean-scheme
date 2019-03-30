@@ -1,5 +1,5 @@
 /-
-  Continuous maps and sheaves.
+  Continuous maps and presheaves.
 
   https://stacks.math.columbia.edu/tag/008C
 -/
@@ -17,6 +17,8 @@ variables {f : α → β} (Hf : continuous f)
 
 -- f induces a functor PSh(α) ⟶ PSh(β).
 
+namespace presheaf
+
 section pushforward
 
 def pushforward (F : presheaf α) : presheaf β :=
@@ -27,7 +29,8 @@ def pushforward (F : presheaf α) : presheaf β :=
     F.Hcomp (opens.comap Hf U) (opens.comap Hf V) (opens.comap Hf W) 
             (opens.comap_mono Hf W V HWV) (opens.comap_mono Hf V U HVU), }
 
-lemma pushforward.morphism (F G : presheaf α) (φ : F ⟶ G) : pushforward Hf F ⟶ pushforward Hf G :=
+lemma pushforward.morphism (F G : presheaf α) (φ : F ⟶ G) 
+: pushforward Hf F ⟶ pushforward Hf G :=
 { map := λ U, φ.map (opens.comap Hf U), 
   commutes := λ U V HVU, 
     φ.commutes (opens.comap Hf U) (opens.comap Hf V) (opens.comap_mono Hf V U HVU), }
@@ -66,7 +69,9 @@ structure fmap (F : presheaf α) (G : presheaf β) :=
 = (F.res (opens.comap Hf U) (opens.comap Hf V) (opens.comap_mono Hf V U HVU)) ∘ (map U))
 
 variables {γ : Type w} [topological_space γ]
-variables {g : β → γ} (Hg : continuous g)
+variables {g : β → γ} {Hg : continuous g}
+
+variable {Hf}
 
 lemma comp {F : presheaf α} {G : presheaf β} {H : presheaf γ} 
 (f_ : fmap Hf F G) (g_ : fmap Hg G H) : fmap (continuous.comp Hf Hg) F H :=
@@ -82,3 +87,5 @@ lemma comp {F : presheaf α} {G : presheaf β} {H : presheaf γ}
     end, }
 
 end fmap
+
+end presheaf

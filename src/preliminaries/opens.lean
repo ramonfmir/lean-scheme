@@ -44,7 +44,7 @@ section opens_comap
 variables {β : Type v} [topological_space β]
 variables {f : α → β} (Hf : continuous f) 
 
-def opens.comap : opens β → opens α :=
+@[reducible] def opens.comap : opens β → opens α :=
 λ U, ⟨f ⁻¹' U.1, Hf U.1 U.2⟩
 
 def opens.comap_mono (U V : opens β) (HUV : U ≤ V) : opens.comap Hf U ≤ opens.comap Hf V := 
