@@ -113,6 +113,8 @@ instance S.is_submonoid (U : opens (Spec R)) : is_submonoid (S U) :=
 lemma S.rev_mono {U V : opens (Spec R)} (HVU : V ⊆ U) : S U ⊆ S V :=
 λ x Hx, set.subset.trans HVU Hx
 
+variable (R)
+
 def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basis R) := 
 { -- F(D(f)) = R[1/S] ≅ R[1/f]
   F := λ U BU, localization R (S U),
@@ -135,4 +137,4 @@ def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basi
 def structure_presheaf : presheaf_of_rings (Spec R) :=
   presheaf_of_rings_on_basis_to_presheaf_of_rings 
     (D_fs_standard_basis R) 
-    structure_presheaf_on_basis
+    (structure_presheaf_on_basis R)
