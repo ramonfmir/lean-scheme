@@ -1,5 +1,7 @@
 import ring_theory.localization
 import algebra.pi_instances
+import linear_algebra.linear_combination
+import tactic.find
 
 universes u v
 
@@ -8,20 +10,46 @@ local attribute [instance] classical.prop_decidable
 variables {R : Type u} [comm_ring R] 
 variables {γ : Type v} [fintype γ] 
 
-#check submodule.span
+#check finsupp.mem_support_iff
+#print finset.coe_insert
+#check finset.sum_insert
+#print finsupp
+
+#check mem_span_iff_lc
+
+-- This is now : mem_span_iff_lc
 
 lemma exists_sum_iff_mem_span_finset 
 {α : Type u} {β : Type v} [comm_ring α] [add_comm_group β] [module α β]
-{x : β} {s : finset β} 
-:   x ∈ submodule.span α (↑s : set β) 
-  ↔ ∃ r : β → α, x = s.sum (λ y, r y • y) 
-:= sorry
--- ⟨λ ⟨r, hr⟩, ⟨r, hr.2.symm ▸ sum_bij_ne_zero (λ a _ _, a)
---   (λ a has ha, classical.by_contradiction (λ h, ha (by simp [hr.1 _ h])))
---   (λ _ _ _ _ _ _, id)
---   (λ b hbr hb, ⟨b, (finsupp.mem_support_iff).2 (λ h, hb (by simp [h])), hb, rfl⟩)
---   (λ _ _ _, rfl)⟩,
--- λ ⟨r, hr⟩, hr.symm ▸ is_submodule.sum (λ c hc, is_submodule.smul _ (subset_span hc))⟩
+{x : β} {S : finset β} 
+:   x ∈ submodule.span α (↑S : set β) 
+  ↔ ∃ r : β → α, x = S.sum (λ y, r y • y) :=
+begin
+  sorry,
+end
+
+#print ideal.span
+#check @lc.mem_supported
+
+lemma exists_sum_iff_mem_span_image_finset 
+{α : Type u} {β : Type v} [comm_ring α] [comm_ring β] 
+{x : β} [module α β] {s : finset γ} {f : γ → β} 
+: x ∈ submodule.span α (↑(s.image f) : set β) ↔ 
+  ∃ r : γ → α, x = s.sum (λ b, r b • f b) :=
+begin
+  split,
+  { intros Hx,
+    --unfold ideal.span at Hx,
+    rw mem_span_iff_lc at Hx,
+    rcases Hx with ⟨l, Hls, Hlt⟩,
+    rw lc.total_apply at Hlt,
+    use (l.to_fun ∘ f),
+    rw ←Hlt,
+    simp [finsupp.sum],
+    rw lc.mem_supported at Hls,
+    sorry, },
+  { sorry, }
+end
 
 -- lemma exists_sum_iff_mem_span_image_finset 
 -- {α : Type u} {β : Type v} [comm_ring α] [comm_ring β] 
