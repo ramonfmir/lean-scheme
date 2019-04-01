@@ -1,5 +1,5 @@
 /-
-  The sequene R → Π R[1/fᵢ] → Π R[1/fᵢfⱼ] is exact.
+  If (fᵢ) = R, the sequene R → Π R[1/fᵢ] → Π R[1/fᵢfⱼ] is exact.
 
   https://stacks.math.columbia.edu/tag/00EJ
 -/
@@ -122,29 +122,45 @@ begin
   apply sum_pow_mem_span_pow,
 end
 
-section alpha_injective
+section exact_sequence 
 
 -- Ring R.
 parameters (R : Type u) [comm_ring R] 
 -- f1, ..., fn
 parameters {γ : Type v} [fintype γ] {f : γ → R}
 -- R[1/f1], ..., R[1/fn]
-parameters {Rfs : γ → Type w} [Π i, comm_ring (Rfs i)]
+parameters {Rfi : γ → Type w} [Π i, comm_ring (Rfi i)]
 -- α1 : R → R[1/f1], ...., αn → R[1/fn]
-parameters {αᵢ : Π i, R → (Rfs i)} [Π i, is_ring_hom (αᵢ i)]
-parameters (Hloc : Π i, is_localization (powers (f i)) (αᵢ i))
+parameters {αi : Π i, R → (Rfi i)} [Π i, is_ring_hom (αi i)]
+parameters (Hlocα : Π i, is_localization (powers (f i)) (αi i))
 
-@[reducible] def α : R → Π i, Rfs i := λ r i, αᵢ i r
+def α : R → Π i, Rfi i := λ r i, (αi i) r
 
-instance PRfs.comm_ring : comm_ring (Π i, Rfs i) :=
+-- R[1/f1f1], ..., R[1/fnfn]
+parameters {Rfij : γ → γ → Type w} [Π i j, comm_ring (Rfij i j)]
+parameters {φij : Π i j, R → (Rfij i j)} [Π i j, is_ring_hom (φij i j)]
+parameters (Hlocφ : Π i j, is_localization (powers ((f i)*(f j))) (φij i j))
+
+-- β1(1) : R[1/f1] → R[1/f1f1], ...., β1(n) : R[1/f1] → R[1/f1fn]
+parameters {β1 : Π i j, (Rfi i) → (Rfij i j)} [Π i j, is_ring_hom (β1 i j)]
+parameters (Hlocβ1 : Π i j, is_localization (powers (αi i (f j))) (β1 i j))
+-- β2(1) : R[1/f1] → R[1/f1f1], ...., β2(n) : R[1/f1] → R[1/fnf1]
+parameters {β2 : Π i j, (Rfi j) → (Rfij i j)} [Π i j, is_ring_hom (β2 i j)]
+parameters (Hlocβ2 : Π i j, is_localization (powers (αi j (f i))) (β2 i j))
+
+def β : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r i j, (β1 i j) (r i) - (β2 i j) (r j) 
+
+section alpha_injective
+
+instance PRfs.comm_ring : comm_ring (Π i, Rfi i) :=
 pi.comm_ring
 
 instance α.is_ring_hom : is_ring_hom α :=
-pi.is_ring_hom_pi αᵢ
-
-include Hloc
+pi.is_ring_hom_pi αi
 
 -- First part of the lemma.
+
+include Hlocα
 
 lemma standard_covering₁ (H : (1 : R) ∈ ideal.span (set.range f)) 
 : function.injective α := 
@@ -154,8 +170,8 @@ begin
   replace Hx := congr_fun Hx,
   have Hn : ∀ i, ∃ n : ℕ, f i ^ n * x = 0,
     intros i,
-    replace Hx : x ∈ ker (αᵢ i) := Hx i,
-    replace Hloc := Hloc i,
+    replace Hx : x ∈ ker (αi i) := Hx i,
+    replace Hloc := Hlocα i,
     rcases Hloc with ⟨Hinv, Hden, Hker⟩,
     rw Hker at Hx,
     rcases Hx with ⟨⟨⟨u, ⟨fn, ⟨n, Hfn⟩⟩⟩, Hufn⟩, Hx⟩,
@@ -177,8 +193,32 @@ end alpha_injective
 
 section beta_kernel_image_alpha
 
--- lemma standard_covering₂
---     (H : (1:R) ∈ span (↑(univ.image f) : set R)) (s : Π i, loc R (powers (f i))) :
---     β s = 0 ↔ ∃ r : R, α f r = s := 
+include Hlocβ1 Hlocβ2
+
+--THis needs to be done more concretely.
+
+lemma standard_covering₂
+(H : (1:R) ∈ submodule.span R (↑(univ.image f) : set R)) (s : Π i, Rfi i)
+: β s = 0 ↔ ∃ r : R, α r = s := 
+begin
+  split,
+  { intros H, sorry, },
+  { rintros ⟨r, Hr⟩,
+    rw ←Hr,
+    apply funext,
+    intros i,
+    apply funext,
+    intros j,
+    simp [β, α],
+    rcases (Hlocβ1 i j) with ⟨Hinv1, Hden1, Hker1⟩,
+    rcases (Hlocβ2 i j) with ⟨Hinv2, Hden2, Hker2⟩,
+    rcases (Hden1 (β2 i j (αi j r))) with ⟨⟨q1, p1⟩, Hp1q1⟩,
+    rcases (Hden1 (β1 i j (αi i r))) with ⟨⟨q2, p2⟩, Hp2q2⟩,
+    simp at Hp1q1,
+    simp at Hp2q2,
+    sorry, }
+end
 
 end beta_kernel_image_alpha
+
+end exact_sequence
