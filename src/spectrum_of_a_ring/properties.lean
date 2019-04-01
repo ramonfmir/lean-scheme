@@ -5,7 +5,6 @@
 -/
 
 import spectrum_of_a_ring.spectrum
-import commutative_algebra.find_maximal_ideal
 
 open lattice
 
@@ -43,8 +42,8 @@ lemma ideal.exists_maximal : (0 : R) ≠ 1 → ∃ S : ideal R, ideal.is_maximal
 begin
   intros Hzno,
   have HTnB : (⊥ : ideal R) ≠ ⊤ := zero_ne_one_bot_ne_top Hzno,
-  use [find_maximal_ideal ⊥ HTnB],
-  exact find_maximal_ideal.is_maximal_ideal ⊥ HTnB,
+  rcases (ideal.exists_le_maximal ⊥ HTnB) with ⟨M, ⟨HM, HBM⟩⟩,
+  exact ⟨M, HM⟩,
 end
 
 -- Two ideals are iqual iff they are equal as sets.
@@ -78,10 +77,10 @@ begin
     have Hzo : (0 : R) = 1,
     { by_contra Hzno,
       replace Hzno : (0 : R) ≠ 1 := λ H, (Hzno H),
-      apply H,
       have HTnB : (⊥ : ideal R) ≠ ⊤ := zero_ne_one_bot_ne_top Hzno,
-      let M := find_maximal_ideal ⊥ HTnB,
-      have MP : ideal.is_prime _ := find_maximal_ideal.is_prime ⊥ HTnB,
+      rcases (ideal.exists_le_maximal ⊥ HTnB) with ⟨M, ⟨HM, HBM⟩⟩,
+      have MP : ideal.is_prime _ := ideal.is_maximal.is_prime HM,
+      apply H,
       exact ⟨M, MP⟩, },
     calc a = a * 0 : by rw [Hzo, mul_one]
       ...  = b * 0 : by simp
@@ -125,17 +124,14 @@ begin
       cases Hsuff with x Hx,
       rw set.eq_empty_iff_forall_not_mem at HI,
       exact HI x Hx,
-    let M := find_maximal_ideal I HC,
-    have MM : ideal.is_maximal M := find_maximal_ideal.is_maximal_ideal I HC,
-    have MP : ideal.is_prime M := ideal.is_maximal.is_prime MM,
+    rcases (ideal.exists_le_maximal I HC) with ⟨M, ⟨HM, HBM⟩⟩,
+    have MP : ideal.is_prime M := ideal.is_maximal.is_prime HM,
     use [⟨M, MP⟩],
-    exact (find_maximal_ideal.contains I HC), },
+    exact HBM, },
   { intros HI,
     rw [HI, set.eq_empty_iff_forall_not_mem],
     rintros ⟨J, PJ⟩ HnJ,
-    have HTJ : ⊤ ⊆ J := HnJ,
-    have HJT : J ⊆ ⊤ := λ x Hx, trivial,
-    have HJ : J = ⊤ := ideal.ext'.2 (set.eq_of_subset_of_subset HJT HTJ),
+    have HJ : J = ⊤ := le_antisymm (λ x Hx, trivial) HnJ,
     exact PJ.1 HJ, }
 end
 

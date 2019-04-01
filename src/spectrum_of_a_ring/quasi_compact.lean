@@ -92,8 +92,6 @@ section quasi_compact
 
 parameters (R : Type u) [comm_ring R]
 
-#print finsupp
-
 lemma D_fs_quasi_compact : 
 ∀ S : set R, ⋃₀ (Spec.D' '' S) = Spec.univ R →
 ∃ F ⊆ S, 

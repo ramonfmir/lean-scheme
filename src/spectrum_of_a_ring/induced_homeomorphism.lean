@@ -9,7 +9,6 @@ import ring_theory.localization
 import preliminaries.localisation
 import spectrum_of_a_ring.zariski_topology
 import spectrum_of_a_ring.induced_continuous_map
-import tactic.find
 
 universes u
 
@@ -30,9 +29,9 @@ def φ : Spec Rf → Spec R := Zariski.induced h
 include HL
 
 lemma powers_f_not_preimage (I : ideal Rf) (PI : ideal.is_prime I)
-: ∀ fn ∈ powers f, fn ∉ ideal.preimage h I :=
+: ∀ fn ∈ powers f, fn ∉ ideal.comap h I :=
 begin
-  have PIinv := ideal.is_prime.preimage h I PI,
+  have PIinv := @ideal.is_prime.comap _ _ _ _ h _ I PI,
   intros fn Hfn HC,
   replace HC : h fn ∈ I := HC,
   have Hinvfn := HL.1 ⟨fn, Hfn⟩,
@@ -545,7 +544,7 @@ begin
     { intros HSJinv HC,
       rcases HC with ⟨⟨J, PJ⟩, HP, HφP⟩,
       rw ←HφP at HSJinv,
-      simp [φ, Zariski.induced, Spec.V, ideal.preimage] at HSJinv,
+      simp [φ, Zariski.induced, Spec.V, ideal.comap] at HSJinv,
       replace HSJinv : S ⊆ h ⁻¹' J.1 := HSJinv,
       apply HP,
       intros x Hx,

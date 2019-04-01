@@ -1,10 +1,14 @@
+/-
+  The sequene R → Π R[1/fᵢ] → Π R[1/fᵢfⱼ] is exact.
+
+  https://stacks.math.columbia.edu/tag/00EJ
+-/
+
 import ring_theory.localization
 import algebra.pi_instances
 import linear_algebra.linear_combination
 import preliminaries.localisation
 import to_mathlib.finset_range
-
-import tactic.find
 
 universes u v w
 
@@ -39,8 +43,7 @@ begin
       intros HC,
       rw HC at Hb,
       rw zero_smul at Hb,
-      apply Hb,
-      refl,
+      exact (Hb rfl),
     use [(finsupp.mem_support_iff.2 Hlbnz), Hb], },
   { intros a H₁ H₂,
     have HaS : a ∈ S := Hls H₁,

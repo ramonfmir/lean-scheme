@@ -6,7 +6,6 @@
 
 import topology.basic
 import ring_theory.ideal_operations
-import commutative_algebra.ideal_preimage
 import spectrum_of_a_ring.zariski_topology
 
 open lattice
