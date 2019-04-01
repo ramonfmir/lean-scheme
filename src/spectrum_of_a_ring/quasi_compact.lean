@@ -92,6 +92,8 @@ section quasi_compact
 
 parameters (R : Type u) [comm_ring R]
 
+#print finsupp
+
 lemma D_fs_quasi_compact : 
 ∀ S : set R, ⋃₀ (Spec.D' '' S) = Spec.univ R →
 ∃ F ⊆ S, 
@@ -114,7 +116,7 @@ begin
   rcases Hlc with ⟨lc, Hlc, H⟩,
   have Hfs := (@_root_.lc.mem_supported _ _ _ _ _ _ _).1 Hlc,
   use ↑lc.support,
-  refine ⟨_, _, _⟩,
+  refine ⟨_, ⟨_, _⟩⟩,
   { -- {f₁, ..., fₙ} ⊆ S.
     exact Hfs, },
   { -- Prove it's finite.

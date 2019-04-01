@@ -3,6 +3,8 @@ import group_theory.submonoid
 import ring_theory.ideal_operations
 import linear_algebra.basic
 
+import to_mathlib.ring_hom
+
 -- https://github.com/kckennylau/Lean/blob/master/localization_alt.lean
 
 namespace localization_alt
@@ -19,16 +21,6 @@ lemma comm_monoid.inv_unique {M : Type*} [comm_monoid M]
 by rw [← mul_one ai₁, ← e₂, ← mul_assoc, mul_comm ai₁, e₁, one_mul]
 
 -- Preserve definitional equality.
-
-def ideal.mk (I : set A) (J : ideal A) (H : I = J) : ideal A :=
-{ carrier := I,
-  zero := H.symm ▸ J.zero,
-  add := H.symm ▸ J.add,
-  smul := H.symm ▸ J.smul }
-
-def ker : ideal A :=
-ideal.mk {x | f x = 0} (ideal.comap f ⊥) $
-set.ext $ λ x, by simp
 
 def inverts_data (S : set A) (f : A → B) : Type* :=
 Π s : S, {si : B // (f s) * si = 1}
