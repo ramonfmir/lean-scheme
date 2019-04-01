@@ -13,7 +13,7 @@ open localization_alt
 
 -- This is now : mem_span_iff_lc
 
-lemma finsum_of_mem_span 
+lemma finset.sum_of_mem_span 
 {α : Type u} {β : Type v} [comm_ring α] [add_comm_group β] [module α β]
 {S : finset β} {x : β} 
 : x ∈ submodule.span α S.to_set → ∃ r : β → α, x = finset.sum S (λ y, r y • y) :=
@@ -69,10 +69,69 @@ end
 --   { sorry, }
 -- end
 
-#check @set.union_singleton
-#check finset.coe_insert
-
 open finset
+
+@[simp] lemma finset.range_not_mem : ∀ n : ℕ, n ∉ range n :=
+λ n Hn, (lt_irrefl n) (finset.mem_range.1 Hn)
+
+lemma finset.sum_range_eq {α : Type u} [comm_ring α] {f g : ℕ → α} 
+: ∀ n, (∀ m, m < n → f m = g m) → sum (range n) f = sum (range n) g :=
+begin
+  intros n Hn,
+  induction n with n IH,
+  { simp, },
+  { repeat { rw finset.range_succ, },
+    repeat { rw finset.sum_insert; try { apply finset.range_not_mem _, } },
+    rw Hn n (nat.lt_succ_self n),
+    rw IH,
+    intros m Hm,
+    exact Hn m (nat.lt_succ_of_lt Hm), }
+end
+
+lemma finset.sum_range_add {α : Type u} [comm_ring α] (f : ℕ → α) 
+: ∀ n m : ℕ, sum (range (n + m)) f = sum (range n) f + sum (range m) (λ i, f (i + n)) :=
+begin
+  intros n m,
+  revert n,
+  induction m with m IH,
+  { simp, },
+  { intros n,
+    rw nat.add_succ,
+    repeat { rw finset.range_succ, },
+    repeat { rw finset.sum_insert; try { apply finset.range_not_mem _, } },
+    rw IH n,
+    simp, }
+end
+
+private lemma sum_pow_mem_span.aux
+{α : Type u} [comm_ring α] 
+: ∀ (a b : α), ∀ (n m : ℕ), ∃ (x y : α), 
+  (a + b) ^ (n + m) = x * (b ^ m) + y * (a ^ n) :=
+begin
+  intros a b n m,
+  rw add_pow,
+  use [sum (range n) (λ i, a ^ i * b ^ (n - i) * (choose (n + m) i))],
+  use [sum (range (nat.succ m)) (λ i, a ^ i * b ^ (m - i) * (choose (n + m) (i + n)))],
+  repeat { rw finset.sum_mul, },
+  repeat { rw finset.range_succ, },
+  repeat { rw finset.sum_insert; try { apply finset.range_not_mem, }, },
+  simp,
+  congr,
+  { rw [pow_add, mul_comm], },
+  rw finset.sum_range_add,
+  congr' 1,
+  { apply finset.sum_range_eq,
+    intros z Hz,
+    rw [mul_assoc _ _ (b ^ m), mul_comm _ (b ^ m), ←mul_assoc _ (b ^ m) _],
+    rw [mul_assoc _ _ (b ^ m), ←pow_add, add_comm n _, add_comm (n - z) _], 
+    rw [←nat.add_sub_assoc],
+    exact nat.le_of_lt Hz, },
+  { apply finset.sum_range_eq,
+    intros z Hz,
+    rw [mul_assoc _ _ (a ^ n), mul_comm _ (a ^ n), ←mul_assoc _ (a ^ n) _],
+    rw [mul_assoc _ _ (a ^ n), mul_comm _ (a ^ n), ←mul_assoc _ (a ^ n) _],
+    rw [←pow_add, add_comm n, nat.add_sub_add_right, add_comm z], }
+end
 
 lemma sum_pow_mem_span 
 {α : Type u} {β : Type v} [comm_ring α] [add_comm_group β] [module α β]
@@ -84,18 +143,16 @@ begin
   { simp, },
   { intros a T HanT IH,
     repeat { rw finset.sum_insert HanT, },
-    rw finset.image_insert,
-    rw finset.coe_insert,
-    rw add_pow,
-    rw submodule.mem_span_insert,
-    refine ⟨_, _, IH, _⟩,
-    
-     }
+    rw [finset.image_insert, finset.coe_insert, submodule.mem_span_insert],
+    have H := sum_pow_mem_span.aux (r a * f a) (sum T (λ a, r a • f a)) (n a) (sum T n + 1),
+    rcases H with ⟨x, y, H⟩,
+    have Hx := @submodule.smul_mem _ _ _ _ _ _ _ x IH,
+    use [y * (r a) ^ (n a), x • sum T (λ (a : β), r a • f a) ^ (sum T n + 1), Hx],
+    repeat { rw smul_eq_mul, },
+    rw [add_assoc, H, add_comm, mul_pow, mul_assoc], }
 end
 
 section alpha_injective
-
-#print lc
 
 -- Ring R.
 parameters (R : Type u) [comm_ring R] 
