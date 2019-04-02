@@ -113,6 +113,22 @@ instance S.is_submonoid (U : opens (Spec R)) : is_submonoid (S U) :=
 lemma S.rev_mono {U V : opens (Spec R)} (HVU : V ⊆ U) : S U ⊆ S V :=
 λ x Hx, set.subset.trans HVU Hx
 
+#check is_localization_data
+
+#check Spec.DO R
+
+def φ' (f : R) : R → localization R (S (Spec.DO R (f))) := localization.of
+
+instance φ'.is_ring_hom (f : R) : is_ring_hom (φ' f) := localization.of.is_ring_hom
+
+lemma RS (f : R) : is_localization_data (powers f) (φ' f) :=
+begin
+  refine ⟨_, _, _⟩,
+  { sorry, },
+  { sorry, },
+  { sorry, }
+end
+
 variable (R)
 
 def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basis R) := 

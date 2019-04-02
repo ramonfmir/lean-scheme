@@ -2,7 +2,7 @@ import data.finset
 import data.finsupp
 import data.nat.choose
 
-universes u v
+universes u v w
 
 open finset
 
@@ -13,6 +13,22 @@ section basics
 lemma finset.coe_image_univ {α : Type u} {β : Type v} [fintype α] [decidable_eq β] {f : α → β}
 : set.range f = ↑(finset.image f finset.univ) :=
 by rw [finset.coe_image, finset.coe_univ, ←set.image_univ]
+
+--
+
+lemma is_ring_hom.map_finset_sum 
+{A : Type u} {B : Type v} [comm_ring A] [comm_ring B] (f : A → B) [is_ring_hom f] 
+{C : Type w} [decidable_eq C] (s : C → A) (X : finset C)
+: f (finset.sum X s) = finset.sum X (f ∘ s) :=
+begin
+  apply finset.induction_on X,
+  { iterate 2 { rw finset.sum_empty, },
+    exact is_ring_hom.map_zero f, },
+  { intros a T HanT IH,
+    iterate 2 { rw finset.sum_insert HanT, },
+    rw is_ring_hom.map_add f,
+    rw IH, }
+end
 
 -- Obvious: n ∉ {0, ..., n-1}.
 
