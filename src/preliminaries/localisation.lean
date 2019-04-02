@@ -203,6 +203,27 @@ begin
   rw [← h1, is_ring_hom.map_mul f, mul_comm]
 end
 
+def inverts_data_aux (h : B → C) [is_ring_hom h] (hf : is_localization_data S f) :
+  inverts_data S (h ∘ f) := λ s,
+⟨h (hf.inverts s).val,
+begin
+  rw ←(is_ring_hom.map_mul h),
+  rw (hf.inverts s).property,
+  exact is_ring_hom.map_one h,
+end⟩
+
+theorem is_localization_unique (hf : is_localization_data S f) (h : B → C) [is_ring_hom h] (b : B) :
+is_localization_initial S f hf (h ∘ f) (inverts_data_aux S f h hf) b = h b :=
+begin
+  unfold is_localization_initial,
+  rcases hf.has_denom b with ⟨⟨s, a⟩, hb⟩,
+  show h (f a) * h ((hf.inverts s).val) = h b,
+  cases hf.inverts s with si hsi,
+  rw ←is_ring_hom.map_mul h,
+  congr,
+  rw [←hb, mul_comm, ←mul_assoc, mul_comm si, hsi, one_mul]
+end
+
 end localization_initial
 
 end localization_alt
