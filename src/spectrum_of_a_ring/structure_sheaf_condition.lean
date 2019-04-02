@@ -9,6 +9,7 @@ import algebra.pi_instances
 import linear_algebra.linear_combination
 import preliminaries.localisation
 import to_mathlib.finset_range
+import to_mathlib.ring_hom
 
 --import tactic.find
 
@@ -139,12 +140,6 @@ parameters (Hlocα' : Π i, is_localization_data (powers (f i)) (αi i))
 
 def α : R → Π i, Rfi i := λ r i, (αi i) r
 
--- R[1/f1f1], ..., R[1/fnfn]
-parameters {Rfij : γ → γ → Type w} [Π i j, comm_ring (Rfij i j)]
-parameters {φij : Π i j, R → (Rfij i j)} [Π i j, is_ring_hom (φij i j)]
-parameters (Hlocφ : Π i j, is_localization (powers ((f i)*(f j))) (φij i j))
-parameters (Hlocφ' : Π i j, is_localization_data (powers ((f i)*(f j))) (φij i j))
-
 section alpha_injective
 
 instance PRfs.comm_ring : comm_ring (Π i, Rfi i) :=
@@ -160,7 +155,7 @@ include Hlocα
 lemma standard_covering₁ (H : (1 : R) ∈ ideal.span (set.range f)) 
 : function.injective α := 
 begin
-  rw ←@is_ring_hom.inj_iff_trivial_ker _ _ _ _ α α.is_ring_hom,
+  rw ←@is_ring_hom.inj_iff_trivial_ker _ _ _ _ α (α.is_ring_hom),
   intros x Hx,
   replace Hx := congr_fun Hx,
   have Hn : ∀ i, ∃ n : ℕ, f i ^ n * x = 0,
@@ -187,6 +182,12 @@ end
 end alpha_injective
 
 section beta_kernel_image_alpha
+
+-- R[1/f1f1], ..., R[1/fnfn]
+parameters {Rfij : γ → γ → Type w} [Π i j, comm_ring (Rfij i j)]
+parameters {φij : Π i j, R → (Rfij i j)} [Π i j, is_ring_hom (φij i j)]
+parameters (Hlocφ : Π i j, is_localization (powers ((f i)*(f j))) (φij i j))
+parameters (Hlocφ' : Π i j, is_localization_data (powers ((f i)*(f j))) (φij i j))
 
 include Hlocφ'
 
