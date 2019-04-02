@@ -145,13 +145,6 @@ parameters {φij : Π i j, R → (Rfij i j)} [Π i j, is_ring_hom (φij i j)]
 parameters (Hlocφ : Π i j, is_localization (powers ((f i)*(f j))) (φij i j))
 parameters (Hlocφ' : Π i j, is_localization_data (powers ((f i)*(f j))) (φij i j))
 
--- β1(1) : R[1/f1] → R[1/f1f1], ...., β1(n) : R[1/f1] → R[1/f1fn]
---parameters {β1 : Π i j, (Rfi i) → (Rfij i j)} [Π i j, is_ring_hom (β1 i j)]
---parameters (Hlocβ1 : Π i j, is_localization (powers (αi i (f j))) (β1 i j))
--- β2(1) : R[1/f1] → R[1/f1f1], ...., β2(n) : R[1/f1] → R[1/fnf1]
---parameters {β2 : Π i j, (Rfi j) → (Rfij i j)} [Π i j, is_ring_hom (β2 i j)]
---parameters (Hlocβ2 : Π i j, is_localization (powers (αi j (f i))) (β2 i j))
-
 section alpha_injective
 
 instance PRfs.comm_ring : comm_ring (Π i, Rfi i) :=
@@ -200,8 +193,9 @@ include Hlocφ'
 -- fj is invertible in R[1/fifj].
 
 noncomputable def inverts_powers1 : Π i j, inverts_data (powers (f j)) (φij i j) :=
-λ i j ⟨r, Hr⟩,
+λ i j r,
 begin
+  rcases r with ⟨r, Hr⟩,
   rcases (classical.indefinite_description _ Hr) with ⟨n, Hn⟩,
   rcases ((Hlocφ' i j).inverts ⟨((f i)*(f j))^n, ⟨n , by simp⟩⟩) with ⟨w, Hw⟩,
   use ((φij i j ((f i)^n)) * w),
@@ -214,10 +208,11 @@ end
 -- fi is invertible in R[1/fifj].
 
 noncomputable def inverts_powers2 : Π i j, inverts_data (powers (f i)) (φij i j) :=
-λ i j ⟨r, Hr⟩,
+λ i j r,
 begin
-  rcases (classical.indefinite_description _ Hr) with ⟨n, Hn⟩,
-  rcases ((Hlocφ' i j).inverts ⟨((f i)*(f j))^n, ⟨n , by simp⟩⟩) with ⟨w, Hw⟩,
+  cases r with r Hr,
+  cases (classical.indefinite_description _ Hr) with n Hn,
+  cases ((Hlocφ' i j).inverts ⟨((f i)*(f j))^n, ⟨n , by simp⟩⟩) with w Hw,
   use ((φij i j ((f j)^n)) * w),
   simp,
   simp at Hw,
@@ -233,9 +228,49 @@ noncomputable def β2 : (Π i, Rfi i) → (Π i j, Rfij i j)
 
 noncomputable def β : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r, (β1 r) - (β2 r) 
 
---include Hlocβ1 Hlocβ2
-
---THis needs to be done more concretely.
+lemma standard_covering₂.aux
+(H : (1:R) ∈ submodule.span R (↑(univ.image f) : set R)) (s : Π i, Rfi i)
+: ∀ i j, (β1 s i j = β2 s i j → false) := 
+begin
+  intros i j,
+  simp [β1, β2, is_localization_initial],
+  rcases ((Hlocα' i).has_denom (s i)) with ⟨⟨q1, p1⟩, Hp1q1⟩,
+  rcases ((Hlocα' j).has_denom (s j)) with ⟨⟨q2, p2⟩, Hp2q2⟩,
+  simp at Hp1q1,
+  simp at Hp2q2,
+  dsimp [subtype.coe_mk],
+  rcases ((Hlocα' i).inverts q1) with ⟨w1, Hw1⟩,
+  rcases ((Hlocα' j).inverts q2) with ⟨w2, Hw2⟩,
+  rcases (inverts_powers2 i j q1) with ⟨v1, Hv1⟩,
+  rcases (inverts_powers1 i j q2) with ⟨v2, Hv2⟩,
+  dsimp [subtype.coe_mk],
+  intros H,
+  have Hker : φij i j (p2 * q1 - p1 * q2) = 0,
+    rw is_ring_hom.map_sub (φij i j),
+    iterate 2 { rw is_ring_hom.map_mul (φij i j), },
+    rw sub_eq_zero,
+    rw ←one_mul (_ * _),
+    rw ←Hv2,
+    rw ←mul_assoc,
+    rw mul_assoc _ v2 _,
+    rw mul_comm v2,
+    rw H,
+    rw ←mul_assoc,
+    rw mul_assoc _ v1 _,
+    rw mul_comm v1,
+    rw Hv1,
+    rw mul_one,
+    rw mul_comm,
+  replace Hker : _ ∈ ker (φij i j) := Hker,
+  replace Hker := (Hlocφ' i j).ker_le Hker,
+  rcases Hker with ⟨⟨⟨u, v⟩, Huv⟩, Hzer⟩,
+  simp at Huv,
+  simp at Hzer,
+  rw Hzer at Huv,
+  -- (p2 * fi^n + -(p1 * fj^m)) * (fi*fj)^k = 0)
+  -- and so on.
+  sorry,
+end
 
 lemma standard_covering₂
 (H : (1:R) ∈ submodule.span R (↑(univ.image f) : set R)) (s : Π i, Rfi i)
@@ -243,6 +278,17 @@ lemma standard_covering₂
 begin
   split,
   { intros H,
+    suffices Hsuff : ∃ (r : R), ∀ i, α r i = s i,
+      rcases Hsuff with ⟨r, Hr⟩,
+      use r,
+      apply funext,
+      exact Hr,
+    simp [α],
+    replace H := sub_eq_zero.1 H,
+    replace H := congr_fun H,
+    replace H := λ i j, (congr_fun (H i)) j,
+    simp [β1, β2, is_localization_initial] at H,
+    sorry,
     },
   { rintros ⟨r, Hr⟩,
     rw ←Hr,
