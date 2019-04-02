@@ -283,13 +283,30 @@ begin
   have Hn : ∀ i j, n (i, j) ≤ N,
     intros i j,
     exact finset.single_le_sum (λ _ _, nat.zero_le _) (finset.mem_univ (i, j)),
-  rw ←nat.sub_add_cancel (Hn i j),
-  rw add_comm,
-  rw pow_add,
-  rw ←mul_assoc,
-  rw classical.some_spec (standard_covering₂.aux s i j (Hs i j)),
-  rw zero_mul,
+  rw [←nat.sub_add_cancel (Hn i j), add_comm, pow_add, ←mul_assoc],
+  rw [classical.some_spec (standard_covering₂.aux s i j (Hs i j)), zero_mul],
 end
+
+lemma standard_covering₂.aux₃ (s : Π i, Rfi i)
+: (∀ i j, β1 s i j = β2 s i j) → 
+  ∃ N : ℕ, ∀ i j,
+    (((Hlocα' j).has_denom (s j)).1.2 * (f j)^N * ((Hlocα' i).has_denom (s i)).1.1 * (f i)^N =
+     ((Hlocα' i).has_denom (s i)).1.2 * (f i)^N * ((Hlocα' j).has_denom (s j)).1.1 * (f j)^N) := 
+begin
+  intros H,
+  rcases (standard_covering₂.aux₂ s H) with ⟨N, HN⟩,
+  existsi N,
+  intros i j,
+  replace HN := HN i j,
+  rw [sub_mul, sub_eq_zero] at HN,
+  rw [mul_assoc _ (f i ^ N) _, mul_assoc _ (f j ^ N) _],
+  rw [mul_comm (f i ^ N), mul_comm (f j ^ N), ←mul_assoc, ←mul_assoc], 
+  rw [mul_assoc _ _ (f i ^ N), ←mul_pow, mul_comm (f j)],
+  rw [mul_assoc _ _ (f j ^ N), ←mul_pow],
+  exact HN,
+end
+
+set_option trace.check true
 
 lemma standard_covering₂
 (Hone : (1:R) ∈ submodule.span R (↑(univ.image f) : set R)) (s : Π i, Rfi i)
@@ -303,26 +320,72 @@ begin
       apply funext,
       exact Hr,
     simp [α],
+
+    -- Setting up.
     replace H := sub_eq_zero.1 H,
     replace H := congr_fun H,
     replace H := λ i j, (congr_fun (H i)) j,
-    rcases (standard_covering₂.aux₂ s H) with ⟨N, HN⟩,
-    have r := λ i, classical.some ((Hlocα' i).has_denom (s i)).1.1.2,
-    have t := λ i, ((Hlocα' i).has_denom (s i)).1.2,
-    have Hone' := (one_mem_span_pow_of_mem_span f (λ i, r i + N) Hone),
-    rcases (finset.image_sum_of_mem_span Hone') with ⟨a, Ha⟩,
+    rcases (standard_covering₂.aux₃ s H) with ⟨N, HN⟩,
+    let r := λ i, classical.some ((Hlocα' i).has_denom (s i)).1.1.2,
+    have Hfiri : ∀ i, ((Hlocα' i).has_denom (s i)).1.1.1 = (f i)^(r i),
+      intros i,
+      simp [classical.some_spec ((Hlocα' i).has_denom (s i)).1.1.2],
+    let t := λ i, ((Hlocα' i).has_denom (s i)).1.2,
+    replace HN : ∀ i j, (t j) * (f j)^N * (f i)^(r i + N) = (t i) * (f i)^N * (f j)^(r j + N),
+      intros i j,
+      iterate 2 { rw pow_add, rw ←mul_assoc, },
+      rw [←Hfiri i, ←Hfiri j],
+      exact (HN i j),
+
+    -- We use the fact that if (ti) = R then (ti') = R.
+    replace Hone := (one_mem_span_pow_of_mem_span f (λ i, r i + N) Hone),
+    rcases (finset.image_sum_of_mem_span Hone) with ⟨a, Ha⟩,
+    dsimp at Ha,
     use [finset.univ.sum (λ i, a i * (t i) * (f i) ^ N)],
     intros i,
-    simp at Ha,
-    have w := λ x, ((Hlocα' i).inverts ⟨(f i)^(r x), ⟨r x, by simp⟩⟩),
-    rw @is_ring_hom.map_finset_sum _ _ _ _ (αi i),
-    simp,
-    rcases ((Hlocα' i).has_denom (s i)) with ⟨⟨⟨q, ⟨n, Hn⟩⟩, p⟩, Hpq⟩,
-    dsimp only [subtype.coe_mk] at Hpq,
-    suffices Hsuff : sum univ (λ (x : γ), αi i (a x * t x * f x ^ (n + N))) = αi i p,
-    { sorry, },
-    sorry,
-    },
+
+    -- Note that: si = ti / fi^ri.
+    have Hsi : αi i ((f i)^(r i)) * (s i) = αi i (t i),
+      rw ←Hfiri i,
+      exact ((Hlocα' i).has_denom (s i)).2,
+    
+    -- Multiply the sum by fi^(ri + N) / fi^(ri + N).
+    rcases (Hlocα' i).inverts ⟨(f i)^(r i + N), ⟨r i + N, rfl⟩⟩ with ⟨w, Hw⟩,
+    dsimp only [subtype.coe_mk] at Hw,
+    rw ←mul_one (αi i _ ),
+    rw ←Hw,
+    rw ←mul_assoc,
+    rw ←is_ring_hom.map_mul (αi i),
+    rw finset.sum_mul,
+
+    -- Key part : Σ ax tx' fi' = Σ ax fx' ti'.
+    have Hsum : (λ x, a x * t x * f x ^ N * f i ^ (r i + N)) = 
+                (λ x, a x * f x ^ (r x + N) * (t i * f i ^ N)),
+      apply funext,
+      intros j,
+      iterate 3 { rw mul_assoc (a j) },
+      rw (HN i j),
+      symmetry,
+      rw mul_comm (_ * _),
+    
+    -- Rewrite sum and use the fact that it is one.
+    rw Hsum,
+    rw ←finset.sum_mul,
+    rw is_ring_hom.map_mul (αi i),
+    rw ←Ha,
+    rw is_ring_hom.map_one (αi i),
+    rw one_mul,
+    rw ←mul_one (s i),
+
+    -- Kill it.
+    rw ←Hw,
+    rw pow_add,
+    rw is_ring_hom.map_mul (αi i),
+    rw is_ring_hom.map_mul (αi i),
+    rw ←mul_assoc,
+    rw ←mul_assoc,
+    rw mul_comm (s i),
+    rw Hsi, },
   { rintros ⟨r, Hr⟩,
     rw ←Hr,
     erw sub_eq_zero,
