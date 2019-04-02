@@ -16,47 +16,6 @@ variables (Bstd : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ 
 
 include Bstd
 
--- lemma presheaf_extension.eq (F : presheaf_on_basis α HB) (HF : is_sheaf_on_basis F)
--- {U : opens α} (BU : U ∈ B)
--- : (F ₑₓₜ).F U ≃ F.F BU := 
--- { to_fun := 
---     begin
---       rintros ⟨s, Hs⟩,
---       let OC : @covering_basis _ _ B U :=
---         { γ := U,
---           Uis := λ x, (classical.some (Hs x x.2)) ∩ U, 
---           BUis := λ x, Bstd.2 (classical.some (classical.some_spec (Hs x x.2))) BU,
---           Hcov := 
---             begin
---               apply opens.ext,
---               apply set.ext,
---               intros x,
---               split,
---               { rintros ⟨V, ⟨⟨OV, ⟨⟨y, Hy⟩, Hval⟩⟩, HxV⟩⟩,
---                 rw ←Hval at HxV,
---                 simp at Hy,
---                 rw ←Hy at HxV,
---                 rcases HxV with ⟨HxV, HxU⟩,
---                 exact HxU, },
---               { intros Hx,
---                 existsi [(classical.some (Hs x Hx)).val ∩ U.val],
---                 simp,
---                 split,
---                 existsi [(classical.some (Hs x Hx)).val ∩ U.val],
---                 split,
---                 { exact (classical.some (classical.some_spec (classical.some_spec (Hs x x.2)))), },
---                 {}, },
---             end,
---           Iij := sorry,
---           Uijks := sorry,
---           BUijks := sorry,
---           Hintercov := sorry, },
---       rcases HF BU OC,
---     end,
---   inv_fun := sorry,
---   left_inv := sorry,
---   right_inv := sorry, }
-
 theorem extension_is_sheaf_of_rings 
 (F : presheaf_of_rings_on_basis α HB) 
 (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis)

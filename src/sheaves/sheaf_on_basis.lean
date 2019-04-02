@@ -173,4 +173,21 @@ end
 
 end presheaf_extension_preserves_sheaf_condition
 
+-- noncomputable lemma presheaf_extension.equv 
+-- (F : presheaf_on_basis α HB) (HF : is_sheaf_on_basis F)
+-- {U : opens α} (BU : U ∈ B) {x : α} (HxU : x ∈ U)
+-- : (F ₑₓₜ).F U ≃ F.F BU := 
+-- { to_fun := 
+--     begin
+--       intros s,
+--       simp at s,
+--       rcases (classical.indefinite_description _ (s.2 x HxU)) with ⟨V, ⟨HxV, HV⟩⟩,
+--       rcases (classical.indefinite_description _ HV) with ⟨BV, Hσ⟩,
+--       rcases (classical.indefinite_description _ Hσ) with ⟨σ, Hs⟩,
+--       sorry,
+--     end,
+--   inv_fun := sorry,
+--   left_inv := sorry,
+--   right_inv := sorry, }
+
 end sheaf_on_basis
