@@ -10,6 +10,8 @@ import linear_algebra.linear_combination
 import preliminaries.localisation
 import to_mathlib.finset_range
 
+--import tactic.find
+
 universes u v w
 
 local attribute [instance] classical.prop_decidable
@@ -133,6 +135,7 @@ parameters {Rfi : γ → Type w} [Π i, comm_ring (Rfi i)]
 -- α1 : R → R[1/f1], ...., αn → R[1/fn]
 parameters {αi : Π i, R → (Rfi i)} [Π i, is_ring_hom (αi i)]
 parameters (Hlocα : Π i, is_localization (powers (f i)) (αi i))
+parameters (Hlocα' : Π i, is_localization_data (powers (f i)) (αi i))
 
 def α : R → Π i, Rfi i := λ r i, (αi i) r
 
@@ -140,15 +143,14 @@ def α : R → Π i, Rfi i := λ r i, (αi i) r
 parameters {Rfij : γ → γ → Type w} [Π i j, comm_ring (Rfij i j)]
 parameters {φij : Π i j, R → (Rfij i j)} [Π i j, is_ring_hom (φij i j)]
 parameters (Hlocφ : Π i j, is_localization (powers ((f i)*(f j))) (φij i j))
+parameters (Hlocφ' : Π i j, is_localization_data (powers ((f i)*(f j))) (φij i j))
 
 -- β1(1) : R[1/f1] → R[1/f1f1], ...., β1(n) : R[1/f1] → R[1/f1fn]
-parameters {β1 : Π i j, (Rfi i) → (Rfij i j)} [Π i j, is_ring_hom (β1 i j)]
-parameters (Hlocβ1 : Π i j, is_localization (powers (αi i (f j))) (β1 i j))
+--parameters {β1 : Π i j, (Rfi i) → (Rfij i j)} [Π i j, is_ring_hom (β1 i j)]
+--parameters (Hlocβ1 : Π i j, is_localization (powers (αi i (f j))) (β1 i j))
 -- β2(1) : R[1/f1] → R[1/f1f1], ...., β2(n) : R[1/f1] → R[1/fnf1]
-parameters {β2 : Π i j, (Rfi j) → (Rfij i j)} [Π i j, is_ring_hom (β2 i j)]
-parameters (Hlocβ2 : Π i j, is_localization (powers (αi j (f i))) (β2 i j))
-
-def β : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r i j, (β1 i j) (r i) - (β2 i j) (r j) 
+--parameters {β2 : Π i j, (Rfi j) → (Rfij i j)} [Π i j, is_ring_hom (β2 i j)]
+--parameters (Hlocβ2 : Π i j, is_localization (powers (αi j (f i))) (β2 i j))
 
 section alpha_injective
 
@@ -193,7 +195,45 @@ end alpha_injective
 
 section beta_kernel_image_alpha
 
-include Hlocβ1 Hlocβ2
+include Hlocφ'
+
+-- fj is invertible in R[1/fifj].
+
+noncomputable def inverts_powers1 : Π i j, inverts_data (powers (f j)) (φij i j) :=
+λ i j ⟨r, Hr⟩,
+begin
+  rcases (classical.indefinite_description _ Hr) with ⟨n, Hn⟩,
+  rcases ((Hlocφ' i j).inverts ⟨((f i)*(f j))^n, ⟨n , by simp⟩⟩) with ⟨w, Hw⟩,
+  use ((φij i j ((f i)^n)) * w),
+  simp,
+  simp at Hw,
+  rw [←Hn, ←mul_assoc, ←is_ring_hom.map_mul (φij i j), ←mul_pow, mul_comm (f j)],
+  exact Hw,
+end
+
+-- fi is invertible in R[1/fifj].
+
+noncomputable def inverts_powers2 : Π i j, inverts_data (powers (f i)) (φij i j) :=
+λ i j ⟨r, Hr⟩,
+begin
+  rcases (classical.indefinite_description _ Hr) with ⟨n, Hn⟩,
+  rcases ((Hlocφ' i j).inverts ⟨((f i)*(f j))^n, ⟨n , by simp⟩⟩) with ⟨w, Hw⟩,
+  use ((φij i j ((f j)^n)) * w),
+  simp,
+  simp at Hw,
+  rw [←Hn, ←mul_assoc, ←is_ring_hom.map_mul (φij i j), ←mul_pow],
+  exact Hw,
+end
+
+noncomputable def β1 : (Π i, Rfi i) → (Π i j, Rfij i j)
+:= λ ri i j, (is_localization_initial (powers (f j)) (αi j) (Hlocα' j) (φij i j) (inverts_powers1 i j)) (ri j)
+
+noncomputable def β2 : (Π i, Rfi i) → (Π i j, Rfij i j)
+:= λ ri i j, (is_localization_initial (powers (f i)) (αi i) (Hlocα' i) (φij i j) (inverts_powers2 i j)) (ri i)
+
+noncomputable def β : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r, (β1 r) - (β2 r) 
+
+--include Hlocβ1 Hlocβ2
 
 --THis needs to be done more concretely.
 
@@ -202,21 +242,17 @@ lemma standard_covering₂
 : β s = 0 ↔ ∃ r : R, α r = s := 
 begin
   split,
-  { intros H, sorry, },
+  { intros H,
+    },
   { rintros ⟨r, Hr⟩,
     rw ←Hr,
+    erw sub_eq_zero,
     apply funext,
     intros i,
     apply funext,
     intros j,
-    simp [β, α],
-    rcases (Hlocβ1 i j) with ⟨Hinv1, Hden1, Hker1⟩,
-    rcases (Hlocβ2 i j) with ⟨Hinv2, Hden2, Hker2⟩,
-    rcases (Hden1 (β2 i j (αi j r))) with ⟨⟨q1, p1⟩, Hp1q1⟩,
-    rcases (Hden1 (β1 i j (αi i r))) with ⟨⟨q2, p2⟩, Hp2q2⟩,
-    simp at Hp1q1,
-    simp at Hp2q2,
-    sorry, }
+    simp [β, α, β1, β2],
+    iterate 2 { rw is_localization_initial_comp, }, }
 end
 
 end beta_kernel_image_alpha
