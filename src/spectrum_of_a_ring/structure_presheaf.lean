@@ -1,5 +1,6 @@
 import ring_theory.localization
 import preliminaries.localisation
+import preliminaries.localisation_tests.localization_of
 
 import spectrum_of_a_ring.properties
 
@@ -16,6 +17,8 @@ open topological_space
 
 local attribute [instance] classical.prop_decidable
 
+noncomputable theory
+
 variables {R : Type u} [comm_ring R]
 
 open localization_alt
@@ -28,9 +31,11 @@ variable {Hloc : ∀ f, is_localization_data (powers f) (φ f)}
 
 -- D(g) ⊆ D(f) → f ∈ R[1/g]*
 
+section inverts
+
 include Hloc
 
-lemma localisation_inverts (f g : R) (H : Spec.D'(g) ⊆ Spec.D'(f)) 
+lemma localisation_inverts {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f)) 
 : inverts (powers f) (φ g) :=
 begin
   rcases (Hloc g) with ⟨Hinv, Hden, Hker⟩,
@@ -93,7 +98,26 @@ begin
   rcases (Hinv ⟨g, ⟨1, by simp⟩⟩) with ⟨w, Hw⟩,
   have HC : φ g g * w ∈ S := ideal.mul_mem_right S HgS',
   erw Hw at HC,
-  exact (@ideal.is_prime.one_not_mem _ _ S PS) HC,
+  exact ((ideal.ne_top_iff_one S).1 PS.1) HC,
+end
+
+end inverts
+
+lemma localisation_inverts₂ {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f)) 
+: ∃ (a : R) (e : ℕ), g^e = a * f :=
+begin 
+  have Hinv := @localisation_inverts R _ 
+      (λ f, localization.of) (λ f, localization.of.is_ring_hom) 
+      (λ f, localization.of.is_localization_data (powers f)) _ _ H,
+  rcases (Hinv ⟨f, ⟨1, pow_one f⟩⟩) with ⟨w, Hw⟩,
+  dsimp only [subtype.coe_mk] at Hw,
+  rcases (quotient.exists_rep w) with ⟨⟨a, ⟨gn, ⟨n, Hn⟩⟩⟩, Hagn⟩,
+  erw [←Hagn, quotient.eq] at Hw,
+  rcases Hw with ⟨gm, ⟨⟨m, Hm⟩, Hw⟩⟩,
+  simp [-sub_eq_add_neg] at Hw,
+  rw [sub_mul, sub_eq_zero, mul_assoc, mul_comm f, ←Hn, ←Hm, ←pow_add] at Hw,
+  existsi [a * g ^ m, n + m],
+  exact Hw,
 end
 
 end maps
@@ -103,7 +127,7 @@ end maps
 def S (U : opens (Spec R)) : set R := { r : R | U.1 ⊆ Spec.D'(r) }
 
 instance S.is_submonoid (U : opens (Spec R)) : is_submonoid (S U) :=
-{ one_mem := λ x Hx, @ideal.is_prime.one_not_mem _ _ x.1 x.2,
+{ one_mem := λ ⟨P, PI⟩ HP, ((ideal.ne_top_iff_one P).1 PI.1),
   mul_mem := λ f g Hf Hg,
     begin
       show U.1 ⊆ Spec.D'(f*g),
@@ -119,13 +143,44 @@ instance φ'.is_ring_hom (f : R) : is_ring_hom (φ' f) := localization.of.is_rin
 
 lemma RS (f : R) : is_localization_data (powers f) (φ' f) :=
 begin
+  have HfS : f ∈ S (Spec.DO R (f)) := set.subset.refl _,
   refine ⟨_, _, _⟩,
   { rintros ⟨s, Hs⟩,
-    have : f ∈ S (Spec.DO R (f)) := set.subset.refl _,
-    have : s ∈ S (Spec.DO R (f)) :=
-    use ⟦⟨1, s⟩⟧, },
-  { sorry, },
-  { sorry, }
+    have HsS : s ∈ S (Spec.DO R (f)) := (is_submonoid.power_subset HfS) Hs,
+    use [⟦⟨1, ⟨s, HsS⟩⟩⟧],
+    apply quotient.sound,
+    use [1, is_submonoid.one_mem _],
+    simp, },
+  { intros x,
+    have Hx := quotient.exists_rep x,
+    rcases (classical.indefinite_description _ Hx) with ⟨⟨p, q⟩, Hpq⟩,
+    rcases q with ⟨q, Hq⟩,
+    dsimp [S, Spec.DO] at Hq,
+    rcases (classical.indefinite_description _ (localisation_inverts₂ Hq)) with ⟨a, Ha⟩,
+    rcases (classical.indefinite_description _ Ha) with ⟨e, Hfe⟩,
+    use [⟨⟨f^e, ⟨e, rfl⟩⟩, a * p⟩],
+    dsimp only [subtype.coe_mk],
+    rw [Hfe, ←Hpq],
+    apply quotient.sound,
+    use [1, is_submonoid.one_mem _],
+    dsimp,
+    ring, },
+  { intros x Hx,
+    change localization.of x = 0 at Hx,
+    erw quotient.eq at Hx,
+    rcases Hx with ⟨s, ⟨Hs, Hx⟩⟩,
+    simp at Hx,
+    dsimp [S, Spec.DO] at Hs,
+    rcases (classical.indefinite_description _ (localisation_inverts₂ Hs)) with ⟨a, Ha⟩,
+    rcases (classical.indefinite_description _ Ha) with ⟨e, Hfe⟩,
+    use [⟨x, ⟨f^e, ⟨e, rfl⟩⟩⟩],
+    { dsimp only [subtype.coe_mk],
+      rw Hfe,
+      rw mul_comm a,
+      rw ←mul_assoc,
+      rw Hx,
+      rw zero_mul, },
+    { refl, } }
 end
 
 variable (R)
