@@ -98,7 +98,7 @@ begin
   rw Spec.V.set_eq_span at Hcov,
   rw Spec.V.empty_iff_ideal_top at Hcov,
   rw ideal.eq_top_iff_one at Hcov,
-
+  
   -- Now we can apply covering lemmas.
   --have Hsc₁ := @standard_covering₁ _ _ _ Hγ _ _ _ _ _ _ Hcov,
 

@@ -1,20 +1,11 @@
 import algebra.ring
 import ring_theory.ideal_operations
 import linear_algebra.basic
+import to_mathlib.ideals
 
 universes u v
 
 variables {α : Type u} {β : Type v} [comm_ring α] [comm_ring β] (f : α → β) [is_ring_hom f] 
-
-def ideal.mk (I : set α) (J : ideal α) (H : I = J) : ideal α :=
-{ carrier := I,
-  zero := H.symm ▸ J.zero,
-  add := H.symm ▸ J.add,
-  smul := H.symm ▸ J.smul }
-
-def ker : ideal α :=
-ideal.mk {x | f x = 0} (ideal.comap f ⊥) $
-set.ext $ λ x, by simp
 
 lemma is_ring_hom.trivial_ker_def 
 : ker f = ⊥ ↔ (∀ {x}, f x = 0 → x = 0) :=

@@ -6,41 +6,15 @@ import topology.basic
 import topology.opens
 import ring_theory.ideals
 import group_theory.submonoid
+import to_mathlib.topologcal_space
 import spectrum_of_a_ring.spectrum
 import spectrum_of_a_ring.properties
-
-open topological_space
 
 local attribute [instance] classical.prop_decidable
 
 universe u
 
--- Useful. TODO: Move somewhere else.
-
-lemma ideal.is_prime.one_not_mem 
-{α : Type u} [comm_ring α] (S : ideal α) [P : ideal.is_prime S] : (1:α) ∉ S :=
-(ideal.ne_top_iff_one S).1 P.1
-
-def topological_space.of_closed {α : Type u} (T : set (set α))
-  (H1 : ∅ ∈ T)
-  (H2 : ∀ A ⊆ T, ⋂₀ A ∈ T)
-  (H3 : ∀ A B ∈ T, A ∪ B ∈ T) :
-  topological_space α :=
-{ is_open := λ X, -X ∈ T,
-  is_open_univ := by simp [H1],
-  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using H3 (-s) (-t) hs ht,
-  is_open_sUnion := λ s hs, 
-    by rw set.compl_sUnion; exact H2 (set.compl '' s) 
-    (λ z ⟨y, hy, hz⟩, by simpa [hz.symm] using hs y hy) }
-
-instance ideal.has_inter {β : Type u} [comm_ring β] : has_inter (ideal β) :=
-{ inter := λ I J, 
-  { carrier := I.carrier ∩ J.carrier,
-    zero := ⟨I.zero, J.zero⟩,
-    add := λ x y ⟨HxI, HxJ⟩ ⟨HyI, HyJ⟩, ⟨I.add HxI HyI, J.add HxJ HyJ⟩,
-    smul := λ c x ⟨HxI, HxJ⟩, ⟨I.smul c HxI, J.smul c HxJ⟩ } }
-
--- 
+open topological_space
 
 section spec_topological_space
 
@@ -50,7 +24,7 @@ parameters (α : Type u) [comm_ring α]
 
 lemma Spec.H1 : ∅ ∈ Spec.closed α := 
 ⟨{(1:α)}, set.ext $ λ ⟨I, PI⟩, ⟨
-  λ HI, false.elim $ @ideal.is_prime.one_not_mem _ _ I PI $ by simpa [Spec.V] using HI,
+  λ HI, false.elim $ ((ideal.ne_top_iff_one I).1 PI.1) $ by simpa [Spec.V] using HI,
   λ HI, by cases HI⟩⟩
 
 lemma Spec.H2 : ∀ A ⊆ Spec.closed α, ⋂₀ A ∈ Spec.closed α := 
@@ -90,7 +64,7 @@ begin
   have HxyEB : x * y ∈ ideal.span EB,
     apply ideal.mul_mem_left _ _,
     exact ((@ideal.subset_span _ _ EB) _ HyEB),
-  have HxyEAEB : x * y ∈ ideal.span EA ∩ ideal.span EB := ⟨HxyEA, HxyEB⟩,
+  have HxyEAEB : x * y ∈ ideal.span EA ⊓ ideal.span EB := ⟨HxyEA, HxyEB⟩,
   cases (ideal.is_prime.mem_or_mem PI (HI HxyEAEB)) with HCx HCy,
   { apply HnxI, 
     exact HCx, },
@@ -113,19 +87,23 @@ parameter (α)
 instance zariski_topology : topological_space (Spec α) :=
 topological_space.of_closed (Spec.closed α) Spec.H1 Spec.H2 Spec.H3
 
--- D(f) as an open set not just a set that happens to be open.
-
-lemma D_fs_open : ∀ (f : α), is_open (Spec.D' f) := λ f, 
-⟨{f}, by simp [Spec.D', Spec.V', Spec.V]⟩
+-- Useful.
 
 lemma V_fs_closed : ∀ (f : α), is_closed (Spec.V' f) := λ f, 
 ⟨{f}, by simp [Spec.D', Spec.V', Spec.V]⟩
 
-def Spec.DO : α → opens (Spec α) := λ x, ⟨Spec.D' x, D_fs_open x⟩
-
 def Spec.VC : α → closeds (Spec α) := λ x, ⟨Spec.V' x, V_fs_closed x⟩
 
-def Spec.open.univ : opens (Spec α) := ⟨Spec.univ α, is_open_univ⟩
+lemma D_fs_open : ∀ (f : α), is_open (Spec.D' f) := λ f, 
+⟨{f}, by simp [Spec.D', Spec.V', Spec.V]⟩
+
+def Spec.DO : α → opens (Spec α) := λ x, ⟨Spec.D' x, D_fs_open x⟩
+
+def Spec.closed.univ : closeds (Spec α) := ⟨Spec.univ α, is_closed_univ⟩
+
+def Spec.closed.empty : closeds (Spec α) := ⟨Spec.empty α, is_closed_empty⟩
+
+def Spec.open.univ : topological_space.opens (Spec α) := ⟨Spec.univ α, is_open_univ⟩
 
 def Spec.open.empty : opens (Spec α) := ⟨Spec.empty α, is_open_empty⟩
 

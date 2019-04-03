@@ -4,6 +4,7 @@
   https://stacks.math.columbia.edu/tag/00E0
 -/
 
+import to_mathlib.ideals
 import spectrum_of_a_ring.spectrum
 
 open lattice
@@ -17,53 +18,6 @@ universe u
 section properties
 
 variables {R : Type u} [comm_ring R]
-
--- TODO: Move these somewhere else.
-
-section facts
-
--- If R is not the zero ring, then the zero ideal is not the whole ring.
-
-lemma zero_ne_one_bot_ne_top : (0 : R) ≠ 1 → (⊥ : ideal R) ≠ ⊤ :=
-begin
-  intros Hzno,
-  have Honz : (1:R) ∉ ({0} : set R),
-    intros HC,
-    rw set.mem_singleton_iff at HC,
-    exact Hzno HC.symm,
-  intros HC,
-  replace HC := (ideal.eq_top_iff_one ⊥).1 HC,
-  exact (Honz HC),
-end
-
--- Every nonzero ring has a maximal ideal.
-
-lemma ideal.exists_maximal : (0 : R) ≠ 1 → ∃ S : ideal R, ideal.is_maximal S :=
-begin
-  intros Hzno,
-  have HTnB : (⊥ : ideal R) ≠ ⊤ := zero_ne_one_bot_ne_top Hzno,
-  rcases (ideal.exists_le_maximal ⊥ HTnB) with ⟨M, ⟨HM, HBM⟩⟩,
-  exact ⟨M, HM⟩,
-end
-
--- Two ideals are iqual iff they are equal as sets.
-
-lemma ideal.ext' {I J : ideal R} : I = J ↔ I.1 = J.1 :=
-begin
-  split,
-  { intros H,
-    rw H, },
-  { intros H,
-    apply ideal.ext,
-    intros x,
-    split,
-    { intros Hx,
-      exact (H ▸ Hx : x ∈ J.1), },
-    { intros Hx,
-      exact (H.symm ▸ Hx : x ∈ I.1), } }
-end
-
-end facts
 
 -- Lemma 1.
 -- The spectrum of a ring R is empty if and only if R is the zero ring.
