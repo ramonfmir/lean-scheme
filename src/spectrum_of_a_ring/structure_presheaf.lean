@@ -296,7 +296,7 @@ is_localization_initial
   (localization.SDf.inverts_data.of_Dfs_subset R H)
 
 lemma localization.structure_presheaf_on_basis.res 
-(f g : R) (H : Spec.DO R (g) ⊆ Spec.DO R (f)) :
+{f g : R} {H : Spec.DO R (g) ⊆ Spec.DO R (f)} :
   (structure_presheaf_on_basis R).res (D_fs.mem R f) (D_fs.mem R g) H
 = localization.SDf.map.of_Dfs_subset R H :=
 begin

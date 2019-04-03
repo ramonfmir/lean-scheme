@@ -150,7 +150,7 @@ pi.is_ring_hom_pi αi
 
 -- First part of the lemma.
 
-include Hlocα
+include Hlocα'
 
 lemma standard_covering₁ (H : (1 : R) ∈ ideal.span (set.range f)) 
 : function.injective α := 
@@ -161,9 +161,9 @@ begin
   have Hn : ∀ i, ∃ n : ℕ, f i ^ n * x = 0,
     intros i,
     replace Hx : x ∈ ker (αi i) := Hx i,
-    replace Hloc := Hlocα i,
+    replace Hloc := Hlocα' i,
     rcases Hloc with ⟨Hinv, Hden, Hker⟩,
-    rw Hker at Hx,
+    replace Hx := Hker Hx,
     rcases Hx with ⟨⟨⟨u, ⟨fn, ⟨n, Hfn⟩⟩⟩, Hufn⟩, Hx⟩,
     existsi n,
     rw [Hfn, ←Hx, mul_comm],

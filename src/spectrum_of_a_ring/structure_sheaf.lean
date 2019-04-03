@@ -41,7 +41,10 @@ begin
   { sorry, }
 end
 
-#check standard_covering₁
+#check localization.SDf
+#check coe
+
+#print notation ⇑
 
 theorem structure_presheaf_on_basis_is_sheaf_on_basis 
 : is_sheaf_on_standard_basis 
@@ -62,7 +65,9 @@ begin
     apply opens.ext,
     rw Hf,
 
-  let Rf := localization.away f,
+  let Rf := localization R (S U),
+  have HRf : is_localization (powers f) (localization.of : R → Rf) := sorry, -- Easy
+
   let g : OC.γ → R := λ i, classical.some (OC.BUis i),
   let Hg : ∀ i, (OC.Uis i).val = Spec.D'(g i) := λ i, classical.some_spec (OC.BUis i),
   let g' : OC.γ → Rf := λ i, localization.of (g i),
@@ -76,7 +81,7 @@ begin
       suffices : φ P ∈ Spec.D'(f),
         rw Hf',
         exact this,
-      rw ←phi_image_Df (is_localisation.away f),
+      rw ←phi_image_Df HRf,
       use P,
       split,
       { trivial, },
@@ -100,16 +105,39 @@ begin
   rw ideal.eq_top_iff_one at Hcov,
   
   -- Now we can apply covering lemmas.
-  --have Hsc₁ := @standard_covering₁ _ _ _ Hγ _ _ _ _ _ _ Hcov,
+
+  have := λ i, (D_fs.mem R (g i)),
+  let k := λ i, (localization.of : Rf → localization Rf (S (Spec.DO Rf (g' i)))),
+  let t := λ i, localization Rf (S (Spec.DO Rf (g' i))),
+  have Hsc₁ := 
+    @standard_covering₁ Rf _ _ Hγ g' t _ k _ (λ i, localization.SDf (g' i)) Hcov,
+
+  unfold α at Hsc₁,
 
   constructor,
   { intros s t Hst,
     dunfold structure_presheaf_on_basis at s,
     dunfold structure_presheaf_on_basis at t,
-    dsimp at s,
-    dsimp at t,
+    dsimp [coe_fn, has_coe_to_fun.coe] at s,
+    dsimp [coe_fn, has_coe_to_fun.coe] at t_1,
+    --dunfold structure_presheaf_on_basis at Hst,
+    --have := localization.structure_presheaf_on_basis.res Rf,
+    --erw localization.structure_presheaf_on_basis.res Rf at Hst,
+    --dsimp at Hst,
+
+    -- TODO unfold inside Hst....
+
+    have : (λ i, (k i) s) = (λ i, (k i) t_1),
+      apply funext,
+      intros i,
+      --exact (Hst i),
+      sorry,
+      
     sorry, },
-  { sorry, }
+  { intros s,
+    sorry,
+
+   }
 end
 
 end structure_sheaf 
