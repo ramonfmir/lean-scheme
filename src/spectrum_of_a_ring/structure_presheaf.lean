@@ -91,9 +91,20 @@ begin
   exact ((ideal.ne_top_iff_one S).1 PS.1) HC,
 end
 
--- D(g) ⊆ D(f) → ∃ a e, g^e = a * f
+-- TODO : This can be done in general... Although it's not very nice.
 
-lemma localisation_inverts₂ {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f)) 
+def localization.inverts_data.of_Dfs_subset {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f)) 
+: inverts_data (powers f) (localization.of : R → localization R (powers g)) :=
+begin
+  intros s,
+  have Hs := localization.inverts.of_Dfs_subset H s,
+  rcases (classical.indefinite_description _ Hs) with ⟨si, Hsi⟩,
+  exact ⟨si, Hsi⟩,
+end
+
+-- D(g) ⊆ D(f) → ∃ a e, g^e = a * f.
+
+lemma localization.inverts.of_Dfs_subset₂ {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f)) 
 : ∃ (a : R) (e : ℕ), g^e = a * f :=
 begin 
   have Hinv := localization.inverts.of_Dfs_subset H,
@@ -107,6 +118,17 @@ begin
   existsi [a * g ^ m, n + m],
   exact Hw,
 end
+
+-- Map from R[1/f] to R[1/g].
+
+def localization.map.of_Dfs_subset {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f))
+: localization R (powers f) → localization R (powers g) :=
+is_localization_initial 
+  (powers f)
+  (localization.of : R → localization R (powers f))
+  (localization.of.is_localization_data (powers f))
+  (localization.of : R → localization R (powers g))
+  (localization.inverts_data.of_Dfs_subset H)
 
 end maps
 
@@ -129,6 +151,8 @@ lemma S.rev_mono {U V : opens (Spec R)} (HVU : V ⊆ U) : S U ⊆ S V :=
 
 lemma S.f_mem (f : R) : f ∈ S (Spec.DO R (f)) := set.subset.refl _
 
+-- Proof of the localization property.
+
 lemma localization.SDf.inverts_data (f : R) 
 : inverts_data (powers f) (localization.of : R → localization R (S (Spec.DO R (f)))) :=
 begin
@@ -136,7 +160,7 @@ begin
   have HsS : s ∈ S (Spec.DO R (f)) := (is_submonoid.power_subset (S.f_mem f)) Hs,use [⟦⟨1, ⟨s, HsS⟩⟩⟧],
   apply quotient.sound,
   use [1, is_submonoid.one_mem _],
-  dsimp only [subtype.coe_mk, one_mul, mul_one],
+  simp,
 end
 
 lemma localization.SDf.has_denom_data (f : R) 
@@ -147,8 +171,9 @@ begin
   rcases (classical.indefinite_description _ Hx) with ⟨⟨p, q⟩, Hpq⟩,
   rcases q with ⟨q, Hq⟩,
   dsimp [S, Spec.DO] at Hq,
-  rcases (classical.indefinite_description _ (localisation_inverts₂ Hq)) with ⟨a, Ha⟩,
-  rcases (classical.indefinite_description _ Ha) with ⟨e, Hfe⟩,
+  have Hea := localization.inverts.of_Dfs_subset₂ Hq,
+  rcases (classical.indefinite_description _ Hea) with ⟨a, He⟩,
+  rcases (classical.indefinite_description _ He) with ⟨e, Hfe⟩,
   use [⟨⟨f^e, ⟨e, rfl⟩⟩, a * p⟩],
   dsimp only [subtype.coe_mk],
   rw [Hfe, ←Hpq],
@@ -158,47 +183,33 @@ begin
   ring,
 end
 
-lemma localization.SDf (f : R) : is_localization_data (powers f) (localization.of : R → localization R (S (Spec.DO R (f))) :=
-begin
-  have HfS : f ∈ S (Spec.DO R (f)) := set.subset.refl _,
-  refine ⟨_, _, _⟩,
-  { rintros ⟨s, Hs⟩,
-    have HsS : s ∈ S (Spec.DO R (f)) := (is_submonoid.power_subset HfS) Hs,
-    use [⟦⟨1, ⟨s, HsS⟩⟩⟧],
-    apply quotient.sound,
-    use [1, is_submonoid.one_mem _],
-    simp, },
-  { intros x,
-    have Hx := quotient.exists_rep x,
-    rcases (classical.indefinite_description _ Hx) with ⟨⟨p, q⟩, Hpq⟩,
-    rcases q with ⟨q, Hq⟩,
-    dsimp [S, Spec.DO] at Hq,
-    rcases (classical.indefinite_description _ (localisation_inverts₂ Hq)) with ⟨a, Ha⟩,
-    rcases (classical.indefinite_description _ Ha) with ⟨e, Hfe⟩,
-    use [⟨⟨f^e, ⟨e, rfl⟩⟩, a * p⟩],
-    dsimp only [subtype.coe_mk],
-    rw [Hfe, ←Hpq],
-    apply quotient.sound,
-    use [1, is_submonoid.one_mem _],
-    dsimp,
-    ring, },
-  { intros x Hx,
-    change localization.of x = 0 at Hx,
-    erw quotient.eq at Hx,
-    rcases Hx with ⟨s, ⟨Hs, Hx⟩⟩,
-    simp at Hx,
-    dsimp [S, Spec.DO] at Hs,
-    rcases (classical.indefinite_description _ (localisation_inverts₂ Hs)) with ⟨a, Ha⟩,
-    rcases (classical.indefinite_description _ Ha) with ⟨e, Hfe⟩,
-    use [⟨x, ⟨f^e, ⟨e, rfl⟩⟩⟩],
-    { dsimp only [subtype.coe_mk],
-      rw Hfe,
-      rw mul_comm a,
-      rw ←mul_assoc,
-      rw Hx,
-      rw zero_mul, },
-    { refl, } }
+lemma localization.SDf.ker_le (f : R)
+: ker (localization.of : R → localization R (S (Spec.DO R (f)))) ≤ submonoid_ann (powers f) :=
+begin 
+  intros x Hx,
+  change localization.of x = 0 at Hx,
+  erw quotient.eq at Hx,
+  rcases Hx with ⟨s, ⟨Hs, Hx⟩⟩,
+  simp at Hx,
+  dsimp [S, Spec.DO] at Hs,
+  have Hea := localization.inverts.of_Dfs_subset₂ Hs,
+  rcases (classical.indefinite_description _ Hea) with ⟨a, He⟩,
+  rcases (classical.indefinite_description _ He) with ⟨e, Hfe⟩,
+  use [⟨x, ⟨f^e, ⟨e, rfl⟩⟩⟩],
+  { dsimp only [subtype.coe_mk],
+    rw Hfe,
+    rw mul_comm a,
+    rw ←mul_assoc,
+    rw Hx,
+    rw zero_mul, },
+  { refl, } 
 end
+
+lemma localization.SDf (f : R) 
+: is_localization_data (powers f) (localization.of : R → localization R (S (Spec.DO R (f)))) :=
+{ inverts := localization.SDf.inverts_data f,
+  has_denom := localization.SDf.has_denom_data f, 
+  ker_le := localization.SDf.ker_le f }
 
 end localization_S
 
@@ -208,7 +219,7 @@ variable (R)
 
 -- Structure presheaf on Spec(R) defined on the basis.
 
-def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basis R) := 
+@[reducible] def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basis R) := 
 { F := λ U BU, localization R (S U),
   res := λ U V BU BV HVU,
     begin
@@ -226,12 +237,57 @@ def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basi
         map_add := λ x y, quotient.induction_on₂ x y $ λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, rfl,
         map_mul := λ x y, quotient.induction_on₂ x y $ λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, rfl, }, }
 
+-- 𝒪(D(f)) = R[1/f].
+
+lemma localization.structure_presheaf_on_basis.F (f : R) :
+is_localization_data 
+  (powers f)
+  (localization.of : R → (structure_presheaf_on_basis R).F (D_fs.mem R f)) :=
+localization.SDf f
+
+-- -- From ρ : 𝒪(D(f)) → 𝒪(D(g)) deduce 
+
+def localization.SDf.inverts_data.of_Dfs_subset {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f))
+: inverts_data (powers f) (localization.of : R → (structure_presheaf_on_basis R).F (D_fs.mem R g)) :=
+begin
+  intros s,
+  -- This will give us an inverse for s in R[1/g].
+  have sinv := localization.inverts_data.of_Dfs_subset H s,
+  rcases sinv with ⟨sinv, Hsinv⟩,
+  -- Map from R[1/g] to R[1/S(D(g))].
+  let φ := 
+    is_localization_initial 
+      (powers g)
+      (localization.of : R → localization R (powers g))
+      (localization.of.is_localization_data (powers g))
+      (localization.of : R → (structure_presheaf_on_basis R).F (D_fs.mem R g))
+      (localization.SDf.inverts_data g),
+  use [φ sinv],
+  rcases (localization.of.is_localization_data (powers f)).inverts s with ⟨w, Hw⟩,
+  sorry,
+end
+
+def localization.SDf.map.of_Dfs_subset {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f))
+: (structure_presheaf_on_basis R).F (D_fs.mem R f) 
+→ (structure_presheaf_on_basis R).F (D_fs.mem R g) :=
+is_localization_initial 
+  (powers f)
+  (localization.of : R → (structure_presheaf_on_basis R).F (D_fs.mem R f))
+  (localization.SDf f)
+  (localization.of : R → (structure_presheaf_on_basis R).F (D_fs.mem R g))
+  (localization.SDf.inverts_data.of_Dfs_subset R H)
+
+lemma localization.structure_presheaf_on_basis.res 
+(f g : R) (H : Spec.DO R (g) ⊆ Spec.DO R (f)) :
+  (structure_presheaf_on_basis R).res (D_fs.mem R f) (D_fs.mem R g) H
+= localization.SDf.map.of_Dfs_subset R H :=
+begin
+  sorry
+end
+
 def structure_presheaf : presheaf_of_rings (Spec R) :=
   presheaf_of_rings_on_basis_to_presheaf_of_rings 
     (D_fs_standard_basis R) 
     (structure_presheaf_on_basis R)
-
--- lemma structure_presheaf.is_localization_data : 
--- ∀ (f : R), is_localization_data ((structure_presheaf R).F (Spec.DO R f))
 
 end structure_presheaf

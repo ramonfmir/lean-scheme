@@ -21,6 +21,8 @@ parameters (R : Type u) [comm_ring R]
 
 definition D_fs := {U : opens (Spec R) | ∃ f : R, U.1 = Spec.D'(f)}
 
+lemma D_fs.mem : ∀ f, Spec.DO R f ∈ D_fs := λ f, ⟨f, rfl⟩
+
 lemma D_fs_basis : opens.is_basis D_fs := 
 begin
   refine topological_space.is_topological_basis_of_open_of_nhds _ _,
@@ -54,8 +56,6 @@ begin
       apply Hy,
       exact HyE HfE, } }
 end
-
---opens.univ ∈ B ∧ 
 
 lemma Spec.V'.empty : Spec.V'((1 : R)) = ∅ :=
 begin
