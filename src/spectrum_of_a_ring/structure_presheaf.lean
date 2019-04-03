@@ -151,6 +151,16 @@ lemma S.rev_mono {U V : opens (Spec R)} (HVU : V ⊆ U) : S U ⊆ S V :=
 
 lemma S.f_mem (f : R) : f ∈ S (Spec.DO R (f)) := set.subset.refl _
 
+lemma S.inter_subset_Sinter (U V : opens (Spec R)) : (S U) ∩ (S V) ⊆ S (U ∩ V) :=
+begin
+  rintros x ⟨HxU, HxV⟩,
+  change U.1 ⊆ Spec.D'(x) at HxU,
+  change V.1 ⊆ Spec.D'(x) at HxV,
+  have H := set.inter_subset_inter HxU HxV,
+  rw set.inter_self at H,
+  exact H,
+end
+
 -- Proof of the localization property.
 
 lemma localization.SDf.inverts_data (f : R) 
@@ -263,8 +273,16 @@ begin
       (localization.of : R → (structure_presheaf_on_basis R).F (D_fs.mem R g))
       (localization.SDf.inverts_data g),
   use [φ sinv],
-  rcases (localization.of.is_localization_data (powers f)).inverts s with ⟨w, Hw⟩,
-  sorry,
+  -- Use composition.
+  rw ←is_localization_initial_comp 
+    (powers g)
+    (localization.of : R → localization R (powers g))
+    (localization.of.is_localization_data (powers g))
+    (localization.of : R → (structure_presheaf_on_basis R).F (D_fs.mem R g))
+    (localization.SDf.inverts_data g),
+  rw ←is_ring_hom.map_mul φ,
+  rw Hsinv,
+  rw is_ring_hom.map_one φ,
 end
 
 def localization.SDf.map.of_Dfs_subset {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f))
@@ -282,7 +300,65 @@ lemma localization.structure_presheaf_on_basis.res
   (structure_presheaf_on_basis R).res (D_fs.mem R f) (D_fs.mem R g) H
 = localization.SDf.map.of_Dfs_subset R H :=
 begin
-  sorry
+  apply funext,
+  intros x,
+  apply quotient.induction_on x,
+  rintros ⟨a, b⟩,
+  simp [localization.SDf.map.of_Dfs_subset, is_localization_initial],
+  rcases (localization.SDf f).has_denom ⟦(a, b)⟧ with ⟨⟨q, p⟩, Hpq⟩,
+  dsimp at *,
+  rcases localization.SDf.inverts_data.of_Dfs_subset R H q with ⟨w, Hw⟩,
+  dsimp,
+  revert Hw,
+  apply quotient.induction_on w,
+  rintros ⟨c, d⟩,
+  intros Hw,
+  apply quotient.sound,
+  dsimp,
+  dunfold localization.of at Hpq,
+  erw quotient.eq at Hpq,
+  rcases Hpq with ⟨t, ⟨Ht, Hpq⟩⟩,
+  simp [-sub_eq_add_neg] at Hpq,
+  dunfold localization.of at Hw,
+  erw quotient.eq at Hw,
+  rcases Hw with ⟨s, ⟨Hs, Hw⟩⟩,
+  simp [-sub_eq_add_neg] at Hw,
+
+  rcases (localization.inverts.of_Dfs_subset₂ H) with ⟨a₁, ⟨e₁, Ha₁⟩⟩,
+  rcases (localization.inverts.of_Dfs_subset₂ Ht) with ⟨a₂, ⟨e₂, Ha₂⟩⟩,
+
+  have Heq : t * a₂ * a₁ ^ e₂ = g ^ (e₁ * e₂),
+    rw mul_comm at Ha₂,
+    rw ←Ha₂,
+    rw ←mul_pow,
+    rw mul_comm at Ha₁,
+    rw ←Ha₁,
+    rw ←pow_mul,
+
+  have HgS : g ∈ S (Spec.DO R g) := S.f_mem g,
+  have HtS : t * a₂ * a₁ ^ e₂ ∈ S (Spec.DO R g) := Heq.symm ▸ is_submonoid.pow_mem HgS,
+
+  use [s * (t * a₂ * a₁ ^ e₂), is_submonoid.mul_mem Hs HtS],
+  simp [-sub_eq_add_neg],
+  rw sub_mul,
+  rw sub_mul at Hpq,
+  rw sub_mul at Hw,
+  rw sub_eq_zero,
+  rw sub_eq_zero at Hpq,
+  rw sub_eq_zero at Hw,
+  repeat { rw ←mul_assoc },
+  suffices Hsuff : ↑b * p * c * s * t = ↑d * a * s * t,
+    erw Hsuff,
+  
+  iterate 2 { rw [mul_assoc _ _ t, mul_comm _ t, ←mul_assoc] },
+  rw Hpq,
+
+  symmetry,
+
+  rw [mul_assoc _ _ s, mul_comm _ s, ←mul_assoc],
+  rw Hw,
+
+  ring,
 end
 
 def structure_presheaf : presheaf_of_rings (Spec R) :=
