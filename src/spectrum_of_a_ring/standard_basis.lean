@@ -19,7 +19,7 @@ section standard_basis
 
 parameters (R : Type u) [comm_ring R]
 
-definition D_fs := {U : opens (Spec R) | ∃ f : R, U.1 = Spec.D'(f)}
+@[reducible] def D_fs := {U : opens (Spec R) | ∃ f : R, U = Spec.DO R (f)}
 
 lemma D_fs.mem : ∀ f, Spec.DO R f ∈ D_fs := λ f, ⟨f, rfl⟩
 
@@ -46,6 +46,8 @@ begin
     have HDfDfs : Spec.D' f ∈ subtype.val '' D_fs,
       simp,
       use [D_fs_open R f, f],
+      dsimp [Spec.DO],
+      refl,
     use HDfDfs,
     split,
     { exact Hfx, },
@@ -78,7 +80,8 @@ opens.univ ∈ D_fs ∧ ∀ {U V}, U ∈ D_fs → V ∈ D_fs → U ∩ V ∈ D_f
 begin
   split,
   { use 1,
-    simp [Spec.D'],
+    apply subtype.eq,
+    simp [Spec.DO, Spec.D'],
     rw Spec.V'.empty,
     rw set.compl_empty,
     refl, },
@@ -86,8 +89,10 @@ begin
     cases HU with fU HU,
     cases HV with fV HV,
     use [fU * fV],
-    simp [opens.inter],
-    rw [HU, HV, ←Spec.D'.product_eq_inter], }
+    apply subtype.eq,
+    rw [HU, HV],
+    simp [Spec.DO],
+    exact (Spec.D'.product_eq_inter _ _).symm, }
 end
 
 end standard_basis
