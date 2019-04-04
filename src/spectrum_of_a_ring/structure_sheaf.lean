@@ -52,7 +52,8 @@ theorem structure_presheaf_on_basis_is_sheaf_on_basis
     (structure_presheaf_on_basis R).to_presheaf_on_basis :=
 begin
   intros U BU OC,
-  rcases BU with ⟨f, Hf⟩,
+  have BU' := BU,
+  rcases BU' with ⟨f, Hf⟩,
 
   -- TODO : We prove it for finite covers then extend it.
   have Hγ : fintype OC.γ := sorry,
@@ -106,20 +107,17 @@ begin
   
   -- Now we can apply covering lemmas.
 
-  have := λ i, (D_fs.mem R (g i)),
-  let k := λ i, (localization.of : Rf → localization Rf (S (Spec.DO Rf (g' i)))),
-  let t := λ i, localization Rf (S (Spec.DO Rf (g' i))),
+  let αi := λ i, (localization.of : Rf → localization Rf (S (Spec.DO Rf (g' i)))),
+  let Rfis := λ i, localization Rf (S (Spec.DO Rf (g' i))),
   have Hsc₁ := 
-    @standard_covering₁ Rf _ _ Hγ g' t _ k _ (λ i, localization.SDf (g' i)) Hcov,
-
-  unfold α at Hsc₁,
+    @standard_covering₁ Rf _ _ Hγ g' Rfis _ αi _ (λ i, localization.SDf (g' i)) Hcov,
 
   constructor,
   { intros s t Hst,
     dunfold structure_presheaf_on_basis at s,
     dunfold structure_presheaf_on_basis at t,
     dsimp [coe_fn, has_coe_to_fun.coe] at s,
-    dsimp [coe_fn, has_coe_to_fun.coe] at t_1,
+    dsimp [coe_fn, has_coe_to_fun.coe] at t,
     --dunfold structure_presheaf_on_basis at Hst,
     --have := localization.structure_presheaf_on_basis.res Rf,
     --erw localization.structure_presheaf_on_basis.res Rf at Hst,
@@ -127,12 +125,40 @@ begin
 
     -- TODO unfold inside Hst....
 
-    have : (λ i, (k i) s) = (λ i, (k i) t_1),
-      apply funext,
-      intros i,
+    let α' := @α Rf _ _ Hγ Rfis _ αi _,
+
+    suffices Hsuff : α' s = α' t,
+      exact (Hsc₁ Hsuff),
+
+    apply funext,
+    intros i,
+    dsimp [α'],
+    simp [α, αi],
+
+    replace Hst := Hst i,
+    dunfold structure_presheaf_on_basis at Hst,
+    dsimp at Hst,
+    rw localization.structure_presheaf_on_basis.res' at Hst,
+
+    -- have : (λ i, (k i) s) = (λ i, (k i) t_1),
+    --   apply funext,
+    --   intros i,
+    --   replace Hst := Hst i,
+    --   have : 
+    --       ((structure_presheaf_on_basis R).to_presheaf_on_basis).res BU 
+    --         (OC.BUis i) 
+    --         (subset_covering i)
+    --         s
+    --     = ((structure_presheaf_on_basis R).to_presheaf_on_basis).res BU 
+    --         (OC.BUis i) 
+    --         (subset_covering i)
+    --         t_1 := Hst,
+        
+    --   rw localization.structure_presheaf_on_basis.res' at Hst,
       --exact (Hst i),
       sorry,
-      
+    
+
     sorry, },
   { intros s,
     sorry,

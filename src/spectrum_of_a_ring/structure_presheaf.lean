@@ -255,7 +255,8 @@ is_localization_data
   (localization.of : R → (structure_presheaf_on_basis R).F (D_fs.mem R f)) :=
 localization.SDf f
 
--- -- From ρ : 𝒪(D(f)) → 𝒪(D(g)) deduce 
+-- The restriction map ρ : 𝒪(D(f)) → 𝒪(D(g)) is actually the unique ring homomorphism
+-- from R[1/f] to R[1/g] given by the universal property as f ∈ R[1/g]*.
 
 def localization.SDf.inverts_data.of_Dfs_subset {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f))
 : inverts_data (powers f) (localization.of : R → (structure_presheaf_on_basis R).F (D_fs.mem R g)) :=
@@ -360,6 +361,20 @@ begin
 
   ring,
 end
+
+def localization.SDf.map.of_basic_opens 
+{U V : opens (Spec R)} (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (H : V ⊆ U)
+: (structure_presheaf_on_basis R).F BU 
+→ (structure_presheaf_on_basis R).F BV :=
+begin 
+sorry,
+end
+
+lemma localization.structure_presheaf_on_basis.res' 
+{U V : opens (Spec R)} (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) {H : V ⊆ U} :
+  (structure_presheaf_on_basis R).res BU BV H
+=  localization.SDf.map.of_basic_opens R BU BV H :=
+sorry
 
 def structure_presheaf : presheaf_of_rings (Spec R) :=
   presheaf_of_rings_on_basis_to_presheaf_of_rings 
