@@ -3,6 +3,7 @@ import sheaves.sheaf_on_standard_basis
 import spectrum_of_a_ring.induced_homeomorphism
 import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_sheaf_condition
+import spectrum_of_a_ring.structure_sheaf_locality
 
 universe u
 
@@ -73,12 +74,13 @@ begin
   
   -- Now we can apply covering lemmas.
 
-  let αi := λ i, structure_presheaf_on_basis.res R BU (OC.BUis i) (subset_covering i),
+  let αi := λ i, structure_presheaf_on_basis.res BU (OC.BUis i) (subset_covering i),
   let Rfis := λ i, localization R (S (OC.Uis i)),
 
   have := λ i, structure_presheaf.localization (OC.BUis i),
 
-  have : Π i, is_localization_data (powers (g' i)) (αi i) := sorry,
+  have : Π i, is_localization_data (powers (g' i)) (αi i) 
+    := λ i, structure_presheaf.res.localization BU (OC.BUis i) (subset_covering i),
 
   have Hsc₁ := 
     @standard_covering₁ Rf _ _ Hγ g' Rfis _ αi _ this Hcov,
