@@ -16,36 +16,6 @@ open sheaf_on_standard_basis
 
 section structure_sheaf 
 
-def localization.of.away (f : R) 
-: R → localization R (powers f) := localization.of
-
-instance localization.of.away.is_ring_hom (f : R) 
-: is_ring_hom (localization.of.away f) := localization.of.is_ring_hom  
-
-lemma is_localisation.away (f : R) 
-: is_localization (powers f) (localization.of.away f) :=
-begin
-  refine ⟨_, _, _⟩,
-  { intros s,
-    use ⟦⟨1, s⟩⟧,
-    apply quotient.sound,
-    use [1, ⟨0, rfl⟩],
-    simp, },
-  { intros x,
-    apply quotient.induction_on x,
-    rintros ⟨r, s⟩,
-    use [⟨s, r⟩],
-    apply quotient.sound,
-    use [1, ⟨0, rfl⟩],
-    simp, },
-  { sorry, }
-end
-
-#check localization.SDf
-#check coe
-
-#print notation ⇑
-
 theorem structure_presheaf_on_basis_is_sheaf_on_basis 
 : is_sheaf_on_standard_basis 
     (D_fs_standard_basis R)
@@ -59,18 +29,12 @@ begin
   have Hγ : fintype OC.γ := sorry,
 
   -- Lemma: D(f) is open.
-  have HfO : is_open (Spec.D'(f)),
-    use {f},
-    simp [Spec.D', Spec.V', Spec.V],
-  have Hf' : U = ⟨Spec.D'(f), HfO⟩, 
-    apply opens.ext,
-    rw Hf,
 
   let Rf := localization R (S U),
   have HRf : is_localization (powers f) (localization.of : R → Rf) := sorry, -- Easy
 
   let g : OC.γ → R := λ i, classical.some (OC.BUis i),
-  let Hg : ∀ i, (OC.Uis i).val = Spec.D'(g i) := λ i, classical.some_spec (OC.BUis i),
+  let Hg : ∀ i, OC.Uis i = Spec.DO R (g i) := λ i, classical.some_spec (OC.BUis i),
   let g' : OC.γ → Rf := λ i, localization.of (g i),
   
   -- Lemma: If ⋃ D(gᵢ) = D(f) then ⋃ D(gᵢ') = Spec Rf.
@@ -79,9 +43,10 @@ begin
     apply set.eq_univ_of_univ_subset,
     rintros P HP,
     have H : φ P ∈ U,
-      suffices : φ P ∈ Spec.D'(f),
-        rw Hf',
+      suffices : φ P ∈ Spec.DO R (f),
+        rw Hf,
         exact this,
+      show φ P ∈ Spec.D'(f),
       rw ←phi_image_Df HRf,
       use P,
       split,
@@ -91,10 +56,11 @@ begin
     rcases H with ⟨UiS, ⟨⟨UiO, ⟨⟨i, Hi⟩, HUiO⟩⟩, HPUiS⟩⟩,
     use [φ ⁻¹' UiO.val, i],
     { simp,
-      rw [←Hi, Hg, Zariski.induced.preimage_D _ _], },
+      rw [←Hi, Hg],
+      dsimp only [Spec.DO],
+      rw [←Zariski.induced.preimage_D localization.of _], },
     { rw HUiO,
-      exact HPUiS, },
-  },
+      exact HPUiS, }, },
 
   -- We want: 1 ∈ <fi>
   let F : set Rf := set.range g',
@@ -107,10 +73,17 @@ begin
   
   -- Now we can apply covering lemmas.
 
-  let αi := λ i, (localization.of : Rf → localization Rf (S (Spec.DO Rf (g' i)))),
-  let Rfis := λ i, localization Rf (S (Spec.DO Rf (g' i))),
+  let αi := λ i, structure_presheaf_on_basis.res R BU (OC.BUis i) (subset_covering i),
+  let Rfis := λ i, localization R (S (OC.Uis i)),
+
+  have := λ i, structure_presheaf.localization (OC.BUis i),
+
+  have : Π i, is_localization_data (powers (g' i)) (αi i) := sorry,
+
   have Hsc₁ := 
-    @standard_covering₁ Rf _ _ Hγ g' Rfis _ αi _ (λ i, localization.SDf (g' i)) Hcov,
+    @standard_covering₁ Rf _ _ Hγ g' Rfis _ αi _ this Hcov,
+    -- _ _ Hγ OC.Uis Rfis _ αi _ 
+      --(λ i, structure_presheaf.localization (OC.BUis i)),
 
   constructor,
   { intros s t Hst,
@@ -136,9 +109,8 @@ begin
     simp [α, αi],
 
     replace Hst := Hst i,
-    dunfold structure_presheaf_on_basis at Hst,
-    dsimp at Hst,
-    rw localization.structure_presheaf_on_basis.res' at Hst,
+    rw ←structure_presheaf_on_basis.res_eq R BU,
+    exact Hst,
 
     -- have : (λ i, (k i) s) = (λ i, (k i) t_1),
     --   apply funext,

@@ -190,6 +190,8 @@ def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basi
         map_add := λ x y, quotient.induction_on₂ x y $ λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, rfl,
         map_mul := λ x y, quotient.induction_on₂ x y $ λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩, rfl, }, }
 
+section more_maps
+
 variables {U V : opens (Spec R)} (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (H : V ⊆ U)
 
 -- Map from R[1/g] to R[1/S(D(g))].
@@ -203,6 +205,33 @@ is_localization_initial
   (of.is_localization_data (powers (some BV)))
   (of : R → (structure_presheaf_on_basis R).F BV)
   (structure_presheaf.inverts_data BV)
+
+-- Map from R[1/g] to R[1/S(D(g))].
+
+lemma another.inverts_data
+: inverts_data 
+    (S V) 
+    (of : R → localization R (powers (some BV))) :=
+begin
+  rintros ⟨s, Hs⟩,
+  rw some_spec BV at Hs,
+  replace Hs : Spec.DO R (some BV) ⊆ Spec.DO R s := Hs,
+  have H := inverts.of_Dfs_subset Hs ⟨s, ⟨1, pow_one s⟩⟩,
+  rcases (indefinite_description _ H) with ⟨sinv, Hsinv⟩,
+  exact ⟨sinv, Hsinv⟩,
+end
+
+def structure_presheaf.to_map 
+: localization R (S V)
+→ localization R ((powers (some BV))) :=
+is_localization_initial 
+  (S V)
+  (of : R → localization R (S V))
+  (of.is_localization_data (S V))
+  (of : R → localization R (powers (some BV)))
+  (another.inverts_data R BV)
+
+
 
 include BV H
 
@@ -252,6 +281,10 @@ is_localization_initial
   (structure_presheaf.localization BU)
   (of : R → (structure_presheaf_on_basis R).F BV)
   (structure_presheaf.inverts_data.of_basis_subset R BU BV H)
+
+instance structure_presheaf_on_basis.res.is_ring_hom 
+: is_ring_hom (structure_presheaf_on_basis.res R BU BV H) :=
+by simp [structure_presheaf_on_basis.res]; by apply_instance
 
 -- The restriction maps are actually the unique ring homomorphism coming from
 -- the universal property.
@@ -324,5 +357,79 @@ begin
 
   ring,
 end
+
+end more_maps
+
+lemma structure_presheaf_on_basis.res_eq'
+: (structure_presheaf_on_basis R).res = @structure_presheaf_on_basis.res R _ :=
+begin
+  iterate 5 { apply funext; intro, },
+  apply structure_presheaf_on_basis.res_eq,
+end
+
+-- Needed.
+
+variables {U V : opens (Spec R)} (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (H : V ⊆ U)
+
+lemma structure_presheaf.res.inverts_data
+: inverts_data 
+    (powers (of (some BU))) 
+    (structure_presheaf_on_basis.res R BU BV H) :=
+begin
+  rintros ⟨s, Hs⟩,
+  rcases (indefinite_description _ Hs) with ⟨n, Hn⟩,
+  rw ←@is_semiring_hom.map_pow R _ _ _ of (@is_ring_hom.is_semiring_hom _ _ _ _ of of.is_ring_hom) _ _ at Hn,
+  dsimp only [subtype.coe_mk],
+  rw ←Hn,
+  dsimp [structure_presheaf_on_basis.res],
+  rw is_localization_initial_comp,
+  have Hinv := inverts_data.of_basis_subset BU BV H ⟨(some BU)^n, ⟨n, rfl⟩⟩,
+  dsimp only [subtype.coe_mk] at Hinv,
+  rcases Hinv with ⟨inv, Hinv⟩,
+  let x := structure_presheaf.map_to R BV inv,
+  sorry,
+  -- use x,
+  -- have := 
+  --   is_localization_initial_comp 
+  --     (S V)
+  --     (of : R → localization R ())
+  --     (of.is_localization_data (S V))
+  --     (of : R → localization R (powers (some BV)))
+  --     (another.inverts_data R BV)
+  --     (some BU ^ n),
+  -- rw ←this,
+  -- rw Hn,
+  -- rw is_ring_hom.map_mul 
+  --   (is_localization_initial 
+  --     (powers (some BV))
+  --     (of : R → localization R (powers (some BV)))
+  --     (of.is_localization_data (powers (some BV)))
+  --     (of : R → (structure_presheaf_on_basis R).F BV)
+  --     (structure_presheaf.inverts_data BV)),
+end
+
+lemma structure_presheaf.res.has_denom_data
+: has_denom_data 
+    (powers (of (some BU))) 
+    (structure_presheaf_on_basis.res R BU BV H) :=
+begin
+  intros x,
+  sorry,
+end
+
+lemma structure_presheaf.res.ker_le
+: ker (structure_presheaf_on_basis.res R BU BV H) ≤ submonoid_ann (powers (of (some BU))) :=
+begin 
+  intros x Hx,
+  sorry,
+end
+
+lemma structure_presheaf.res.localization
+: is_localization_data 
+    (powers (of (some BU))) 
+    (structure_presheaf_on_basis.res R BU BV H) :=
+{ inverts := structure_presheaf.res.inverts_data R BU BV H,
+  has_denom := structure_presheaf.res.has_denom_data R BU BV H, 
+  ker_le := structure_presheaf.res.ker_le R BU BV H }
 
 end structure_presheaf
