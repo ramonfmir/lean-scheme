@@ -128,12 +128,11 @@ begin
         
     --   rw localization.structure_presheaf_on_basis.res' at Hst,
       --exact (Hst i),
-      sorry,
-    
 
-    sorry, },
+    },
   { intros s,
-    sorry,
+    
+    intros Hs,
 
    }
 end
