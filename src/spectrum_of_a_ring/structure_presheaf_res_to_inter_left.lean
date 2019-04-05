@@ -65,7 +65,7 @@ section res_to_inter_left_eq
 
 variables {R : Type u} [comm_ring R]
 
-lemma structure_presheaf_on_basis.res_inter_left_eq
+lemma structure_presheaf_on_basis.res_to_inter_left_eq
 : @sheaf_on_standard_basis.res_to_inter_left (Spec R) _ (D_fs R) _
     (D_fs_standard_basis R) 
     (structure_presheaf_on_basis R).to_presheaf_on_basis

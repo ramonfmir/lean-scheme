@@ -4,6 +4,10 @@ import spectrum_of_a_ring.induced_homeomorphism
 import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_sheaf_condition
 import spectrum_of_a_ring.structure_sheaf_locality
+import spectrum_of_a_ring.structure_sheaf_gluing
+import spectrum_of_a_ring.structure_presheaf_res_to_inter
+import spectrum_of_a_ring.structure_presheaf_res_to_inter_left
+import spectrum_of_a_ring.structure_presheaf_res_to_inter_right
 
 universe u
 
@@ -14,6 +18,8 @@ variables {R : Type u} [comm_ring R]
 open topological_space
 open localization_alt
 open sheaf_on_standard_basis
+open localization
+open classical
 
 section structure_sheaf 
 
@@ -75,17 +81,27 @@ begin
   -- Now we can apply covering lemmas.
 
   let αi := λ i, structure_presheaf_on_basis.res BU (OC.BUis i) (subset_covering i),
-  let Rfis := λ i, localization R (S (OC.Uis i)),
+  let Rfi := λ i, localization R (S (OC.Uis i)),
 
-  have := λ i, structure_presheaf.localization (OC.BUis i),
-
-  have : Π i, is_localization_data (powers (g' i)) (αi i) 
+  have Hlocres : Π i, is_localization_data (powers (g' i)) (αi i) 
     := λ i, structure_presheaf.res.localization BU (OC.BUis i) (subset_covering i),
 
   have Hsc₁ := 
-    @standard_covering₁ Rf _ _ Hγ g' Rfis _ αi _ this Hcov,
+    @standard_covering₁ Rf _ _ Hγ g' Rfi _ αi _ Hlocres Hcov,
     -- _ _ Hγ OC.Uis Rfis _ αi _ 
       --(λ i, structure_presheaf.localization (OC.BUis i)),
+
+  let Rfij := λ i j, localization R (S ((OC.Uis i) ∩ (OC.Uis j))),
+
+  let βij := 
+    λ i j, structure_presheaf_on_basis.res_to_inter BU (OC.BUis i) (OC.BUis j) (subset_covering i) (subset_covering j),
+
+  have Hlocres_to_inter 
+    := λ i j, structure_presheaf.res_to_inter.localization 
+        BU (OC.BUis i) (OC.BUis j) (subset_covering i) (subset_covering j),
+
+  have Hsc₂ :=
+    @standard_covering₂ Rf _ _ Hγ g' Rfi _ αi _ Hlocres Rfij _ βij _ Hlocres_to_inter Hcov,
 
   constructor,
   { intros s t Hst,
@@ -100,7 +116,7 @@ begin
 
     -- TODO unfold inside Hst....
 
-    let α' := @α Rf _ _ Hγ Rfis _ αi _,
+    let α' := @α Rf _ _ Hγ Rfi _ αi _,
 
     suffices Hsuff : α' s = α' t,
       exact (Hsc₁ Hsuff),
@@ -111,7 +127,7 @@ begin
     simp [α, αi],
 
     replace Hst := Hst i,
-    rw ←structure_presheaf_on_basis.res_eq R BU,
+    rw ←structure_presheaf_on_basis.res_eq,
     exact Hst,
 
     -- have : (λ i, (k i) s) = (λ i, (k i) t_1),
@@ -136,6 +152,53 @@ begin
     
     intros Hs,
 
+    have H := (Hsc₂ s).1,
+
+    let β' := @β Rf _ _ Hγ g' Rfi _ αi _ Hlocres Rfij _ βij _ Hlocres_to_inter,
+
+    have : β' s = 0,
+      simp [β', β, -sub_eq_add_neg, sub_eq_zero, β1, β2],
+      apply funext, intro j,
+      apply funext, intro k,
+      have H' := Hs j k,
+      --have := (structure_presheaf_on_basis R).Hcomp,
+      --dsimp only [sheaf_on_standard_basis.res_to_inter_left] at H', 
+      --dsimp only [sheaf_on_standard_basis.res_to_inter_right] at H',
+      -- have Hrw1 := 
+      --   (structure_presheaf_on_basis R).Hcomp 
+      --     BU (OC.BUis j) ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k))
+      --     (set.inter_subset_left _ _) (subset_covering _),
+      rw structure_presheaf_on_basis.res_to_inter_left_eq at H',
+      rw structure_presheaf_on_basis.res_to_inter_right_eq at H',
+      dsimp [structure_presheaf_on_basis.res_to_inter_left] at H',
+      dsimp [structure_presheaf_on_basis.res_to_inter_right] at H',
+      --rw structure_presheaf_on_basis.res_eq at H',
+      --dsimp only [structure_presheaf_on_basis.res] at H',
+      --dsimp [βij, structure_presheaf_on_basis.res_to_inter],
+      dsimp [βij, αi],
+      have := structure_presheaf_on_basis.res_to_inter_eq_left
+        BU (OC.BUis j) (OC.BUis k) (subset_covering j) (subset_covering k),
+
+
+
+
+      --convert  is_localization_unique,
+      -- dsimp [βij, structure_presheaf_on_basis.res_to_inter, αi],
+      -- dsimp [structure_presheaf_on_basis.res],
+      
+      --have evox := (@inverts_powers1 Rf _ _ Hγ g' Rfij _ βij _  Hlocres_to_inter j k),
+      --have := is_localization_initial_comp (powers (g' k)) (αi k) (Hlocres k) (βij j k) evox,
+      sorry,
+
+    have H''' := H this,
+    rcases H''' with ⟨S, HS⟩,
+    use S,
+    intros i,
+    replace HS := (congr_fun HS) i,
+    dsimp [α, αi] at HS,
+    rw structure_presheaf_on_basis.res_eq,
+    exact HS,
+    
    }
 end
 

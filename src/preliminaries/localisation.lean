@@ -224,6 +224,9 @@ begin
   rw [←hb, mul_comm, ←mul_assoc, mul_comm si, hsi, one_mul]
 end
 
+-- theorem is_localization_unique' (hf : is_localization_data S f) (h : B → C) [is_ring_hom h] (b : B) :
+
+
 end localization_initial
 
 end localization_alt

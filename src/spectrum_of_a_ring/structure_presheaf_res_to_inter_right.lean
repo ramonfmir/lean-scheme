@@ -25,7 +25,7 @@ include BU BV
 
 -- V ⊆ U → S(U) ⊆ R[1/S(V ∩ U)]*.
 
-def inverts_data.res_inter_left.of_basis_subset
+def inverts_data.res_inter_right.of_basis_subset
 : inverts_data 
     (S V) 
     (of : R → localization R (S (U ∩ V))) :=
@@ -51,7 +51,7 @@ is_localization_initial
   (of : R → localization R (S V))
   (of.is_localization_data (S V))
   (of : R → localization R (S (U ∩ V)))
-  (inverts_data.res_inter_left.of_basis_subset BU BV)
+  (inverts_data.res_inter_right.of_basis_subset BU BV)
 
 instance structure_presheaf_on_basis.res_inter_right.is_ring_hom 
 : is_ring_hom (structure_presheaf_on_basis.res_to_inter_right BU BV) :=
@@ -65,7 +65,7 @@ section res_to_inter_right_eq
 
 variables {R : Type u} [comm_ring R]
 
-lemma structure_presheaf_on_basis.res_inter_right_eq
+lemma structure_presheaf_on_basis.res_to_inter_right_eq
 : @sheaf_on_standard_basis.res_to_inter_right (Spec R) _ (D_fs R) _
     (D_fs_standard_basis R) 
     (structure_presheaf_on_basis R).to_presheaf_on_basis
@@ -83,7 +83,7 @@ begin
   -- Destruct.
   simp [structure_presheaf_on_basis.res_to_inter_right, is_localization_initial],
   rcases ((of.is_localization_data (S V)).has_denom ⟦(a, b)⟧) with ⟨⟨q, p⟩, Hpq⟩,
-  rcases inverts_data.res_inter_left.of_basis_subset BU BV q with ⟨w, Hw⟩,
+  rcases inverts_data.res_inter_right.of_basis_subset BU BV q with ⟨w, Hw⟩,
   dsimp only [subtype.coe_mk] at *,
   revert Hw,
   -- Induction on w.

@@ -12,7 +12,7 @@ open classical
 open localization
 open localization_alt
 
-section localization_map
+section res
 
 -- We are given U and V in {D(f)} and V ⊆ U and we generalize the results that
 -- we already proved in properties. We deduce that there's a map from
@@ -86,9 +86,9 @@ instance structure_presheaf_on_basis.res.is_ring_hom
 : is_ring_hom (structure_presheaf_on_basis.res BU BV H) :=
 by simp [structure_presheaf_on_basis.res]; by apply_instance
 
-end localization_map
+end res
 
-section restriction_map
+section res_eq
 
 variables {R : Type u} [comm_ring R]
 
@@ -135,4 +135,4 @@ begin
   ring,
 end
 
-end restriction_map
+end res_eq

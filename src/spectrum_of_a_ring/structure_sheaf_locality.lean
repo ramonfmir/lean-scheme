@@ -2,7 +2,7 @@ import ring_theory.localization
 import preliminaries.localisation
 import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_presheaf_localization
-import spectrum_of_a_ring.structure_presheaf_restriction
+import spectrum_of_a_ring.structure_presheaf_res
 
 universe u
 
