@@ -41,6 +41,16 @@ lemma S.rev_mono {U V : opens (Spec R)} (HVU : V ⊆ U) : S U ⊆ S V :=
 
 lemma S.f_mem (f : R) : f ∈ S (Spec.DO R (f)) := set.subset.refl _
 
+lemma S.inter_subset_Sinter (U V : opens (Spec R)) : (S U) ∩ (S V) ⊆ S (U ∩ V) :=
+begin
+  rintros x ⟨HxU, HxV⟩,
+  change U ⊆ Spec.DO R (x) at HxU,
+  change V ⊆ Spec.DO R (x) at HxV,
+  have H := set.inter_subset_inter HxU HxV,
+  rw set.inter_self at H,
+  exact H,
+end
+
 -- Structure presheaf on Spec(R) defined on the basis by the rule ℱ(U) = R[1/S(U)].
 
 variable (R)
