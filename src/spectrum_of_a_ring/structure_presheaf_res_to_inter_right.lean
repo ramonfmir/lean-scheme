@@ -1,5 +1,8 @@
 import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_presheaf_localization
+import spectrum_of_a_ring.structure_presheaf_res
+import spectrum_of_a_ring.structure_presheaf_res_to_inter
+import spectrum_of_a_ring.structure_sheaf_locality
 
 universe u
 
@@ -19,9 +22,13 @@ section res_to_inter_right
 -- R[1/S(V)] to R[1/S(V ∩ U)].
 
 variables {R : Type u} [comm_ring R]
-variables {U V : opens (Spec R)} (BU : U ∈ D_fs R) (BV : V ∈ D_fs R)
+variables {U V W : opens (Spec R)} 
+variables (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (BW : W ∈ D_fs R)
+variables (HVU : V ⊆ U) (HWU : W ⊆ U)
 
-include BU BV
+#check structure_presheaf_on_basis.res BU BW HWU -- loc  (powers (of (some BV))) 
+
+include BU BV BW HVU
 
 -- V ⊆ U → S(U) ⊆ R[1/S(V ∩ U)]*.
 
@@ -43,15 +50,35 @@ end
 
 -- The induced map is the restriction map in the structure presheaf.
 
+def structure_presheaf_on_basis.res_to_inter_right'
+: localization R (S W) 
+→ localization R (S (V ∩ W)) :=
+is_localization_initial 
+  -- S
+  (powers (of (some BV))) 
+  -- A → B
+  (structure_presheaf_on_basis.res BU BW HWU) 
+  -- B = A[1/S]
+  (structure_presheaf.res.localization BU BW HWU)
+  -- A → C
+  (structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU)
+  -- C inverts S
+  (inverts_data.res_inter_right.of_basis_subset BU BV BW HVU)
+
 def structure_presheaf_on_basis.res_to_inter_right
 : localization R (S V) 
 → localization R (S (U ∩ V)) :=
 is_localization_initial 
+  -- S
   (S V)
-  (of : R → localization R (S V))
+  -- A → B
+  (of : R → localization R (S V)) 
+  -- B = A[1/S]
   (of.is_localization_data (S V))
+  -- A → C
   (of : R → localization R (S (U ∩ V)))
-  (inverts_data.res_inter_right.of_basis_subset BU BV)
+  -- C inverts S
+  (inverts_data.res_inter_right.of_basis_subset BU BV BW HVU)
 
 instance structure_presheaf_on_basis.res_inter_right.is_ring_hom 
 : is_ring_hom (structure_presheaf_on_basis.res_to_inter_right BU BV) :=

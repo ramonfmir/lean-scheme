@@ -2,7 +2,6 @@ import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_presheaf_localization
 import spectrum_of_a_ring.structure_presheaf_res
 import spectrum_of_a_ring.structure_presheaf_res_to_inter_left
-import spectrum_of_a_ring.structure_presheaf_res_to_inter_right
 
 universe u
 
@@ -25,6 +24,8 @@ variables {R : Type u} [comm_ring R]
 variables {U V W : opens (Spec R)} 
 variables (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (BW : W ∈ D_fs R)
 variables (HVU : V ⊆ U) (HWU : W ⊆ U)
+
+#check structure_presheaf_on_basis.res BU BV HVU -- loc  (powers (of (some BV))) 
 
 include BU BV BW HVU HWU
 
@@ -78,18 +79,18 @@ begin
 end
 
 
-lemma structure_presheaf_on_basis.res_to_inter_eq_right :
-  structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU 
-= structure_presheaf_on_basis.res_to_inter_right BV BW
-∘ structure_presheaf_on_basis.res BU BW HWU :=
-begin
-  sorry,
-end
+-- lemma structure_presheaf_on_basis.res_to_inter_eq_right :
+--   structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU 
+-- = structure_presheaf_on_basis.res_to_inter_right BV BW
+-- ∘ structure_presheaf_on_basis.res BU BW HWU :=
+-- begin
+--   sorry,
+-- end
 
-lemma structure_presheaf_on_basis.res_to_inter_eq_right' : ∀ a : R,
-  structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU a
-= structure_presheaf_on_basis.res_to_inter_right BV BW
-  (structure_presheaf_on_basis.res BU BW HWU a):=
-begin
-  sorry,
-end
+-- lemma structure_presheaf_on_basis.res_to_inter_eq_right' : ∀ a : R,
+--   structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU a
+-- = structure_presheaf_on_basis.res_to_inter_right BV BW
+--   (structure_presheaf_on_basis.res BU BW HWU a):=
+-- begin
+--   sorry,
+-- end
