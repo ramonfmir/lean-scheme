@@ -28,7 +28,64 @@ variables (HVU : V ⊆ U) (HWU : W ⊆ U)
 
 #check structure_presheaf_on_basis.res BU BW HWU -- loc  (powers (of (some BV))) 
 
-include BU BV BW HVU
+include BU BV 
+
+section testt
+
+include BW HVU
+
+-- The induced map is the restriction map in the structure presheaf.
+
+lemma structure_presheaf.res_to_inter.inverts_data
+: inverts_data 
+    (powers (of (some BW))) 
+    (structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU) :=
+begin
+  rintros ⟨s, Hs⟩,
+  rcases (indefinite_description _ Hs) with ⟨n, Hn⟩,
+  rw ←is_semiring_hom.map_pow (of : R → localization R (S U)) at Hn,
+  dsimp only [subtype.coe_mk, structure_presheaf_on_basis.res_to_inter],
+  rw ←Hn,
+  rw is_localization_initial_comp,
+  let g := some BW,
+  have HgnSV : g^n ∈ S W,
+    apply @is_submonoid.pow_mem _ _ _ _,
+    rw some_spec BW,
+    exact set.subset.refl _,
+  have HUVV : V ∩ W ⊆ W := set.inter_subset_right V W,
+  have HSVSUV := S.rev_mono HUVV,
+  have HgnSUV := HSVSUV HgnSV,
+  
+  use ⟦⟨1, ⟨g^n, HgnSUV⟩⟩⟧,
+  apply quotient.sound,
+  use [1, is_submonoid.one_mem _],
+  simp,
+end
+
+#check structure_presheaf.res.localization BU BW HWU
+
+def structure_presheaf_on_basis.res_to_inter_right'
+: localization R (S W) 
+→ localization R (S (V ∩ W)) :=
+is_localization_initial 
+  -- S
+  (powers (of (some BW))) 
+  -- A → B
+  (structure_presheaf_on_basis.res BU BW HWU) 
+  -- B = A[1/S]
+  (structure_presheaf.res.localization BU BW HWU)
+  -- A → C
+  (structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU)
+  -- C inverts S
+  (structure_presheaf.res_to_inter.inverts_data BU BV BW HVU HWU)
+
+section res_to_inter_right_eq'
+
+
+
+end res_to_inter_right_eq'
+
+end testt
 
 -- V ⊆ U → S(U) ⊆ R[1/S(V ∩ U)]*.
 
@@ -48,23 +105,6 @@ begin
   simp,
 end
 
--- The induced map is the restriction map in the structure presheaf.
-
-def structure_presheaf_on_basis.res_to_inter_right'
-: localization R (S W) 
-→ localization R (S (V ∩ W)) :=
-is_localization_initial 
-  -- S
-  (powers (of (some BV))) 
-  -- A → B
-  (structure_presheaf_on_basis.res BU BW HWU) 
-  -- B = A[1/S]
-  (structure_presheaf.res.localization BU BW HWU)
-  -- A → C
-  (structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU)
-  -- C inverts S
-  (inverts_data.res_inter_right.of_basis_subset BU BV BW HVU)
-
 def structure_presheaf_on_basis.res_to_inter_right
 : localization R (S V) 
 → localization R (S (U ∩ V)) :=
@@ -78,7 +118,7 @@ is_localization_initial
   -- A → C
   (of : R → localization R (S (U ∩ V)))
   -- C inverts S
-  (inverts_data.res_inter_right.of_basis_subset BU BV BW HVU)
+  (inverts_data.res_inter_right.of_basis_subset BU BV)
 
 instance structure_presheaf_on_basis.res_inter_right.is_ring_hom 
 : is_ring_hom (structure_presheaf_on_basis.res_to_inter_right BU BV) :=
@@ -141,3 +181,25 @@ begin
 end
 
 end res_to_inter_right_eq
+
+
+section oooo
+
+variables {R : Type u} [comm_ring R]
+variables {U V W : opens (Spec R)} 
+variables (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (BW : W ∈ D_fs R)
+variables (HVU : V ⊆ U) (HWU : W ⊆ U)
+
+lemma structure_presheaf_on_basis.res_to_inter_right_eq'
+: sheaf_on_standard_basis.res_to_inter_right (D_fs_standard_basis R)
+    (structure_presheaf_on_basis R).to_presheaf_on_basis BV BW
+  = structure_presheaf_on_basis.res_to_inter_right' BU BV BW HVU HWU :=
+begin
+  have BUV := (D_fs_standard_basis R).2 BU BV,
+  rw structure_presheaf_on_basis.res_to_inter_right_eq,
+  apply funext, intro x,
+  dsimp [structure_presheaf_on_basis.res_to_inter_right],
+  dsimp [structure_presheaf_on_basis.res_to_inter_right'],
+end
+
+end oooo
