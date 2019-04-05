@@ -186,48 +186,19 @@ section beta_kernel_image_alpha
 -- R[1/f1f1], ..., R[1/fnfn]
 parameters {Rfij : γ → γ → Type w} [Π i j, comm_ring (Rfij i j)]
 parameters {φij : Π i j, R → (Rfij i j)} [Π i j, is_ring_hom (φij i j)]
-parameters (Hlocφ : Π i j, is_localization (powers ((f i)*(f j))) (φij i j))
-parameters (Hlocφ' : Π i j, is_localization_data (powers ((f i)*(f j))) (φij i j))
+--parameters (Hlocφ' : Π i j, is_localization_data (powers ((f i)*(f j))) (φij i j))
 
-include Hlocφ'
+parameters (β1ij : Π i j, Rfi i → Rfij i j) [Π i j, is_ring_hom (β1ij i j)]
+parameters (β2ij : Π i j, Rfi j → Rfij i j) [Π i j, is_ring_hom (β2ij i j)]
 
--- fj is invertible in R[1/fifj].
+parameters (Hlocβ1 : Π i j, is_localization_data (powers (αi i (f j))) (β1ij i j))
+parameters (Hlocβ2 : Π i j, is_localization_data (powers (αi j (f i))) (β2ij i j))
 
-noncomputable def inverts_powers1 : Π i j, inverts_data (powers (f j)) (φij i j) :=
-λ i j r,
-begin
-  rcases r with ⟨r, Hr⟩,
-  rcases (classical.indefinite_description _ Hr) with ⟨n, Hn⟩,
-  rcases ((Hlocφ' i j).inverts ⟨((f i)*(f j))^n, ⟨n , by simp⟩⟩) with ⟨w, Hw⟩,
-  use ((φij i j ((f i)^n)) * w),
-  simp,
-  simp at Hw,
-  rw [←Hn, ←mul_assoc, ←is_ring_hom.map_mul (φij i j), ←mul_pow, mul_comm (f j)],
-  exact Hw,
-end
+def β1 : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r i j, β1ij i j (r i)
 
--- fi is invertible in R[1/fifj].
+def β2 : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r i j, β2ij i j (r j)
 
-noncomputable def inverts_powers2 : Π i j, inverts_data (powers (f i)) (φij i j) :=
-λ i j r,
-begin
-  cases r with r Hr,
-  cases (classical.indefinite_description _ Hr) with n Hn,
-  cases ((Hlocφ' i j).inverts ⟨((f i)*(f j))^n, ⟨n , by simp⟩⟩) with w Hw,
-  use ((φij i j ((f j)^n)) * w),
-  simp,
-  simp at Hw,
-  rw [←Hn, ←mul_assoc, ←is_ring_hom.map_mul (φij i j), ←mul_pow],
-  exact Hw,
-end
-
-noncomputable def β1 : (Π i, Rfi i) → (Π i j, Rfij i j)
-:= λ ri i j, (is_localization_initial (powers (f j)) (αi j) (Hlocα' j) (φij i j) (inverts_powers1 i j)) (ri j)
-
-noncomputable def β2 : (Π i, Rfi i) → (Π i j, Rfij i j)
-:= λ ri i j, (is_localization_initial (powers (f i)) (αi i) (Hlocα' i) (φij i j) (inverts_powers2 i j)) (ri i)
-
-noncomputable def β : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r, (β1 r) - (β2 r) 
+def β : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r, (β1 r) - (β2 r) 
 
 lemma standard_covering₂.aux (s : Π i, Rfi i)
 : ∀ i j, (β1 s i j = β2 s i j → 

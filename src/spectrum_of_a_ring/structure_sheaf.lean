@@ -179,7 +179,7 @@ begin
       have := structure_presheaf_on_basis.res_to_inter_eq_left
         BU (OC.BUis j) (OC.BUis k) (subset_covering j) (subset_covering k),
 
-
+      have := structure_presheaf.res.inverts_data,
 
 
       --convert  is_localization_unique,
