@@ -191,8 +191,8 @@ parameters {φij : Π i j, R → (Rfij i j)} [Π i j, is_ring_hom (φij i j)]
 parameters (β1ij : Π i j, Rfi i → Rfij i j) [Π i j, is_ring_hom (β1ij i j)]
 parameters (β2ij : Π i j, Rfi j → Rfij i j) [Π i j, is_ring_hom (β2ij i j)]
 
-parameters (Hlocβ1 : Π i j, is_localization_data (powers (αi i (f j))) (β1ij i j))
-parameters (Hlocβ2 : Π i j, is_localization_data (powers (αi j (f i))) (β2ij i j))
+parameters (Hlocβ1 : Π i j, is_localization_data (powers ((αi i (f i)) * (αi i (f j)))) (β1ij i j))
+parameters (Hlocβ2 : Π i j, is_localization_data (powers ((αi j (f i)) * (αi j (f j)))) (β2ij i j))
 
 def β1 : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r i j, β1ij i j (r i)
 
@@ -200,84 +200,84 @@ def β2 : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r i j, β2ij i j (r j)
 
 def β : (Π i, Rfi i) → (Π i j, Rfij i j) := λ r, (β1 r) - (β2 r) 
 
-lemma standard_covering₂.aux (s : Π i, Rfi i)
-: ∀ i j, (β1 s i j = β2 s i j → 
-  ∃ n : ℕ,
-    (((Hlocα' j).has_denom (s j)).1.2 * ((Hlocα' i).has_denom (s i)).1.1 -
-     ((Hlocα' i).has_denom (s i)).1.2 * ((Hlocα' j).has_denom (s j)).1.1) *
-     ((f i) * (f j))^n = 0) := 
-begin
-  intros i j,
-  simp [β1, β2, is_localization_initial],
-  rcases ((Hlocα' i).has_denom (s i)) with ⟨⟨q1, p1⟩, Hp1q1⟩,
-  rcases ((Hlocα' j).has_denom (s j)) with ⟨⟨q2, p2⟩, Hp2q2⟩,
-  simp at Hp1q1,
-  simp at Hp2q2,
-  dsimp [subtype.coe_mk],
-  rcases ((Hlocα' i).inverts q1) with ⟨w1, Hw1⟩,
-  rcases ((Hlocα' j).inverts q2) with ⟨w2, Hw2⟩,
-  rcases (inverts_powers2 i j q1) with ⟨v1, Hv1⟩,
-  rcases (inverts_powers1 i j q2) with ⟨v2, Hv2⟩,
-  dsimp [subtype.coe_mk],
-  intros H,
-  have Hker : φij i j (p2 * q1 - p1 * q2) = 0,
-    rw is_ring_hom.map_sub (φij i j),
-    iterate 2 { rw is_ring_hom.map_mul (φij i j), },
-    rw [sub_eq_zero, ←one_mul (_ * _), ←Hv2, ←mul_assoc, mul_assoc _ v2 _, mul_comm v2],
-    rw [H, ←mul_assoc, mul_assoc _ v1 _, mul_comm v1],
-    rw [Hv1, mul_one, mul_comm],
-  replace Hker : _ ∈ ker (φij i j) := Hker,
-  replace Hker := (Hlocφ' i j).ker_le Hker,
-  rcases Hker with ⟨⟨⟨u, v⟩, Huv⟩, Hzer⟩,
-  dsimp at Huv,
-  dsimp only [subtype.coe_mk] at Hzer,
-  rw Hzer at Huv,
-  rcases v with ⟨v, ⟨n, Hn⟩⟩,
-  dsimp only [subtype.coe_mk] at Huv,
-  rw ←Hn at Huv,
-  use n,
-  exact Huv,
-end
+-- lemma standard_covering₂.aux (s : Π i, Rfi i)
+-- : ∀ i j, (β1 s i j = β2 s i j → 
+--   ∃ n : ℕ,
+--     (((Hlocα' j).has_denom (s j)).1.2 * ((Hlocα' i).has_denom (s i)).1.1 -
+--      ((Hlocα' i).has_denom (s i)).1.2 * ((Hlocα' j).has_denom (s j)).1.1) *
+--      ((f i) * (f j))^n = 0) := 
+-- begin
+--   intros i j,
+--   simp [β1, β2, is_localization_initial],
+--   rcases ((Hlocα' i).has_denom (s i)) with ⟨⟨q1, p1⟩, Hp1q1⟩,
+--   rcases ((Hlocα' j).has_denom (s j)) with ⟨⟨q2, p2⟩, Hp2q2⟩,
+--   simp at Hp1q1,
+--   simp at Hp2q2,
+--   dsimp [subtype.coe_mk],
+--   rcases ((Hlocα' i).inverts q1) with ⟨w1, Hw1⟩,
+--   rcases ((Hlocα' j).inverts q2) with ⟨w2, Hw2⟩,
+--   rcases (inverts_powers2 i j q1) with ⟨v1, Hv1⟩,
+--   rcases (inverts_powers1 i j q2) with ⟨v2, Hv2⟩,
+--   dsimp [subtype.coe_mk],
+--   intros H,
+--   have Hker : φij i j (p2 * q1 - p1 * q2) = 0,
+--     rw is_ring_hom.map_sub (φij i j),
+--     iterate 2 { rw is_ring_hom.map_mul (φij i j), },
+--     rw [sub_eq_zero, ←one_mul (_ * _), ←Hv2, ←mul_assoc, mul_assoc _ v2 _, mul_comm v2],
+--     rw [H, ←mul_assoc, mul_assoc _ v1 _, mul_comm v1],
+--     rw [Hv1, mul_one, mul_comm],
+--   replace Hker : _ ∈ ker (φij i j) := Hker,
+--   replace Hker := (Hlocφ' i j).ker_le Hker,
+--   rcases Hker with ⟨⟨⟨u, v⟩, Huv⟩, Hzer⟩,
+--   dsimp at Huv,
+--   dsimp only [subtype.coe_mk] at Hzer,
+--   rw Hzer at Huv,
+--   rcases v with ⟨v, ⟨n, Hn⟩⟩,
+--   dsimp only [subtype.coe_mk] at Huv,
+--   rw ←Hn at Huv,
+--   use n,
+--   exact Huv,
+-- end
 
-lemma standard_covering₂.aux₂ (s : Π i, Rfi i)
-: (∀ i j, β1 s i j = β2 s i j) → 
-  ∃ N : ℕ, ∀ i j,
-    (((Hlocα' j).has_denom (s j)).1.2 * ((Hlocα' i).has_denom (s i)).1.1 -
-     ((Hlocα' i).has_denom (s i)).1.2 * ((Hlocα' j).has_denom (s j)).1.1) *
-     ((f i) * (f j))^N = 0 := 
-begin
-  intros Hs,
-  let n : γ × γ → ℕ := λ ij, classical.some (standard_covering₂.aux s ij.1 ij.2 (Hs ij.1 ij.2)),
-  let N := finset.sum (@finset.univ (γ × γ) _) n,
-  use N,
-  intros i j,
-  have Hn : ∀ i j, n (i, j) ≤ N,
-    intros i j,
-    exact finset.single_le_sum (λ _ _, nat.zero_le _) (finset.mem_univ (i, j)),
-  rw [←nat.sub_add_cancel (Hn i j), add_comm, pow_add, ←mul_assoc],
-  rw [classical.some_spec (standard_covering₂.aux s i j (Hs i j)), zero_mul],
-end
+-- lemma standard_covering₂.aux₂ (s : Π i, Rfi i)
+-- : (∀ i j, β1 s i j = β2 s i j) → 
+--   ∃ N : ℕ, ∀ i j,
+--     (((Hlocα' j).has_denom (s j)).1.2 * ((Hlocα' i).has_denom (s i)).1.1 -
+--      ((Hlocα' i).has_denom (s i)).1.2 * ((Hlocα' j).has_denom (s j)).1.1) *
+--      ((f i) * (f j))^N = 0 := 
+-- begin
+--   intros Hs,
+--   let n : γ × γ → ℕ := λ ij, classical.some (standard_covering₂.aux s ij.1 ij.2 (Hs ij.1 ij.2)),
+--   let N := finset.sum (@finset.univ (γ × γ) _) n,
+--   use N,
+--   intros i j,
+--   have Hn : ∀ i j, n (i, j) ≤ N,
+--     intros i j,
+--     exact finset.single_le_sum (λ _ _, nat.zero_le _) (finset.mem_univ (i, j)),
+--   rw [←nat.sub_add_cancel (Hn i j), add_comm, pow_add, ←mul_assoc],
+--   rw [classical.some_spec (standard_covering₂.aux s i j (Hs i j)), zero_mul],
+-- end
 
-lemma standard_covering₂.aux₃ (s : Π i, Rfi i)
-: (∀ i j, β1 s i j = β2 s i j) → 
-  ∃ N : ℕ, ∀ i j,
-    (((Hlocα' j).has_denom (s j)).1.2 * (f j)^N * ((Hlocα' i).has_denom (s i)).1.1 * (f i)^N =
-     ((Hlocα' i).has_denom (s i)).1.2 * (f i)^N * ((Hlocα' j).has_denom (s j)).1.1 * (f j)^N) := 
-begin
-  intros H,
-  rcases (standard_covering₂.aux₂ s H) with ⟨N, HN⟩,
-  existsi N,
-  intros i j,
-  replace HN := HN i j,
-  rw [sub_mul, sub_eq_zero] at HN,
-  rw [mul_assoc _ (f i ^ N) _, mul_assoc _ (f j ^ N) _],
-  rw [mul_comm (f i ^ N), mul_comm (f j ^ N), ←mul_assoc, ←mul_assoc], 
-  rw [mul_assoc _ _ (f i ^ N), ←mul_pow, mul_comm (f j)],
-  rw [mul_assoc _ _ (f j ^ N), ←mul_pow],
-  exact HN,
-end
+-- lemma standard_covering₂.aux₃ (s : Π i, Rfi i)
+-- : (∀ i j, β1 s i j = β2 s i j) → 
+--   ∃ N : ℕ, ∀ i j,
+--     (((Hlocα' j).has_denom (s j)).1.2 * (f j)^N * ((Hlocα' i).has_denom (s i)).1.1 * (f i)^N =
+--      ((Hlocα' i).has_denom (s i)).1.2 * (f i)^N * ((Hlocα' j).has_denom (s j)).1.1 * (f j)^N) := 
+-- begin
+--   intros H,
+--   rcases (standard_covering₂.aux₂ s H) with ⟨N, HN⟩,
+--   existsi N,
+--   intros i j,
+--   replace HN := HN i j,
+--   rw [sub_mul, sub_eq_zero] at HN,
+--   rw [mul_assoc _ (f i ^ N) _, mul_assoc _ (f j ^ N) _],
+--   rw [mul_comm (f i ^ N), mul_comm (f j ^ N), ←mul_assoc, ←mul_assoc], 
+--   rw [mul_assoc _ _ (f i ^ N), ←mul_pow, mul_comm (f j)],
+--   rw [mul_assoc _ _ (f j ^ N), ←mul_pow],
+--   exact HN,
+-- end
 
-set_option trace.check true
+-- set_option trace.check true
 
 lemma standard_covering₂
 (Hone : (1:R) ∈ ideal.span (set.range f)) (s : Π i, Rfi i)
@@ -285,79 +285,7 @@ lemma standard_covering₂
 begin
   rw finset.coe_image_univ at Hone,
   split,
-  { intros H,
-    suffices Hsuff : ∃ (r : R), ∀ i, α r i = s i,
-      rcases Hsuff with ⟨r, Hr⟩,
-      use r,
-      apply funext,
-      exact Hr,
-    simp [α],
-
-    -- Setting up.
-    replace H := sub_eq_zero.1 H,
-    replace H := congr_fun H,
-    replace H := λ i j, (congr_fun (H i)) j,
-    rcases (standard_covering₂.aux₃ s H) with ⟨N, HN⟩,
-    let r := λ i, classical.some ((Hlocα' i).has_denom (s i)).1.1.2,
-    have Hfiri : ∀ i, ((Hlocα' i).has_denom (s i)).1.1.1 = (f i)^(r i),
-      intros i,
-      simp [classical.some_spec ((Hlocα' i).has_denom (s i)).1.1.2],
-    let t := λ i, ((Hlocα' i).has_denom (s i)).1.2,
-    replace HN : ∀ i j, (t j) * (f j)^N * (f i)^(r i + N) = (t i) * (f i)^N * (f j)^(r j + N),
-      intros i j,
-      iterate 2 { rw pow_add, rw ←mul_assoc, },
-      rw [←Hfiri i, ←Hfiri j],
-      exact (HN i j),
-
-    -- We use the fact that if (ti) = R then (ti') = R.
-    replace Hone := (one_mem_span_pow_of_mem_span f (λ i, r i + N) Hone),
-    rcases (finset.image_sum_of_mem_span Hone) with ⟨a, Ha⟩,
-    dsimp at Ha,
-    use [finset.univ.sum (λ i, a i * (t i) * (f i) ^ N)],
-    intros i,
-
-    -- Note that: si = ti / fi^ri.
-    have Hsi : αi i ((f i)^(r i)) * (s i) = αi i (t i),
-      rw ←Hfiri i,
-      exact ((Hlocα' i).has_denom (s i)).2,
-    
-    -- Multiply the sum by fi^(ri + N) / fi^(ri + N).
-    rcases (Hlocα' i).inverts ⟨(f i)^(r i + N), ⟨r i + N, rfl⟩⟩ with ⟨w, Hw⟩,
-    dsimp only [subtype.coe_mk] at Hw,
-    rw ←mul_one (αi i _ ),
-    rw ←Hw,
-    rw ←mul_assoc,
-    rw ←is_ring_hom.map_mul (αi i),
-    rw finset.sum_mul,
-
-    -- Key part : Σ ax tx' fi' = Σ ax fx' ti'.
-    have Hsum : (λ x, a x * t x * f x ^ N * f i ^ (r i + N)) = 
-                (λ x, a x * f x ^ (r x + N) * (t i * f i ^ N)),
-      apply funext,
-      intros j,
-      iterate 3 { rw mul_assoc (a j) },
-      rw (HN i j),
-      symmetry,
-      rw mul_comm (_ * _),
-    
-    -- Rewrite sum and use the fact that it is one.
-    rw Hsum,
-    rw ←finset.sum_mul,
-    rw is_ring_hom.map_mul (αi i),
-    rw ←Ha,
-    rw is_ring_hom.map_one (αi i),
-    rw one_mul,
-    rw ←mul_one (s i),
-
-    -- Kill it.
-    rw ←Hw,
-    rw pow_add,
-    rw is_ring_hom.map_mul (αi i),
-    rw is_ring_hom.map_mul (αi i),
-    rw ←mul_assoc,
-    rw ←mul_assoc,
-    rw mul_comm (s i),
-    rw Hsi, },
+  { sorry, },
   { rintros ⟨r, Hr⟩,
     rw ←Hr,
     erw sub_eq_zero,
@@ -366,7 +294,7 @@ begin
     apply funext,
     intros j,
     simp [β, α, β1, β2],
-    iterate 2 { rw is_localization_initial_comp, }, }
+    sorry, }
 end
 
 end beta_kernel_image_alpha

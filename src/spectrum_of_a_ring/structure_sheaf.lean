@@ -175,12 +175,34 @@ begin
       --rw structure_presheaf_on_basis.res_eq at H',
       --dsimp only [structure_presheaf_on_basis.res] at H',
       --dsimp [βij, structure_presheaf_on_basis.res_to_inter],
-      dsimp [βij, αi],
-      have := structure_presheaf_on_basis.res_to_inter_eq_left
-        BU (OC.BUis j) (OC.BUis k) (subset_covering j) (subset_covering k),
+      --dsimp [βij, αi],
+      let res := structure_presheaf_on_basis.res BU (OC.BUis j) (subset_covering j),
+      let resk := structure_presheaf_on_basis.res_to_inter_left (OC.BUis j) (OC.BUis k),
 
-      have := structure_presheaf.res.inverts_data,
 
+      --have := structure_presheaf.res.inverts_data,
+      let inverts1 := @inverts_powers1 Rf _ _ Hγ g' Rfij _ βij _ Hlocres_to_inter,
+
+      have :
+        is_localization_initial 
+        (powers (g' k)) 
+        (αi k) 
+        (Hlocres k) 
+        (βij j k) 
+        (inverts1 j k)
+        (s k) 
+      = is_localization_initial 
+        (powers (g' k)) 
+        (αi k) 
+        (Hlocres k) 
+        (resk ∘ res) 
+        (inverts_powers1 Rf Hlocres_to_inter j k)
+        (s k), 
+
+      -- have := is_localization_initial_comp 
+      --   (powers (g' k)) (αi k) (Hlocres k) (βij j k) 
+      --   (@inverts_powers1 Rf _ _ Hγ g' Rfij _ βij _ Hlocres_to_inter j k),
+      -- rw this,
 
       --convert  is_localization_unique,
       -- dsimp [βij, structure_presheaf_on_basis.res_to_inter, αi],

@@ -76,3 +76,20 @@ lemma structure_presheaf_on_basis.res_to_inter_eq_left :
 begin
   sorry,
 end
+
+
+lemma structure_presheaf_on_basis.res_to_inter_eq_right :
+  structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU 
+= structure_presheaf_on_basis.res_to_inter_right BV BW
+∘ structure_presheaf_on_basis.res BU BW HWU :=
+begin
+  sorry,
+end
+
+lemma structure_presheaf_on_basis.res_to_inter_eq_right' : ∀ a : R,
+  structure_presheaf_on_basis.res_to_inter BU BV BW HVU HWU a
+= structure_presheaf_on_basis.res_to_inter_right BV BW
+  (structure_presheaf_on_basis.res BU BW HWU a):=
+begin
+  sorry,
+end
