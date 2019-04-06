@@ -85,49 +85,29 @@ begin
   rcases (indefinite_description _ (pow_eq.fg BU BV BW HVU)) with ⟨a, Ha⟩,
   rcases (indefinite_description _ Ha) with ⟨e, Hea⟩,
   clear Ha,
+  let f := some BV,
+  let g := some BW,
+  let fg := some (BVW BV BW),
   -- Using structure_presheaf.res.inverts_data
   rintros ⟨s, Hs⟩,
   rcases (indefinite_description _ Hs) with ⟨n, Hn⟩,
-  let fg := some (BVW BV BW),
-  have Hans : s * (of a)^n ∈ powers ((of : R → localization R (S U)) fg),
+  have Hans : s * (of (a^n)) ∈ powers ((of : R → localization R (S U)) fg),
+    rw is_semiring_hom.map_pow (of : R → localization R (S U)),
     rw [←Hn,  ←mul_pow],
     iterate 2 { rw ←is_ring_hom.map_mul (of : R → localization R (S U)), },
     rw [mul_comm, ←Hea, is_semiring_hom.map_pow (of : R → localization R (S U)), ←pow_mul],
     exact ⟨e * n, rfl⟩,
-  rcases (structure_presheaf.res.inverts_data BU (BVW BV BW) (HVWU HVU) ⟨s * (of a)^n, Hans⟩) with ⟨w, Hw⟩,
+  rcases (structure_presheaf.res.inverts_data BU (BVW BV BW) (HVWU HVU) ⟨s * (of (a^n)), Hans⟩) with ⟨w, Hw⟩,
   rw ←is_ring_hom.map_mul (of : R → localization R (S U)) at Hn,
   rw ←is_semiring_hom.map_pow (of : R → localization R (S U)) at Hn,
   dsimp [structure_presheaf_on_basis.res_to_inter],
-  dsimp [structure_presheaf_on_basis.res] at *,
-  rw [←Hn, is_localization_initial_comp],
+  dsimp only [subtype.coe_mk] at Hw,
+  rw ←Hn,
   rw ←Hn at Hw,
-  rw ←is_semiring_hom.map_pow (of : R → localization R (S U)) at Hw,
-  rw ←is_ring_hom.map_mul (of : R → localization R (S U)) at Hw,
-  rw is_localization_initial_comp at Hw,
-  use [(of (a^n)) * w],
+  rw is_ring_hom.map_mul (structure_presheaf_on_basis.res BU (BVW BV BW) (HVWU HVU)) at Hw,
+  use [(structure_presheaf_on_basis.res BU (BVW BV BW) (HVWU HVU) (of (a^n))) * w],
   rw ←mul_assoc,
-  rw ←is_ring_hom.map_mul (of : R → localization R (S (V ∩ W))),
   exact Hw,
-  -- Setup.
-  -- rintros ⟨s, Hs⟩,
-  -- rcases (indefinite_description _ Hs) with ⟨m, Hsm⟩,
-  -- rw ←is_ring_hom.map_mul (of : R → localization R (S U)) at Hsm,
-  -- rw ←is_semiring_hom.map_pow (of : R → localization R (S U)) at Hsm,
-  -- dsimp [structure_presheaf_on_basis.res_to_inter],
-  -- dsimp [structure_presheaf_on_basis.res],
-  -- rw [←Hsm, is_localization_initial_comp],
-  -- -- Find inverse.
-  -- let fg := some (BVW BV BW),
-  -- have Hfgem : fg^(e*m) ∈ S (V ∩ W),
-  --   apply @is_submonoid.pow_mem _ _ _,
-  --   rw [some_spec (BVW BV BW)],
-  --   exact set.subset.refl _,
-  -- use [⟦⟨a^m, ⟨fg^(e*m), Hfgem⟩⟩⟧],
-  -- -- Arithmetic.
-  -- apply quotient.sound,
-  -- use [1, is_submonoid.one_mem _],
-  -- simp [-sub_eq_add_neg, sub_mul, sub_eq_zero],
-  -- erw [pow_mul, Hea, mul_pow, mul_comm],
 end
 
 lemma structure_presheaf.res_to_inter.has_denom_data
@@ -135,13 +115,30 @@ lemma structure_presheaf.res_to_inter.has_denom_data
     (powers ((of (some BV)) * (of (some BW)))) 
     (structure_presheaf_on_basis.res_to_inter BU BV BW HVU) :=
 begin
-  rcases (indefinite_description _ (pow_eq.fg BU BV BW HVU)) with ⟨a, Ha⟩,
+  rcases (indefinite_description _ (pow_eq.fmulg BU BV BW HVU)) with ⟨a, Ha⟩,
   rcases (indefinite_description _ Ha) with ⟨e, Hea⟩,
   clear Ha,
+  let f := some BV,
+  let g := some BW,
+  let fg := some (BVW BV BW),
   -- Using structure_presheaf.res.has_denom
+  -- This gives us ( fg^n, y ∈ R[1/S(U)] )
+  -- We have (f*g)^(n*e) = (fg)^n * a^n 
+  -- So let x = y * (of a)^n.
   intros x,
-  constructor,
-  -- ( (f * g)^k, y ∈ R[1/S(U)] )
+  rcases (structure_presheaf.res.has_denom_data BU (BVW BV BW) (HVWU HVU) x) with ⟨⟨⟨q, Hq⟩, p⟩, Hpq⟩,
+  dsimp only [subtype.coe_mk] at Hpq,
+  rcases (indefinite_description _ Hq) with ⟨n, Hn⟩,
+  use [⟨⟨(of f * of g)^(e * n), ⟨e * n, rfl⟩⟩, p * (of a)^n⟩],
+  dsimp [structure_presheaf_on_basis.res_to_inter],
+  rw ←is_ring_hom.map_mul (of : R → localization R (S U)),
+  rw ←is_semiring_hom.map_pow (of : R → localization R (S U)),
+  rw [pow_mul, Hea],
+  rw is_semiring_hom.map_pow (of : R → localization R (S U)),
+  rw is_ring_hom.map_mul (of : R → localization R (S U)),
+  rw [mul_pow, Hn, mul_comm p],
+  iterate 2 { rw is_ring_hom.map_mul (structure_presheaf_on_basis.res BU (BVW BV BW) (HVWU HVU)), },
+  rw [←Hpq, ←mul_assoc],
 end
 
 lemma structure_presheaf.res_to_inter.ker_le
