@@ -82,6 +82,16 @@ is_localization_initial
   (of : R → localization R (S V))
   (inverts_data.of_basis_subset BU BV H)
 
+def res_alt 
+: localization R (S U)
+→ localization R (S V) :=
+is_localization_initial 
+  (powers (f j)) 
+  (αi j) 
+  (Hlocα' j) 
+  (φij i j) 
+  (inverts_powers1 i j)) (ri j)
+
 instance structure_presheaf_on_basis.res.is_ring_hom 
 : is_ring_hom (structure_presheaf_on_basis.res BU BV H) :=
 by simp [structure_presheaf_on_basis.res]; by apply_instance
@@ -133,6 +143,26 @@ begin
   iterate 1 { rw [mul_assoc _ _ s, mul_comm _ s, ←mul_assoc] },
   rw Hw,
   ring,
+end
+
+lemma structure_presheaf_on_basis.res_comp
+{U V W : opens (Spec R)} (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (BW : W ∈ D_fs R)
+(HVU : V ⊆ U) (HWV : W ⊆ V)
+: structure_presheaf_on_basis.res BU BW (set.subset.trans HWV HVU)
+= structure_presheaf_on_basis.res BV BW HWV ∘ structure_presheaf_on_basis.res BU BV HVU :=
+begin
+  rw ←structure_presheaf_on_basis.res_eq,
+  rw (structure_presheaf_on_basis R).Hcomp,
+end
+
+lemma structure_presheaf_on_basis.res_comp_of 
+{U V : opens (Spec R)} (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (H : V ⊆ U)
+: (of : R → localization R (S (V)))
+= structure_presheaf_on_basis.res BU BV H ∘ (of : R → localization R (S (U))) :=
+begin
+  apply funext, intro x,
+  simp [structure_presheaf_on_basis.res],
+  rw is_localization_initial_comp,
 end
 
 end res_eq

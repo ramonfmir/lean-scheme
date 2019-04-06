@@ -10,6 +10,7 @@ import linear_algebra.linear_combination
 import preliminaries.localisation
 import to_mathlib.finset_range
 import to_mathlib.ring_hom
+import spectrum_of_a_ring.structure_presheaf_res
 
 --import tactic.find
 

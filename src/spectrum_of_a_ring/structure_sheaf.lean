@@ -19,6 +19,8 @@ open classical
 
 section structure_sheaf 
 
+set_option class.instance_max_depth 100
+
 theorem structure_presheaf_on_basis_is_sheaf_on_basis 
 : sheaf_on_standard_basis.is_sheaf_on_standard_basis 
     (D_fs_standard_basis R)
@@ -136,9 +138,56 @@ begin
       have H' := Hs j k,
       dsimp at H',
       rw structure_presheaf_on_basis.res_eq at H',
-      dsimp [structure_presheaf_on_basis.res] at H',
+      --dsimp [structure_presheaf_on_basis.res] at H',
       
-      sorry,
+      have evox1 : βij j k = (structure_presheaf_on_basis.res 
+              (OC.BUis j)
+              ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k)) 
+              (set.inter_subset_left (OC.Uis j) (OC.Uis k))) ∘ (αi j),
+        dsimp [αi, βij, structure_presheaf_on_basis.res_to_inter],
+        erw ←structure_presheaf_on_basis.res_comp,
+        refl,
+
+      have Hunique1 
+        := is_localization_unique' 
+            (powers (g' j)) 
+            (αi j) 
+            (Hlocres j)
+            (structure_presheaf_on_basis.res 
+              (OC.BUis j)
+              ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k)) 
+              (set.inter_subset_left (OC.Uis j) (OC.Uis k)))
+            (s j)
+            (βij j k)
+            (@inverts_powers2 Rf _ _ Hγ g' Rfij _ βij _ Hlocres_to_inter j k)
+            evox1,
+
+      rw Hunique1,
+            
+      have evox2 : βij j k = (structure_presheaf_on_basis.res 
+              (OC.BUis k)
+              ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k)) 
+              (set.inter_subset_right (OC.Uis j) (OC.Uis k))) ∘ (αi k),
+        dsimp [αi, βij, structure_presheaf_on_basis.res_to_inter],
+        erw ←structure_presheaf_on_basis.res_comp,
+        refl,
+
+      have Hunique2 
+        := is_localization_unique' 
+            (powers (g' k)) 
+            (αi k) 
+            (Hlocres k)
+            (structure_presheaf_on_basis.res 
+              (OC.BUis k)
+              ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k)) 
+              (set.inter_subset_right (OC.Uis j) (OC.Uis k)))
+            (s k)
+            (βij j k)
+            (@inverts_powers1 Rf _ _ Hγ g' Rfij _ βij _ Hlocres_to_inter j k)
+            evox2,
+
+      rw Hunique2,
+      exact H'.symm,
 
     have H''' := H this,
     rcases H''' with ⟨S, HS⟩,

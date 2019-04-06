@@ -224,7 +224,29 @@ begin
   rw [←hb, mul_comm, ←mul_assoc, mul_comm si, hsi, one_mul]
 end
 
--- theorem is_localization_unique' (hf : is_localization_data S f) (h : B → C) [is_ring_hom h] (b : B) :
+-- temp
+
+theorem is_localization_unique' 
+(hf : is_localization_data S f) (h : B → C) [is_ring_hom h] (b : B) 
+(t : A → C) [is_ring_hom t] (ht : inverts_data S t)
+: t = h ∘ f 
+→ is_localization_initial S f hf t ht b = h b :=
+begin
+  intros Heq,
+  unfold is_localization_initial,
+  rcases hf.has_denom b with ⟨⟨s, a⟩, hb⟩,
+  rcases (ht s) with ⟨w, Hw⟩,
+  dsimp only [subtype.coe_mk] at *,
+  rw Heq,
+  rw Heq at Hw,
+  dsimp only [function.comp] at *,
+  rw ←hb,
+  rw is_ring_hom.map_mul h,
+  rw mul_comm (h (f s)),
+  rw mul_assoc,
+  rw Hw,
+  rw mul_one,
+end
 
 
 end localization_initial
