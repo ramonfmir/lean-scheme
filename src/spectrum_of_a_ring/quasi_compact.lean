@@ -155,9 +155,8 @@ begin
     rcases HxD with ⟨f, Hf⟩,
     simp,
     use [f, x],
-    { exact ⟨Hx, Hf⟩, },
-    { apply opens.ext,
-      exact Hf.symm, } }
+    { exact ⟨Hx, by rw Hf; simp [Spec.DO]⟩, },
+    { exact Hf.symm, } }
 end
 
 lemma Spec.DO.val_eq_D' : subtype.val ∘ Spec.DO R = Spec.D' :=
