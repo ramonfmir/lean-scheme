@@ -82,16 +82,6 @@ is_localization_initial
   (of : R → localization R (S V))
   (inverts_data.of_basis_subset BU BV H)
 
-def res_alt 
-: localization R (S U)
-→ localization R (S V) :=
-is_localization_initial 
-  (powers (f j)) 
-  (αi j) 
-  (Hlocα' j) 
-  (φij i j) 
-  (inverts_powers1 i j)) (ri j)
-
 instance structure_presheaf_on_basis.res.is_ring_hom 
 : is_ring_hom (structure_presheaf_on_basis.res BU BV H) :=
 by simp [structure_presheaf_on_basis.res]; by apply_instance
