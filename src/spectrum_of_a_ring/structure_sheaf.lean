@@ -5,9 +5,6 @@ import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_sheaf_condition
 import spectrum_of_a_ring.structure_sheaf_locality
 import spectrum_of_a_ring.structure_sheaf_gluing
-import spectrum_of_a_ring.structure_presheaf_res_to_inter
-import spectrum_of_a_ring.structure_presheaf_res_to_inter_left
-import spectrum_of_a_ring.structure_presheaf_res_to_inter_right
 
 universe u
 
@@ -17,14 +14,13 @@ variables {R : Type u} [comm_ring R]
 
 open topological_space
 open localization_alt
-open sheaf_on_standard_basis
 open localization
 open classical
 
 section structure_sheaf 
 
 theorem structure_presheaf_on_basis_is_sheaf_on_basis 
-: is_sheaf_on_standard_basis 
+: sheaf_on_standard_basis.is_sheaf_on_standard_basis 
     (D_fs_standard_basis R)
     (structure_presheaf_on_basis R).to_presheaf_on_basis :=
 begin
@@ -94,11 +90,11 @@ begin
   let Rfij := λ i j, localization R (S ((OC.Uis i) ∩ (OC.Uis j))),
 
   let βij := 
-    λ i j, structure_presheaf_on_basis.res_to_inter BU (OC.BUis i) (OC.BUis j) (subset_covering i) (subset_covering j),
+    λ i j, structure_presheaf_on_basis.res_to_inter BU (OC.BUis i) (OC.BUis j) (subset_covering i),
 
   have Hlocres_to_inter 
     := λ i j, structure_presheaf.res_to_inter.localization 
-        BU (OC.BUis i) (OC.BUis j) (subset_covering i) (subset_covering j),
+        BU (OC.BUis i) (OC.BUis j) (subset_covering i),
 
   have Hsc₂ :=
     @standard_covering₂ Rf _ _ Hγ g' Rfi _ αi _ Hlocres Rfij _ βij _ Hlocres_to_inter Hcov,
@@ -109,12 +105,6 @@ begin
     dunfold structure_presheaf_on_basis at t,
     dsimp [coe_fn, has_coe_to_fun.coe] at s,
     dsimp [coe_fn, has_coe_to_fun.coe] at t,
-    --dunfold structure_presheaf_on_basis at Hst,
-    --have := localization.structure_presheaf_on_basis.res Rf,
-    --erw localization.structure_presheaf_on_basis.res Rf at Hst,
-    --dsimp at Hst,
-
-    -- TODO unfold inside Hst....
 
     let α' := @α Rf _ _ Hγ Rfi _ αi _,
 
@@ -129,26 +119,9 @@ begin
     replace Hst := Hst i,
     rw ←structure_presheaf_on_basis.res_eq,
     exact Hst,
-
-    -- have : (λ i, (k i) s) = (λ i, (k i) t_1),
-    --   apply funext,
-    --   intros i,
-    --   replace Hst := Hst i,
-    --   have : 
-    --       ((structure_presheaf_on_basis R).to_presheaf_on_basis).res BU 
-    --         (OC.BUis i) 
-    --         (subset_covering i)
-    --         s
-    --     = ((structure_presheaf_on_basis R).to_presheaf_on_basis).res BU 
-    --         (OC.BUis i) 
-    --         (subset_covering i)
-    --         t_1 := Hst,
-        
-    --   rw localization.structure_presheaf_on_basis.res' at Hst,
-      --exact (Hst i),
-
     },
-  { intros s,
+  { -- Gluing
+    intros s,
     
     intros Hs,
 
@@ -161,55 +134,10 @@ begin
       apply funext, intro j,
       apply funext, intro k,
       have H' := Hs j k,
-      --have := (structure_presheaf_on_basis R).Hcomp,
-      --dsimp only [sheaf_on_standard_basis.res_to_inter_left] at H', 
-      --dsimp only [sheaf_on_standard_basis.res_to_inter_right] at H',
-      -- have Hrw1 := 
-      --   (structure_presheaf_on_basis R).Hcomp 
-      --     BU (OC.BUis j) ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k))
-      --     (set.inter_subset_left _ _) (subset_covering _),
-      rw structure_presheaf_on_basis.res_to_inter_left_eq at H',
-      rw structure_presheaf_on_basis.res_to_inter_right_eq at H',
-      dsimp [structure_presheaf_on_basis.res_to_inter_left] at H',
-      dsimp [structure_presheaf_on_basis.res_to_inter_right] at H',
-      --rw structure_presheaf_on_basis.res_eq at H',
-      --dsimp only [structure_presheaf_on_basis.res] at H',
-      --dsimp [βij, structure_presheaf_on_basis.res_to_inter],
-      --dsimp [βij, αi],
-      let res := structure_presheaf_on_basis.res BU (OC.BUis j) (subset_covering j),
-      let resk := structure_presheaf_on_basis.res_to_inter_left (OC.BUis j) (OC.BUis k),
-
-
-      --have := structure_presheaf.res.inverts_data,
-      let inverts1 := @inverts_powers1 Rf _ _ Hγ g' Rfij _ βij _ Hlocres_to_inter,
-
-      have :
-        is_localization_initial 
-        (powers (g' k)) 
-        (αi k) 
-        (Hlocres k) 
-        (βij j k) 
-        (inverts1 j k)
-        (s k) 
-      = is_localization_initial 
-        (powers (g' k)) 
-        (αi k) 
-        (Hlocres k) 
-        (resk ∘ res) 
-        (inverts_powers1 Rf Hlocres_to_inter j k)
-        (s k), 
-
-      -- have := is_localization_initial_comp 
-      --   (powers (g' k)) (αi k) (Hlocres k) (βij j k) 
-      --   (@inverts_powers1 Rf _ _ Hγ g' Rfij _ βij _ Hlocres_to_inter j k),
-      -- rw this,
-
-      --convert  is_localization_unique,
-      -- dsimp [βij, structure_presheaf_on_basis.res_to_inter, αi],
-      -- dsimp [structure_presheaf_on_basis.res],
+      dsimp at H',
+      rw structure_presheaf_on_basis.res_eq at H',
+      dsimp [structure_presheaf_on_basis.res] at H',
       
-      --have evox := (@inverts_powers1 Rf _ _ Hγ g' Rfij _ βij _  Hlocres_to_inter j k),
-      --have := is_localization_initial_comp (powers (g' k)) (αi k) (Hlocres k) (βij j k) evox,
       sorry,
 
     have H''' := H this,
