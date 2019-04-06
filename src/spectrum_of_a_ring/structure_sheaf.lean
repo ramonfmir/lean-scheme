@@ -8,7 +8,7 @@ import spectrum_of_a_ring.structure_sheaf_condition
 import spectrum_of_a_ring.structure_sheaf_locality
 import spectrum_of_a_ring.structure_sheaf_gluing
 
-universe u
+universes u v
 
 local attribute [instance] classical.prop_decidable
 
@@ -21,111 +21,101 @@ open classical
 
 section structure_sheaf 
 
+-- D(f) = ⋃i=1,..,n D(gi)
+
+lemma lemma_standard_open
+{U : opens (Spec R)} (BU : U ∈ D_fs R) (OC : covering_standard_basis (D_fs R) (Spec.DO R (some BU))) 
+: ∃ (γf : Type u) (Hf : fintype γf) (ρ : γf → OC.γ),
+Spec.DO R (some BU) ⊆ ⋃ (λ i, Spec.DO R (some (OC.BUis (ρ i)))) :=
+begin
+  let f := some BU,
+  let Rf := localization R (S U),
+  have Hf : U.1 = Spec.D' f,
+    rw some_spec BU,
+    simp [f, Spec.DO], 
+  have HOCUis : ∀ i, OC.Uis i = Spec.DO R (some (OC.BUis i)),
+      intros i,
+      rw ←some_spec (OC.BUis i),
+
+  have HRf : is_localization_data (powers f) (localization.of : R → Rf) 
+     := structure_presheaf.localization BU,
+  let g : R → Rf := of,
+  let φ : Spec Rf → Spec R := Zariski.induced g,
+  have Hcompact := Spec.quasi_compact.aux Rf,
+
+  have HcompactDf : compact (Spec.D' f),
+    rw ←phi_image_Df HRf,
+    exact compact_image Hcompact (Zariski.induced.continuous g), 
+  
+  let Uis : set (set (Spec R)) := set.range (subtype.val ∘ OC.Uis),
+  have OUis : ∀ (t : set (Spec R)), t ∈ Uis → is_open t,
+    intros t Ht,
+    rcases Ht with ⟨i, Ht⟩,
+    rw ←Ht,
+    simp,
+    exact (OC.Uis i).2,
+  have HUis : ⋃₀ Uis = (⋃ OC.Uis).val,
+    simp,
+    apply set.ext,
+    intros x,
+    split,
+    { rintros ⟨Ui, ⟨⟨i, HUi⟩, HxUi⟩⟩,
+      exact ⟨Ui, ⟨OC.Uis i, ⟨⟨i, rfl⟩, HUi⟩⟩, HxUi⟩, },
+    { rintros ⟨Ui, ⟨OUi, ⟨⟨i, HOUi⟩, HUi⟩⟩, HxUi⟩,
+      rw ←HOUi at HUi,
+      exact ⟨Ui, ⟨⟨i, HUi⟩, HxUi⟩⟩, },
+  have HDfUis : Spec.D' f ⊆ ⋃₀ Uis,
+    rw [HUis, OC.Hcov],
+    simp [f, Spec.DO, set.subset.refl],
+  have Hfincov 
+    := @compact_elim_finite_subcover (Spec R) _ (Spec.D' f) Uis HcompactDf OUis HDfUis,
+
+  rcases Hfincov with ⟨Uis', HUis', ⟨HfinUis', Hfincov⟩⟩,
+
+  have HUis'fintype := set.finite.fintype HfinUis',
+  let ρ : Uis' → OC.γ := λ V, some (HUis' V.2),
+  use [Uis', HUis'fintype, ρ],
+
+  intros x Hx,
+  dsimp only [Spec.DO] at Hx,
+  replace Hx := Hfincov Hx,
+  rcases Hx with ⟨Ui, ⟨HUi', HxUi⟩⟩,
+  use Ui,
+  have HUi : Ui ∈ subtype.val '' set.range (λ (i : Uis'), Spec.DO R (some (OC.BUis (ρ i)))),
+    use [OC.Uis (ρ ⟨Ui, HUi'⟩)],
+    split,
+    { use ⟨Ui, HUi'⟩,
+      dsimp [ρ],
+      rw ←HOCUis (ρ ⟨Ui, HUi'⟩), },
+    { exact some_spec (HUis' HUi'), },
+  use HUi,
+  exact HxUi,
+end
 
 theorem structure_presheaf_on_basis_is_compact
 : sheaf_on_standard_basis.basis_is_compact (D_fs_standard_basis R) :=
 begin
-  intros U BU OC,
-
-  sorry,
-
-  -- have := Spec.compact R,
-
-  -- let f := some BU,
-  -- let Rf := localization R (S U),
-  -- have HRf : is_localization_data (powers f) (localization.of : R → Rf) 
-  --   := structure_presheaf.localization BU,
-
-  -- let fi := λ i, (of : R → localization R (S U)) (some (OC.BUis i)),
-
-  -- let φ : Spec Rf → Spec R := Zariski.induced localization.of,
-
-  -- have Hcov : (⋃₀ (Spec.D' '' set.range fi)) = Spec.univ Rf,
-  -- { 
-  --   apply set.eq_univ_of_univ_subset,
-  --   rintros P HP,
-  --   have H : φ P ∈ U,
-  --     suffices : φ P ∈ Spec.DO R (f),
-  --       rw some_spec BU,
-  --       exact this,
-  --     show φ P ∈ Spec.D'(f),
-  --     rw ←phi_image_Df HRf,
-  --     use P,
-  --     split,
-  --     { trivial, },
-  --     { refl, },
-  --   rw ←OC.Hcov at H,
-  --   rcases H with ⟨UiS, ⟨⟨UiO, ⟨⟨i, Hi⟩, HUiO⟩⟩, HPUiS⟩⟩,
-  --   use [φ ⁻¹' UiO.val],
-  --   have Hin : φ ⁻¹' UiO.val ∈ Spec.D' '' set.range fi,
-  --     use [fi i],
-  --     split,
-  --     { existsi i, refl, },
-  --     { rw [←Zariski.induced.preimage_D localization.of _, ←Hi],
-  --       show φ ⁻¹' Spec.DO R (some _) = φ ⁻¹' (OC.Uis i).val,
-  --       rw ←some_spec (OC.BUis i),
-  --       refl, },
-  --   use Hin,
-  --   rw HUiO,
-  --   exact HPUiS, },
-
-  -- have Hcompact := D_fs_quasi_compact Rf (set.range fi) Hcov,
-  -- rcases Hcompact with ⟨F, HF, ⟨HFfin, Hfincov⟩⟩,
-
-  -- rw set.subset_range_iff at HF,
-  -- rcases HF with ⟨γfin, ⟨HFim, HFinj⟩⟩,
-  -- have Hγfin := set.finite.fintype ((set.finite_image_iff_on HFinj).1 (HFim ▸ HFfin)),
-
-  -- let r : γfin → OC.γ := subtype.val,
-
-  -- use [γfin, Hγfin, r],
-
-  -- have H : OC.Uis = λ i, Spec.DO R (some (OC.BUis i)),
-  --   apply funext,
-  --   intros i,
-  --   rw ←some_spec (OC.BUis i),
-  -- rw H,
-  
-
-  -- -- --rw some_spec BU,
-  -- have := some_spec BU,
-  -- have := subtype.ext.1 this, 
-  -- simp [Spec.DO] at this,
-
-  -- apply opens.ext,
-  -- rw this,
-
-  -- have : φ '' ⋃₀(Spec.D' '' F) = φ '' Spec.univ Rf,
-  --   rw Hfincov,
-
-  -- erw phi_image_Df HRf at this,
-  -- erw ←this,
-  -- erw set.sUnion_eq_Union,
-  -- rw set.image_Union,
-  
-  
-
-  -- -- --erw ←function.injective.eq_iff (phi_injective HRf),
-
-  -- -- apply opens.ext,
-  -- rw lattice.supr,
-  -- rw opens.Sup_s,
-  -- simp,
-
-  
-
-  -- have : ∀ x ∈ Spec.D' '' F, φ x.1 =
-
-  -- apply funext,
-  -- intros x,
-  -- simp,
-  
-  -- rw set.range_comp,
-
-
-  -- rw this,
-
-  -- rw ←phi_image_Df HRf,
+  rintros U BU ⟨⟨γ, Uis, Hcov⟩, BUis⟩,
+  dsimp only [subtype.coe_mk] at *,
+  rw some_spec BU at Hcov,
+  rcases (lemma_standard_open BU ⟨⟨Uis, Hcov⟩, BUis⟩) with ⟨γf, Hγf, ρ, H⟩,
+  use [γf, Hγf, ρ],
+  apply le_antisymm,
+  { intros x Hx,
+    rcases Hx with ⟨Ui, ⟨⟨OUi, ⟨⟨i, Hi⟩, HUival⟩⟩, HxUi⟩⟩,
+    dsimp at Hi,
+    rw ←some_spec BU at Hcov,
+    rw ←Hcov,
+    rw ←Hi at HUival,
+    use [Ui, ⟨Uis (ρ i), ⟨⟨ρ i, rfl⟩, HUival⟩⟩, HxUi], },
+  { have HUis : Uis = λ i, Spec.DO R (some (BUis i)),
+      apply funext,
+      intros i,
+      rw ←some_spec (BUis i),
+    rw HUis,
+    dsimp [function.comp],
+    rw some_spec BU,
+    exact H, },
 end
 
 theorem structure_presheaf_on_basis_is_sheaf_on_standard_basis_cofinal_system
