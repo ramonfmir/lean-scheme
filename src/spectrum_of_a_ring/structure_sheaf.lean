@@ -1,6 +1,8 @@
+import topology.basic
 import preliminaries.localisation
 import sheaves.sheaf_on_standard_basis
 import spectrum_of_a_ring.induced_homeomorphism
+import spectrum_of_a_ring.quasi_compact
 import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_sheaf_condition
 import spectrum_of_a_ring.structure_sheaf_locality
@@ -19,24 +21,149 @@ open classical
 
 section structure_sheaf 
 
-set_option class.instance_max_depth 100
+
+theorem structure_presheaf_on_basis_is_compact
+: sheaf_on_standard_basis.basis_is_compact (D_fs_standard_basis R) :=
+begin
+  intros U BU OC,
+
+  sorry,
+
+  -- have := Spec.compact R,
+
+  -- let f := some BU,
+  -- let Rf := localization R (S U),
+  -- have HRf : is_localization_data (powers f) (localization.of : R → Rf) 
+  --   := structure_presheaf.localization BU,
+
+  -- let fi := λ i, (of : R → localization R (S U)) (some (OC.BUis i)),
+
+  -- let φ : Spec Rf → Spec R := Zariski.induced localization.of,
+
+  -- have Hcov : (⋃₀ (Spec.D' '' set.range fi)) = Spec.univ Rf,
+  -- { 
+  --   apply set.eq_univ_of_univ_subset,
+  --   rintros P HP,
+  --   have H : φ P ∈ U,
+  --     suffices : φ P ∈ Spec.DO R (f),
+  --       rw some_spec BU,
+  --       exact this,
+  --     show φ P ∈ Spec.D'(f),
+  --     rw ←phi_image_Df HRf,
+  --     use P,
+  --     split,
+  --     { trivial, },
+  --     { refl, },
+  --   rw ←OC.Hcov at H,
+  --   rcases H with ⟨UiS, ⟨⟨UiO, ⟨⟨i, Hi⟩, HUiO⟩⟩, HPUiS⟩⟩,
+  --   use [φ ⁻¹' UiO.val],
+  --   have Hin : φ ⁻¹' UiO.val ∈ Spec.D' '' set.range fi,
+  --     use [fi i],
+  --     split,
+  --     { existsi i, refl, },
+  --     { rw [←Zariski.induced.preimage_D localization.of _, ←Hi],
+  --       show φ ⁻¹' Spec.DO R (some _) = φ ⁻¹' (OC.Uis i).val,
+  --       rw ←some_spec (OC.BUis i),
+  --       refl, },
+  --   use Hin,
+  --   rw HUiO,
+  --   exact HPUiS, },
+
+  -- have Hcompact := D_fs_quasi_compact Rf (set.range fi) Hcov,
+  -- rcases Hcompact with ⟨F, HF, ⟨HFfin, Hfincov⟩⟩,
+
+  -- rw set.subset_range_iff at HF,
+  -- rcases HF with ⟨γfin, ⟨HFim, HFinj⟩⟩,
+  -- have Hγfin := set.finite.fintype ((set.finite_image_iff_on HFinj).1 (HFim ▸ HFfin)),
+
+  -- let r : γfin → OC.γ := subtype.val,
+
+  -- use [γfin, Hγfin, r],
+
+  -- have H : OC.Uis = λ i, Spec.DO R (some (OC.BUis i)),
+  --   apply funext,
+  --   intros i,
+  --   rw ←some_spec (OC.BUis i),
+  -- rw H,
+  
+
+  -- -- --rw some_spec BU,
+  -- have := some_spec BU,
+  -- have := subtype.ext.1 this, 
+  -- simp [Spec.DO] at this,
+
+  -- apply opens.ext,
+  -- rw this,
+
+  -- have : φ '' ⋃₀(Spec.D' '' F) = φ '' Spec.univ Rf,
+  --   rw Hfincov,
+
+  -- erw phi_image_Df HRf at this,
+  -- erw ←this,
+  -- erw set.sUnion_eq_Union,
+  -- rw set.image_Union,
+  
+  
+
+  -- -- --erw ←function.injective.eq_iff (phi_injective HRf),
+
+  -- -- apply opens.ext,
+  -- rw lattice.supr,
+  -- rw opens.Sup_s,
+  -- simp,
+
+  
+
+  -- have : ∀ x ∈ Spec.D' '' F, φ x.1 =
+
+  -- apply funext,
+  -- intros x,
+  -- simp,
+  
+  -- rw set.range_comp,
+
+
+  -- rw this,
+
+  -- rw ←phi_image_Df HRf,
+end
+
+theorem structure_presheaf_on_basis_is_sheaf_on_standard_basis_cofinal_system
+: sheaf_on_standard_basis.is_sheaf_on_standard_basis_cofinal_system
+    (D_fs_standard_basis R)
+    (structure_presheaf_on_basis R).to_presheaf_on_basis :=
+begin
+  intros U BU OC Hγ,
+  let f := some BU,
+  let Rf := localization R (S U),
+  have HRf : is_localization_data (powers f) (localization.of : R → Rf) 
+    := structure_presheaf.localization BU,
+
+  let fi := λ i, some (OC.BUis i),
+  sorry,
+end
 
 theorem structure_presheaf_on_basis_is_sheaf_on_basis 
 : sheaf_on_standard_basis.is_sheaf_on_standard_basis 
     (D_fs_standard_basis R)
     (structure_presheaf_on_basis R).to_presheaf_on_basis :=
 begin
-  intros U BU OC,
-  have BU' := BU,
-  rcases BU' with ⟨f, Hf⟩,
+  
+  apply sheaf_on_standard_basis.cofinal_systems_coverings_standard_case,
+  { apply structure_presheaf_on_basis_is_compact, },
+
+  --
+
+  intros U BU OC Hγ,
+  let f := some BU,
+  let Rf := localization R (S U),
+  have HRf : is_localization_data (powers f) (localization.of : R → Rf) 
+    := structure_presheaf.localization BU,
 
   -- TODO : We prove it for finite covers then extend it.
   have Hγ : fintype OC.γ := sorry,
 
   -- Lemma: D(f) is open.
-
-  let Rf := localization R (S U),
-  have HRf : is_localization (powers f) (localization.of : R → Rf) := sorry, -- Easy
 
   let g : OC.γ → R := λ i, classical.some (OC.BUis i),
   let Hg : ∀ i, OC.Uis i = Spec.DO R (g i) := λ i, classical.some_spec (OC.BUis i),
@@ -49,7 +176,7 @@ begin
     rintros P HP,
     have H : φ P ∈ U,
       suffices : φ P ∈ Spec.DO R (f),
-        rw Hf,
+        rw some_spec BU,
         exact this,
       show φ P ∈ Spec.D'(f),
       rw ←phi_image_Df HRf,

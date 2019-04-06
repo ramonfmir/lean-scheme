@@ -20,7 +20,7 @@ section homeomorphism
 
 parameters {R : Type u} [comm_ring R] 
 parameters {Rf : Type u} [comm_ring Rf] {h : R → Rf} [is_ring_hom h]
-parameters {f : R} (HL : is_localization (powers f) h) 
+parameters {f : R} (HL : is_localization_data (powers f) h) 
 
 def φ : Spec Rf → Spec R := Zariski.induced h
 
@@ -147,11 +147,12 @@ begin
         unfold ann_aux at Hx_w, },
       { intros Hx,
         exact (Hall x), },
+    replace Hker := inverts_ker (powers f) h (inverts_of_data (powers f) h Hinv),
     unfold ker at Hker,
     rw Htop at Hker,
     have Hx : (1 : R) ∈ (⊤ : ideal R),
       trivial,
-    rw ←Hker at Hx,
+    replace Hx := Hker Hx,
     replace Hx : h 1 = 0 := Hx,
     rw (is_ring_hom.map_one h) at Hx,
     rw ←mul_one x,
@@ -284,7 +285,7 @@ begin
     rw Hpq,
     simp,
   replace Hz : ↑q * y - p ∈ ker h := Hz,
-  rw Hker at Hz,
+  replace Hz := Hker Hz,
   rcases Hz with ⟨⟨⟨u, v⟩, Huv⟩, Hz⟩,
   simp at Hz,
   simp at Huv,
@@ -308,7 +309,7 @@ begin
       rw ←Hr,
       simp,
     replace Hz2 : ↑q * ↑b - p * a ∈ ker h := Hz2,
-    rw Hker at Hz2,
+    replace Hz2 := Hker Hz2,
     rcases Hz2 with ⟨⟨⟨w, z⟩, Hwz⟩, Hz2⟩,
     simp at Hz2,
     simp at Hwz,
@@ -361,7 +362,7 @@ begin
       rw Hr,
       ring,
     replace Hz : a₁ * a₂ * q - z * p * b₁ * b₂ ∈ ker h := Hz,
-    rw Hker at Hz,
+    replace Hz := Hker Hz,
     rcases Hz with ⟨⟨⟨u, v⟩, Huv⟩, Hz⟩,
     simp at Hz,
     simp at Huv,
@@ -432,7 +433,7 @@ begin
       rw ←Ht,
       ring,
     replace H0 : z * q - a * p ∈ ker h := H0,
-    rw Hker at H0,
+    replace H0 := Hker H0,
     rcases H0 with ⟨⟨⟨u, v⟩, Huv⟩, H0⟩,
     simp at H0,
     simp at Huv,
@@ -521,7 +522,7 @@ begin
           rw ←Ht,
           ring,
         replace Hz : r * q - z * p ∈ ker h := Hz,
-        rw Hker at Hz,
+        replace Hz := Hker Hz,
         rcases Hz with ⟨⟨⟨u, v⟩, Huv⟩, Hz⟩,
         simp at Hz,
         simp at Huv,
