@@ -145,7 +145,31 @@ lemma structure_presheaf.res_to_inter.ker_le
 : ker (structure_presheaf_on_basis.res_to_inter BU BV BW HVU) 
 ≤ submonoid_ann (powers ((of (some BV)) * (of (some BW)))) :=
 begin 
-  sorry,
+  rcases (indefinite_description _ (pow_eq.fmulg BU BV BW HVU)) with ⟨a, Ha⟩,
+  rcases (indefinite_description _ Ha) with ⟨e, Hea⟩,
+  clear Ha,
+  let f := some BV,
+  let g := some BW,
+  let fg := some (BVW BV BW),
+  -- Using structure_presheaf.res.ker_le
+  intros x Hx,
+  dsimp [structure_presheaf_on_basis.res_to_inter] at Hx,
+  replace Hx := (structure_presheaf.res.ker_le BU (BVW BV BW) (HVWU HVU)) Hx,
+  rcases Hx with ⟨⟨⟨u, ⟨v, ⟨n, Hv⟩⟩⟩, Hxfgn⟩, Hx⟩,
+  dsimp at Hx,
+  dsimp at Hxfgn,
+  rw [Hx, ←Hv] at Hxfgn; clear Hx; clear Hv,
+  let fgne : localization R (S U) := (of f * of g)^(e * n),
+  have Hfgne : fgne ∈ (powers (of f * of g) : set (localization R (S U))) := ⟨e * n, rfl⟩,
+  have Hxfgne : x * fgne = 0,
+    dsimp [fgne],
+    rw ←is_ring_hom.map_mul (of : R → localization R (S U)),
+    rw ←is_semiring_hom.map_pow (of : R → localization R (S U)),
+    rw [pow_mul, Hea],
+    rw is_semiring_hom.map_pow (of : R → localization R (S U)),
+    rw is_ring_hom.map_mul (of : R → localization R (S U)),
+    rw [mul_pow, mul_comm ((of a)^n), ←mul_assoc, Hxfgn, zero_mul],
+  use ⟨⟨x, ⟨fgne, Hfgne⟩⟩, Hxfgne⟩,
 end
 
 lemma structure_presheaf.res_to_inter.localization
