@@ -10,6 +10,7 @@ import sheaves.presheaf
 import sheaves.presheaf_on_basis
 import sheaves.presheaf_extension
 import sheaves.sheaf
+import sheaves.sheaf_on_standard_basis
 import sheaves.stalk_on_basis
 
 universes u v w
@@ -17,6 +18,7 @@ universes u v w
 open topological_space
 open lattice
 open covering
+open classical
 
 section sheaf_on_basis
 
@@ -173,21 +175,72 @@ end
 
 end presheaf_extension_preserves_sheaf_condition
 
--- noncomputable lemma presheaf_extension.equv 
--- (F : presheaf_on_basis α HB) (HF : is_sheaf_on_basis F)
--- {U : opens α} (BU : U ∈ B) {x : α} (HxU : x ∈ U)
--- : (F ₑₓₜ).F U ≃ F.F BU := 
--- { to_fun := 
---     begin
---       intros s,
---       simp at s,
---       rcases (classical.indefinite_description _ (s.2 x HxU)) with ⟨V, ⟨HxV, HV⟩⟩,
---       rcases (classical.indefinite_description _ HV) with ⟨BV, Hσ⟩,
---       rcases (classical.indefinite_description _ Hσ) with ⟨σ, Hs⟩,
---       sorry,
---     end,
---   inv_fun := sorry,
---   left_inv := sorry,
---   right_inv := sorry, }
+section extension_coincides
+
+--- https://stacks.math.columbia.edu/tag/009M
+
+-- The map F(U) → Π x ∈ U, Fx
+
+def to_stalk_product (F : presheaf_on_basis α HB) {U : opens α} (BU : U ∈ B)
+: F.F BU → Π (x ∈ U), stalk_on_basis F x :=
+λ s x Hx, ⟦{U := U, BU := BU, Hx := Hx, s := s}⟧
+
+variables (Bstd : opens.univ ∈ B ∧ ∀ {U V}, U ∈ B → V ∈ B → U ∩ V ∈ B)
+
+lemma to_stalk_product.injective 
+(F : presheaf_on_basis α HB) (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F)
+ {U : opens α} (BU : U ∈ B)
+: function.injective (to_stalk_product F BU) :=
+begin
+  intros s₁ s₂ Hs,
+  rw opens.is_basis_iff_nbhd at HB,
+  let OC : covering_standard_basis B U :=
+  { γ := U,
+    Uis := λ HxU, some (HB HxU.2),
+    BUis := λ HxU, some (some_spec (HB HxU.2)),
+    Hcov := 
+      begin
+        ext z,
+        split,
+        { rintros ⟨Ui, ⟨⟨OUi, ⟨⟨i, HUi⟩, HUival⟩⟩, HzUi⟩⟩,
+          rw [←HUival, ←HUi] at HzUi,
+          exact (some_spec (some_spec (HB i.2))).2 HzUi, },
+        { intros Hz,
+          use [(classical.some (HB Hz)).val],
+          have Hin : (classical.some (HB Hz)).val ∈ subtype.val '' set.range (λ (HxU : U), classical.some (HB HxU.2)),
+            use [classical.some (HB Hz)],
+            split,
+            { use ⟨z, Hz⟩, },
+            { refl, },
+          use Hin,
+          exact (some_spec (some_spec (HB Hz))).1, },
+      end, },
+  apply (HF BU OC).1,
+end
+
+noncomputable lemma presheaf_extension.equv 
+(F : presheaf_on_basis α HB) (HF : is_sheaf_on_basis F)
+{U : opens α} (BU : U ∈ B) {x : α} (HxU : x ∈ U)
+: (F ₑₓₜ).F U ≃ F.F BU := 
+{ to_fun := 
+    begin
+      intros s,
+      let OC : covering U :=
+      { γ := U,
+        Uis := λ z, classical.some (s.2 z.1 z.2),
+        Hcov := 
+          begin
+
+          end, },
+      -- rcases (classical.indefinite_description _ (s.2 x HxU)) with ⟨V, ⟨HxV, HV⟩⟩,
+      -- rcases (classical.indefinite_description _ HV) with ⟨BV, Hσ⟩,
+      -- rcases (classical.indefinite_description _ Hσ) with ⟨σ, Hs⟩,
+      sorry,
+    end,
+  inv_fun := sorry,
+  left_inv := sorry,
+  right_inv := sorry, }
+
+end extension_coincides
 
 end sheaf_on_basis
