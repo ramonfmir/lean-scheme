@@ -224,9 +224,9 @@ begin
   rw [←hb, mul_comm, ←mul_assoc, mul_comm si, hsi, one_mul]
 end
 
--- temp
+-- The uniqueness lemma above is too strict to rewrite.
 
-theorem is_localization_unique' 
+theorem is_localization_unique.of_eq
 (hf : is_localization_data S f) (h : B → C) [is_ring_hom h] (b : B) 
 (t : A → C) [is_ring_hom t] (ht : inverts_data S t)
 : t = h ∘ f 
@@ -240,12 +240,7 @@ begin
   rw Heq,
   rw Heq at Hw,
   dsimp only [function.comp] at *,
-  rw ←hb,
-  rw is_ring_hom.map_mul h,
-  rw mul_comm (h (f s)),
-  rw mul_assoc,
-  rw Hw,
-  rw mul_one,
+  rw [←hb, is_ring_hom.map_mul h, mul_comm (h (f s)), mul_assoc, Hw, mul_one],
 end
 
 

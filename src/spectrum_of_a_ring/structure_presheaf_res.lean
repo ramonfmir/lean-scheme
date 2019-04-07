@@ -82,6 +82,8 @@ is_localization_initial
   (of : R → localization R (S V))
   (inverts_data.of_basis_subset BU BV H)
 
+-- Useful.
+
 instance structure_presheaf_on_basis.res.is_ring_hom 
 : is_ring_hom (structure_presheaf_on_basis.res BU BV H) :=
 by simp [structure_presheaf_on_basis.res]; by apply_instance

@@ -8,7 +8,14 @@ import topology.basic
 import linear_algebra.linear_combination
 import preliminaries.opens
 import preliminaries.covering
+import preliminaries.covering_on_standard_basis
+import preliminaries.localisation
+import sheaves.sheaf_on_standard_basis
 import spectrum_of_a_ring.standard_basis
+import spectrum_of_a_ring.induced_continuous_map
+import spectrum_of_a_ring.induced_homeomorphism
+import spectrum_of_a_ring.structure_presheaf
+import spectrum_of_a_ring.structure_presheaf_localization
 
 noncomputable theory
 
@@ -16,7 +23,7 @@ local attribute [instance] classical.prop_decidable
 
 universe u
 
-open topological_space lattice
+open topological_space lattice classical localization localization_alt
 
 section facts
 
@@ -90,7 +97,7 @@ end refinement
 
 section quasi_compact
 
-parameters (R : Type u) [comm_ring R]
+variables (R : Type u) [comm_ring R]
 
 lemma D_fs_quasi_compact : 
 ∀ S : set R, ⋃₀ (Spec.D' '' S) = Spec.univ R →
@@ -175,14 +182,14 @@ begin
   have BDfs : opens.is_basis (D_fs R) := D_fs_basis R,
   have BC := @refine_cover_with_basis (Spec R) _ (D_fs R) BDfs OC,
   rcases BC with ⟨D, ⟨BD, HDUi, HUD⟩⟩,
-  have HS := D_fs.subset BD,
+  have HS := D_fs.subset R BD,
   rcases HS with ⟨S, HS⟩,
   rw ←HS at HUD,
   replace HUD := subtype.ext.1 HUD,
   rw opens.Sup_s at HUD,
   rw ←set.image_comp at HUD,
   rw Spec.DO.val_eq_D' at HUD,
-  have HF := D_fs_quasi_compact S HUD,
+  have HF := D_fs_quasi_compact R S HUD,
   rcases HF with ⟨F, HFS, ⟨HFfin, HFcov⟩⟩,
   have HUD : ∀ {U}, U ∈ Spec.DO R '' F → U ∈ D,
     intros U HU,
@@ -224,6 +231,105 @@ lemma Spec.compact : compact_space (Spec R) :=
 begin
   constructor,
   apply Spec.quasi_compact.aux,
+end
+
+-- This is what we really need.
+
+-- D(f) = ⋃i=1,..,n D(gi)
+
+lemma lemma_standard_open
+{U : opens (Spec R)} (BU : U ∈ D_fs R) (OC : covering_standard_basis (D_fs R) (Spec.DO R (some BU))) 
+: ∃ (γf : Type u) (Hf : fintype γf) (ρ : γf → OC.γ),
+Spec.DO R (some BU) ⊆ ⋃ (λ i, Spec.DO R (some (OC.BUis (ρ i)))) :=
+begin
+  let f := some BU,
+  let Rf := localization R (S U),
+  have Hf : U.1 = Spec.D' f,
+    rw some_spec BU,
+    simp [f, Spec.DO], 
+  have HOCUis : ∀ i, OC.Uis i = Spec.DO R (some (OC.BUis i)),
+      intros i,
+      rw ←some_spec (OC.BUis i),
+
+  have HRf : is_localization_data (powers f) (localization.of : R → Rf) 
+     := structure_presheaf.localization BU,
+  let g : R → Rf := of,
+  let φ : Spec Rf → Spec R := Zariski.induced g,
+  have Hcompact := Spec.quasi_compact.aux Rf,
+
+  have HcompactDf : compact (Spec.D' f),
+    rw ←phi_image_Df HRf,
+    exact compact_image Hcompact (Zariski.induced.continuous g), 
+  
+  let Uis : set (set (Spec R)) := set.range (subtype.val ∘ OC.Uis),
+  have OUis : ∀ (t : set (Spec R)), t ∈ Uis → is_open t,
+    intros t Ht,
+    rcases Ht with ⟨i, Ht⟩,
+    rw ←Ht,
+    simp,
+    exact (OC.Uis i).2,
+  have HUis : ⋃₀ Uis = (⋃ OC.Uis).val,
+    simp,
+    apply set.ext,
+    intros x,
+    split,
+    { rintros ⟨Ui, ⟨⟨i, HUi⟩, HxUi⟩⟩,
+      exact ⟨Ui, ⟨OC.Uis i, ⟨⟨i, rfl⟩, HUi⟩⟩, HxUi⟩, },
+    { rintros ⟨Ui, ⟨OUi, ⟨⟨i, HOUi⟩, HUi⟩⟩, HxUi⟩,
+      rw ←HOUi at HUi,
+      exact ⟨Ui, ⟨⟨i, HUi⟩, HxUi⟩⟩, },
+  have HDfUis : Spec.D' f ⊆ ⋃₀ Uis,
+    rw [HUis, OC.Hcov],
+    simp [f, Spec.DO, set.subset.refl],
+  have Hfincov 
+    := @compact_elim_finite_subcover (Spec R) _ (Spec.D' f) Uis HcompactDf OUis HDfUis,
+
+  rcases Hfincov with ⟨Uis', HUis', ⟨HfinUis', Hfincov⟩⟩,
+
+  have HUis'fintype := set.finite.fintype HfinUis',
+  let ρ : Uis' → OC.γ := λ V, some (HUis' V.2),
+  use [Uis', HUis'fintype, ρ],
+
+  intros x Hx,
+  dsimp only [Spec.DO] at Hx,
+  replace Hx := Hfincov Hx,
+  rcases Hx with ⟨Ui, ⟨HUi', HxUi⟩⟩,
+  use Ui,
+  have HUi : Ui ∈ subtype.val '' set.range (λ (i : Uis'), Spec.DO R (some (OC.BUis (ρ i)))),
+    use [OC.Uis (ρ ⟨Ui, HUi'⟩)],
+    split,
+    { use ⟨Ui, HUi'⟩,
+      dsimp [ρ],
+      rw ←HOCUis (ρ ⟨Ui, HUi'⟩), },
+    { exact some_spec (HUis' HUi'), },
+  use HUi,
+  exact HxUi,
+end
+
+theorem structure_presheaf_on_basis_is_compact
+: sheaf_on_standard_basis.basis_is_compact (D_fs_standard_basis R) :=
+begin
+  rintros U BU ⟨⟨γ, Uis, Hcov⟩, BUis⟩,
+  dsimp only [subtype.coe_mk] at *,
+  rw some_spec BU at Hcov,
+  rcases (lemma_standard_open R BU ⟨⟨Uis, Hcov⟩, BUis⟩) with ⟨γf, Hγf, ρ, H⟩,
+  use [γf, Hγf, ρ],
+  apply le_antisymm,
+  { intros x Hx,
+    rcases Hx with ⟨Ui, ⟨⟨OUi, ⟨⟨i, Hi⟩, HUival⟩⟩, HxUi⟩⟩,
+    dsimp at Hi,
+    rw ←some_spec BU at Hcov,
+    rw ←Hcov,
+    rw ←Hi at HUival,
+    use [Ui, ⟨Uis (ρ i), ⟨⟨ρ i, rfl⟩, HUival⟩⟩, HxUi], },
+  { have HUis : Uis = λ i, Spec.DO R (some (BUis i)),
+      apply funext,
+      intros i,
+      rw ←some_spec (BUis i),
+    rw HUis,
+    dsimp [function.comp],
+    rw some_spec BU,
+    exact H, },
 end
 
 end quasi_compact

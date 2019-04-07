@@ -21,103 +21,6 @@ open classical
 
 section structure_sheaf 
 
--- D(f) = ⋃i=1,..,n D(gi)
-
-lemma lemma_standard_open
-{U : opens (Spec R)} (BU : U ∈ D_fs R) (OC : covering_standard_basis (D_fs R) (Spec.DO R (some BU))) 
-: ∃ (γf : Type u) (Hf : fintype γf) (ρ : γf → OC.γ),
-Spec.DO R (some BU) ⊆ ⋃ (λ i, Spec.DO R (some (OC.BUis (ρ i)))) :=
-begin
-  let f := some BU,
-  let Rf := localization R (S U),
-  have Hf : U.1 = Spec.D' f,
-    rw some_spec BU,
-    simp [f, Spec.DO], 
-  have HOCUis : ∀ i, OC.Uis i = Spec.DO R (some (OC.BUis i)),
-      intros i,
-      rw ←some_spec (OC.BUis i),
-
-  have HRf : is_localization_data (powers f) (localization.of : R → Rf) 
-     := structure_presheaf.localization BU,
-  let g : R → Rf := of,
-  let φ : Spec Rf → Spec R := Zariski.induced g,
-  have Hcompact := Spec.quasi_compact.aux Rf,
-
-  have HcompactDf : compact (Spec.D' f),
-    rw ←phi_image_Df HRf,
-    exact compact_image Hcompact (Zariski.induced.continuous g), 
-  
-  let Uis : set (set (Spec R)) := set.range (subtype.val ∘ OC.Uis),
-  have OUis : ∀ (t : set (Spec R)), t ∈ Uis → is_open t,
-    intros t Ht,
-    rcases Ht with ⟨i, Ht⟩,
-    rw ←Ht,
-    simp,
-    exact (OC.Uis i).2,
-  have HUis : ⋃₀ Uis = (⋃ OC.Uis).val,
-    simp,
-    apply set.ext,
-    intros x,
-    split,
-    { rintros ⟨Ui, ⟨⟨i, HUi⟩, HxUi⟩⟩,
-      exact ⟨Ui, ⟨OC.Uis i, ⟨⟨i, rfl⟩, HUi⟩⟩, HxUi⟩, },
-    { rintros ⟨Ui, ⟨OUi, ⟨⟨i, HOUi⟩, HUi⟩⟩, HxUi⟩,
-      rw ←HOUi at HUi,
-      exact ⟨Ui, ⟨⟨i, HUi⟩, HxUi⟩⟩, },
-  have HDfUis : Spec.D' f ⊆ ⋃₀ Uis,
-    rw [HUis, OC.Hcov],
-    simp [f, Spec.DO, set.subset.refl],
-  have Hfincov 
-    := @compact_elim_finite_subcover (Spec R) _ (Spec.D' f) Uis HcompactDf OUis HDfUis,
-
-  rcases Hfincov with ⟨Uis', HUis', ⟨HfinUis', Hfincov⟩⟩,
-
-  have HUis'fintype := set.finite.fintype HfinUis',
-  let ρ : Uis' → OC.γ := λ V, some (HUis' V.2),
-  use [Uis', HUis'fintype, ρ],
-
-  intros x Hx,
-  dsimp only [Spec.DO] at Hx,
-  replace Hx := Hfincov Hx,
-  rcases Hx with ⟨Ui, ⟨HUi', HxUi⟩⟩,
-  use Ui,
-  have HUi : Ui ∈ subtype.val '' set.range (λ (i : Uis'), Spec.DO R (some (OC.BUis (ρ i)))),
-    use [OC.Uis (ρ ⟨Ui, HUi'⟩)],
-    split,
-    { use ⟨Ui, HUi'⟩,
-      dsimp [ρ],
-      rw ←HOCUis (ρ ⟨Ui, HUi'⟩), },
-    { exact some_spec (HUis' HUi'), },
-  use HUi,
-  exact HxUi,
-end
-
-theorem structure_presheaf_on_basis_is_compact
-: sheaf_on_standard_basis.basis_is_compact (D_fs_standard_basis R) :=
-begin
-  rintros U BU ⟨⟨γ, Uis, Hcov⟩, BUis⟩,
-  dsimp only [subtype.coe_mk] at *,
-  rw some_spec BU at Hcov,
-  rcases (lemma_standard_open BU ⟨⟨Uis, Hcov⟩, BUis⟩) with ⟨γf, Hγf, ρ, H⟩,
-  use [γf, Hγf, ρ],
-  apply le_antisymm,
-  { intros x Hx,
-    rcases Hx with ⟨Ui, ⟨⟨OUi, ⟨⟨i, Hi⟩, HUival⟩⟩, HxUi⟩⟩,
-    dsimp at Hi,
-    rw ←some_spec BU at Hcov,
-    rw ←Hcov,
-    rw ←Hi at HUival,
-    use [Ui, ⟨Uis (ρ i), ⟨⟨ρ i, rfl⟩, HUival⟩⟩, HxUi], },
-  { have HUis : Uis = λ i, Spec.DO R (some (BUis i)),
-      apply funext,
-      intros i,
-      rw ←some_spec (BUis i),
-    rw HUis,
-    dsimp [function.comp],
-    rw some_spec BU,
-    exact H, },
-end
-
 theorem structure_presheaf_on_basis_is_sheaf_on_standard_basis_cofinal_system
 : sheaf_on_standard_basis.is_sheaf_on_standard_basis_cofinal_system
     (D_fs_standard_basis R)
@@ -128,40 +31,16 @@ begin
   let Rf := localization R (S U),
   have HRf : is_localization_data (powers f) (localization.of : R → Rf) 
     := structure_presheaf.localization BU,
+  let fi : OC.γ → R := λ i, classical.some (OC.BUis i),
+  let Hfi : ∀ i, OC.Uis i = Spec.DO R (fi i) := λ i, classical.some_spec (OC.BUis i),
+  let fi' : OC.γ → Rf := λ i, localization.of (fi i),
+  let F : set Rf := set.range fi',
 
-  let fi := λ i, some (OC.BUis i),
-  sorry,
-end
+  -- Lemma: ⋃ D(gᵢ') = Spec Rf.
 
-theorem structure_presheaf_on_basis_is_sheaf_on_basis 
-: sheaf_on_standard_basis.is_sheaf_on_standard_basis 
-    (D_fs_standard_basis R)
-    (structure_presheaf_on_basis R).to_presheaf_on_basis :=
-begin
-  
-  apply sheaf_on_standard_basis.cofinal_systems_coverings_standard_case,
-  { apply structure_presheaf_on_basis_is_compact, },
-
-  --
-
-  intros U BU OC Hγ,
-  let f := some BU,
-  let Rf := localization R (S U),
-  have HRf : is_localization_data (powers f) (localization.of : R → Rf) 
-    := structure_presheaf.localization BU,
-
-  -- TODO : We prove it for finite covers then extend it.
-  have Hγ : fintype OC.γ := sorry,
-
-  -- Lemma: D(f) is open.
-
-  let g : OC.γ → R := λ i, classical.some (OC.BUis i),
-  let Hg : ∀ i, OC.Uis i = Spec.DO R (g i) := λ i, classical.some_spec (OC.BUis i),
-  let g' : OC.γ → Rf := λ i, localization.of (g i),
-  
-  -- Lemma: If ⋃ D(gᵢ) = D(f) then ⋃ D(gᵢ') = Spec Rf.
-  have Hcov : (⋃ (λ i, Spec.D'(g' i))) = set.univ,
+  have Hcov : ⋃₀ (Spec.D' '' F) = set.univ,
   { let φ : Spec Rf → Spec R := Zariski.induced localization.of,
+    dsimp [F],
     apply set.eq_univ_of_univ_subset,
     rintros P HP,
     have H : φ P ∈ U,
@@ -176,146 +55,130 @@ begin
       { refl, },
     rw ←OC.Hcov at H,
     rcases H with ⟨UiS, ⟨⟨UiO, ⟨⟨i, Hi⟩, HUiO⟩⟩, HPUiS⟩⟩,
-    use [φ ⁻¹' UiO.val, i],
-    { simp,
-      rw [←Hi, Hg],
+    use [φ ⁻¹' UiS],
+    have Hin : φ ⁻¹' UiS ∈ Spec.D' '' set.range fi',
+      rw [←HUiO, ←Hi, Hfi],
       dsimp only [Spec.DO],
-      rw [←Zariski.induced.preimage_D localization.of _], },
-    { rw HUiO,
-      exact HPUiS, }, },
+      use [fi' i],
+      split,
+      { use [i], },
+      { rw [←Zariski.induced.preimage_D localization.of _], },
+    use [Hin],
+    exact HPUiS, },
 
-  -- We want: 1 ∈ <fi>
-  let F : set Rf := set.range g',
-  replace Hcov : ⋃₀ (Spec.D' '' F) = set.univ := sorry, -- Easy
-  rw (Spec.D'.union F) at Hcov,
-  replace Hcov : Spec.V F = ∅ := sorry, -- Easy
-  rw Spec.V.set_eq_span at Hcov,
-  rw Spec.V.empty_iff_ideal_top at Hcov,
-  rw ideal.eq_top_iff_one at Hcov,
+  -- We deduce: 1 ∈ <fi>
   
-  -- Now we can apply covering lemmas.
+  have Hone : (1 : Rf) ∈ ideal.span F,
+    rw [←ideal.eq_top_iff_one, ←Spec.V.empty_iff_ideal_top, ←Spec.V.set_eq_span],
+    rw [Spec.D'.union F, ←set.compl_compl set.univ, set.compl_univ] at Hcov,
+    apply set.ext,
+    intros x,
+    rw set.ext_iff at Hcov,
+    replace Hcov := Hcov x,
+    iterate 2 { rw set.mem_compl_iff at Hcov, },
+    rw not_iff_not at Hcov,
+    exact Hcov,
+  
+  -- α is injective.
 
   let αi := λ i, structure_presheaf_on_basis.res BU (OC.BUis i) (subset_covering i),
   let Rfi := λ i, localization R (S (OC.Uis i)),
-
-  have Hlocres : Π i, is_localization_data (powers (g' i)) (αi i) 
+  let α' := @α Rf _ _ Hγ Rfi _ αi _,
+  have Hlocα : Π i, is_localization_data (powers (fi' i)) (αi i) 
     := λ i, structure_presheaf.res.localization BU (OC.BUis i) (subset_covering i),
+  have Hsc₁ := @standard_covering₁ Rf _ _ Hγ fi' Rfi _ αi _ Hlocα Hone,
 
-  have Hsc₁ := 
-    @standard_covering₁ Rf _ _ Hγ g' Rfi _ αi _ Hlocres Hcov,
-    -- _ _ Hγ OC.Uis Rfis _ αi _ 
-      --(λ i, structure_presheaf.localization (OC.BUis i)),
+  -- ker β = im α.
 
   let Rfij := λ i j, localization R (S ((OC.Uis i) ∩ (OC.Uis j))),
-
-  let βij := 
-    λ i j, structure_presheaf_on_basis.res_to_inter BU (OC.BUis i) (OC.BUis j) (subset_covering i),
-
-  have Hlocres_to_inter 
-    := λ i j, structure_presheaf.res_to_inter.localization 
-        BU (OC.BUis i) (OC.BUis j) (subset_covering i),
-
-  have Hsc₂ :=
-    @standard_covering₂ Rf _ _ Hγ g' Rfi _ αi _ Hlocres Rfij _ βij _ Hlocres_to_inter Hcov,
+  let βij 
+    := λ i j, structure_presheaf_on_basis.res_to_inter BU (OC.BUis i) (OC.BUis j) (subset_covering i),
+  have Hlocβ
+    := λ i j, structure_presheaf.res_to_inter.localization BU (OC.BUis i) (OC.BUis j) (subset_covering i),
+  let β' := @β Rf _ _ Hγ fi' Rfi _ αi _ Hlocα Rfij _ βij _ Hlocβ,
+  have Hsc₂ := @standard_covering₂ Rf _ _ Hγ fi' Rfi _ αi _ Hlocα Rfij _ βij _ Hlocβ Hone,
 
   constructor,
-  { intros s t Hst,
-    dunfold structure_presheaf_on_basis at s,
-    dunfold structure_presheaf_on_basis at t,
-    dsimp [coe_fn, has_coe_to_fun.coe] at s,
-    dsimp [coe_fn, has_coe_to_fun.coe] at t,
-
-    let α' := @α Rf _ _ Hγ Rfi _ αi _,
-
-    suffices Hsuff : α' s = α' t,
-      exact (Hsc₁ Hsuff),
-
+  { -- Locality. 
+    intros s t Hst,
+    dsimp [structure_presheaf_on_basis, coe_fn, has_coe_to_fun.coe] at s,
+    dsimp [structure_presheaf_on_basis, coe_fn, has_coe_to_fun.coe] at t,
+    apply Hsc₁,
+    dsimp [α, αi],
     apply funext,
     intros i,
-    dsimp [α'],
-    simp [α, αi],
-
-    replace Hst := Hst i,
     rw ←structure_presheaf_on_basis.res_eq,
-    exact Hst,
-    },
-  { -- Gluing
-    intros s,
-    
-    intros Hs,
-
-    have H := (Hsc₂ s).1,
-
-    let β' := @β Rf _ _ Hγ g' Rfi _ αi _ Hlocres Rfij _ βij _ Hlocres_to_inter,
-
-    have : β' s = 0,
+    exact (Hst i), },
+  { -- Gluing.
+    intros s Hs,
+    have Hβ : β' s = 0,
       simp [β', β, -sub_eq_add_neg, sub_eq_zero, β1, β2],
       apply funext, intro j,
       apply funext, intro k,
-      have H' := Hs j k,
-      dsimp at H',
-      rw structure_presheaf_on_basis.res_eq at H',
-      --dsimp [structure_presheaf_on_basis.res] at H',
-      
-      have evox1 : βij j k = (structure_presheaf_on_basis.res 
-              (OC.BUis j)
-              ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k)) 
-              (set.inter_subset_left (OC.Uis j) (OC.Uis k))) ∘ (αi j),
-        dsimp [αi, βij, structure_presheaf_on_basis.res_to_inter],
+      have Hsjk := Hs j k,
+      dsimp only [sheaf_on_standard_basis.res_to_inter_left] at Hsjk,
+      dsimp only [sheaf_on_standard_basis.res_to_inter_right] at Hsjk,
+      rw structure_presheaf_on_basis.res_eq at Hsjk,
+      -- The restriction to the left is the unique localization map from R[1/fj] to R[1/fjfk].
+      let β1 := structure_presheaf_on_basis.res_to_inter_right (OC.BUis j) (OC.BUis k),
+      let Hβ1 := @inverts_powers1 Rf _ _ Hγ fi' Rfij _ βij _ Hlocβ j k,
+      have Hcompβ1 : βij j k = β1 ∘ (αi k),
+        dsimp only [βij, β1, αi],
+        dsimp only [structure_presheaf_on_basis.res_to_inter_right],
+        dsimp only [structure_presheaf_on_basis.res_to_inter],
         erw ←structure_presheaf_on_basis.res_comp,
         refl,
-
-      have Hunique1 
-        := is_localization_unique' 
-            (powers (g' j)) 
-            (αi j) 
-            (Hlocres j)
-            (structure_presheaf_on_basis.res 
-              (OC.BUis j)
-              ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k)) 
-              (set.inter_subset_left (OC.Uis j) (OC.Uis k)))
-            (s j)
-            (βij j k)
-            (@inverts_powers2 Rf _ _ Hγ g' Rfij _ βij _ Hlocres_to_inter j k)
-            evox1,
-
-      rw Hunique1,
-            
-      have evox2 : βij j k = (structure_presheaf_on_basis.res 
-              (OC.BUis k)
-              ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k)) 
-              (set.inter_subset_right (OC.Uis j) (OC.Uis k))) ∘ (αi k),
-        dsimp [αi, βij, structure_presheaf_on_basis.res_to_inter],
+      have Huniqueβ1 
+        := is_localization_unique.of_eq (powers (fi' k)) (αi k) (Hlocα k) β1 (s k) (βij j k) Hβ1 Hcompβ1,
+      rw Huniqueβ1,
+      -- The restriction to the right is the unique localization map from R[1/fk] to R[1/fjfk].
+      let β2 := structure_presheaf_on_basis.res_to_inter_left (OC.BUis j) (OC.BUis k),
+      let Hβ2 := @inverts_powers2 Rf _ _ Hγ fi' Rfij _ βij _ Hlocβ j k,
+      have Hcompβ2 : βij j k = β2 ∘ (αi j),
+        dsimp only [βij, β2, αi],
+        dsimp only [structure_presheaf_on_basis.res_to_inter_left],
+        dsimp only [structure_presheaf_on_basis.res_to_inter],
         erw ←structure_presheaf_on_basis.res_comp,
         refl,
+      have Huniqueβ2 
+        := is_localization_unique.of_eq (powers (fi' j)) (αi j) (Hlocα j) β2 (s j) (βij j k) Hβ2 Hcompβ2,
+      rw Huniqueβ2,
+      -- Now we have it in the desired form.
+      exact Hsjk.symm,
 
-      have Hunique2 
-        := is_localization_unique' 
-            (powers (g' k)) 
-            (αi k) 
-            (Hlocres k)
-            (structure_presheaf_on_basis.res 
-              (OC.BUis k)
-              ((D_fs_standard_basis R).2 (OC.BUis j) (OC.BUis k)) 
-              (set.inter_subset_right (OC.Uis j) (OC.Uis k)))
-            (s k)
-            (βij j k)
-            (@inverts_powers1 Rf _ _ Hγ g' Rfij _ βij _ Hlocres_to_inter j k)
-            evox2,
-
-      rw Hunique2,
-      exact H'.symm,
-
-    have H''' := H this,
-    rcases H''' with ⟨S, HS⟩,
+    -- Use global section found.
+    rcases ((Hsc₂ s).1 Hβ) with ⟨S, HS⟩,
     use S,
     intros i,
     replace HS := (congr_fun HS) i,
     dsimp [α, αi] at HS,
     rw structure_presheaf_on_basis.res_eq,
-    exact HS,
-    
-   }
+    exact HS, }
+end
+
+theorem structure_presheaf_on_basis_is_sheaf_on_basis 
+: sheaf_on_standard_basis.is_sheaf_on_standard_basis 
+    (D_fs_standard_basis R)
+    (structure_presheaf_on_basis R).to_presheaf_on_basis :=
+begin
+  apply sheaf_on_standard_basis.cofinal_systems_coverings_standard_case,
+  { apply structure_presheaf_on_basis_is_compact, },
+  { apply structure_presheaf_on_basis_is_sheaf_on_standard_basis_cofinal_system, },  
+end
+
+-- Structure sheaf.
+
+def structure_sheaf (R : Type u) [comm_ring R] := 
+presheaf_of_rings_on_basis_to_presheaf_of_rings 
+  (D_fs_standard_basis R) 
+  (structure_presheaf_on_basis R)
+
+theorem strucutre_presheaf_is_sheaf_of_rings 
+: is_sheaf_of_rings (structure_sheaf R) :=
+begin
+  apply extension_is_sheaf_of_rings,
+  intros U BU OC,
+  exact structure_presheaf_on_basis_is_sheaf_on_basis BU OC,
 end
 
 end structure_sheaf 

@@ -75,7 +75,7 @@ def gluing
         sheaf_on_standard_basis.res_to_inter_right Bstd F (OC.BUis j) (OC.BUis k) (s k)) → 
 ∃ S, ∀ i, F.res BU (OC.BUis i) (subset_covering i) S = s i
 
-def is_sheaf_on_standard_basis (F : presheaf_on_basis α HB) :=
+def is_sheaf_on_standard_basis (F : presheaf_on_basis α HB) : Prop :=
 ∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U),
 locality Bstd F BU OC ∧ gluing Bstd F BU OC
 
@@ -83,7 +83,7 @@ end sheaf_condition
 
 section cofinal_system
 
-def is_sheaf_on_standard_basis_cofinal_system (F : presheaf_on_basis α HB) :=
+def is_sheaf_on_standard_basis_cofinal_system (F : presheaf_on_basis α HB) : Prop :=
 ∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U) (Hfin : fintype OC.γ),
 locality Bstd F BU OC ∧ gluing Bstd F BU OC
 

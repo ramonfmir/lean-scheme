@@ -34,9 +34,27 @@ def structure_presheaf_on_basis.res_to_inter
 : localization R (S U) → localization R (S (V ∩ W)) :=
 structure_presheaf_on_basis.res BU (BVW BV BW) (HVWU HVU)
 
+def structure_presheaf_on_basis.res_to_inter_left
+: localization R (S V) → localization R (S (V ∩ W)) :=
+structure_presheaf_on_basis.res BV (BVW BV BW) (set.inter_subset_left V W)
+
+def structure_presheaf_on_basis.res_to_inter_right
+: localization R (S W) → localization R (S (V ∩ W)) :=
+structure_presheaf_on_basis.res BW (BVW BV BW) (set.inter_subset_right V W)
+
 instance structure_presheaf_on_basis.res_to_inter.is_ring_hom 
 : is_ring_hom (structure_presheaf_on_basis.res_to_inter BU BV BW HVU) :=
 by simp [structure_presheaf_on_basis.res_to_inter, structure_presheaf_on_basis.res]; 
+by apply_instance
+
+instance structure_presheaf_on_basis.res_to_inter_to_inter_left.is_ring_hom 
+: is_ring_hom (structure_presheaf_on_basis.res_to_inter_left BV BW) :=
+by simp [structure_presheaf_on_basis.res_to_inter_left, structure_presheaf_on_basis.res]; 
+by apply_instance
+
+instance structure_presheaf_on_basis.res_to_inter_to_inter_right.is_ring_hom 
+: is_ring_hom (structure_presheaf_on_basis.res_to_inter_right BV BW) :=
+by simp [structure_presheaf_on_basis.res_to_inter_right, structure_presheaf_on_basis.res]; 
 by apply_instance
 
 -------
