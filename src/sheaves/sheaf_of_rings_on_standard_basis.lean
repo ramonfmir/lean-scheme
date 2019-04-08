@@ -1,5 +1,6 @@
 import topology.opens
-import sheaves.stalk
+import sheaves.stalk_of_rings
+import sheaves.stalk_of_rings_on_standard_basis
 import sheaves.presheaf_of_rings_on_basis
 import sheaves.presheaf_of_rings_extension
 import sheaves.sheaf_on_standard_basis
@@ -339,11 +340,13 @@ lemma to_presheaf_of_rings_extension.is_ring_hom
 
 -- Stalks coincide.
 
+open stalk_of_rings_on_standard_basis
+
 lemma to_stalk_extension
 (F : presheaf_of_rings_on_basis α HB) 
 (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
 (x : α)
-: stalk_on_basis F.to_presheaf_on_basis x → stalk (F ᵣₑₓₜ Bstd).to_presheaf x :=
+: stalk_of_rings_on_standard_basis Bstd F x → stalk_of_rings (F ᵣₑₓₜ Bstd) x :=
 begin
   intros BUs,
   let Us := quotient.out BUs,
@@ -383,9 +386,9 @@ begin
   have HW₁₂₃U₁ : W₁ ∩ W₂ ∩ W₃ ⊆ Us₁.U := λ x Hx, HW₁U₁ Hx.1.1,
   have HW₁₂₃U₂ : W₁ ∩ W₂ ∩ W₃ ⊆ Us₂.U := λ x Hx, HW₂U₂ Hx.1.2,
   use [W₁ ∩ W₂ ∩ W₃, BW₁₂₃, ⟨⟨HxW₁, HxW₂⟩, HxW₃⟩, HW₁₂₃U₁, HW₁₂₃U₂],
-  have HW₁W₁₂₃ :  W₁ ∩ W₂ ∩ W₃ ⊆ W₁ := λ x Hx, Hx.1.1,
-  have HW₂W₁₂₃ :  W₁ ∩ W₂ ∩ W₃ ⊆ W₂ := λ x Hx, Hx.1.2,
-  have HW₃W₁₂₃ :  W₁ ∩ W₂ ∩ W₃ ⊆ W₃ := λ x Hx, Hx.2,
+  have HW₁W₁₂₃ : W₁ ∩ W₂ ∩ W₃ ⊆ W₁ := λ x Hx, Hx.1.1,
+  have HW₂W₁₂₃ : W₁ ∩ W₂ ∩ W₃ ⊆ W₂ := λ x Hx, Hx.1.2,
+  have HW₃W₁₂₃ : W₁ ∩ W₂ ∩ W₃ ⊆ W₃ := λ x Hx, Hx.2,
   replace Hres₁ := congr_arg (F.res BW₁ BW₁₂₃ HW₁W₁₂₃) Hres₁,
   replace Hres₂ := congr_arg (F.res BW₂ BW₁₂₃ HW₂W₁₂₃) Hres₂,
   replace Hres₃ := congr_arg (F.res BW₃ BW₁₂₃ HW₃W₁₂₃) Hres₃,
@@ -431,6 +434,25 @@ begin
   iterate 2 { rw ←presheaf_on_basis.Hcomp' at Hres, },
   exact Hres,
 end
+
+lemma to_stalk_extension.is_ring_hom
+(F : presheaf_of_rings_on_basis α HB) 
+(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+(x : α)
+: is_ring_hom (to_stalk_extension Bstd F @HF x) :=
+{ map_one := 
+    begin
+      dunfold to_stalk_extension,
+      let one := quotient.out (1 : stalk_of_rings_on_standard_basis Bstd F x),
+      apply quotient.sound,
+      use [one.U, one.Hx, set.subset.refl _, set.subset_univ _],
+      dsimp,
+      erw ((presheaf_of_rings_on_basis_to_presheaf_of_rings Bstd F).res_is_ring_hom _ _ _).map_one,
+      dunfold to_presheaf_of_rings_extension,
+      sorry,
+    end,
+  map_mul := sorry,
+  map_add := sorry,}
 
 end extension_coincides
 
