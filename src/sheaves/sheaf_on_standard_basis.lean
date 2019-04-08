@@ -75,7 +75,7 @@ def gluing
         sheaf_on_standard_basis.res_to_inter_right Bstd F (OC.BUis j) (OC.BUis k) (s k)) → 
 ∃ S, ∀ i, F.res BU (OC.BUis i) (subset_covering i) S = s i
 
-def is_sheaf_on_standard_basis (F : presheaf_on_basis α HB) : Prop :=
+def is_sheaf_on_standard_basis (F : presheaf_on_basis α HB) :=
 ∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U),
 locality Bstd F BU OC ∧ gluing Bstd F BU OC
 
