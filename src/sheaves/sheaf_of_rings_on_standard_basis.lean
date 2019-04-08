@@ -189,8 +189,6 @@ begin
     dsimp only [sheaf_on_standard_basis.res_to_inter_right],
     dsimp only [sx, res],
     iterate 2 { rw ←presheaf_on_basis.Hcomp', },
-    -- have Hj := congr_fun (Hσ j j.1 ⟨j.2, HxV j⟩) j.2; dsimp at Hj,
-    -- have Hk := congr_fun (Hσ k k.1 ⟨k.2, HxV k⟩) k.2; dsimp at Hk,
     show (F.to_presheaf_on_basis).res (BV j) (Bstd.2 (OC.BUis j) (OC.BUis k)) _ (σ j) 
        = (F.to_presheaf_on_basis).res (BV k) (Bstd.2 (OC.BUis j) (OC.BUis k)) _ (σ k),
     -- We can cover the U ∩ Vj ∩ Vk and use locality.
@@ -202,9 +200,81 @@ begin
       have Hj := congr_fun (Hσ j y ⟨Hy.1.2, Hy.1.1⟩) Hy.1.2; dsimp at Hj,
       have Hk := congr_fun (Hσ k y ⟨Hy.2.2, Hy.2.1⟩) Hy.2.2; dsimp at Hk,
       erw [←Hj, ←Hk],
-    -- Thereofre there exists Wjk where σj|Wjk = σk|Wjk. We will use these as a cover.#check
-    sorry,
-  sorry,
+    -- Therefore there exists Wjk where σj|Wjk = σk|Wjk. We will use these as a cover.
+    let Ujk : opens α := (OC.Uis j) ∩ (OC.Uis k),
+    let BUjk := Bstd.2 (OC.BUis j) (OC.BUis k),
+    --
+    let Hjk    := λ (HxUjk : Ujk), quotient.eq.1 (Hstalks HxUjk.2),
+    let Wjk    := λ (HxUjk : Ujk), some (Hjk HxUjk) ∩ U,
+    let BWjk   := λ (HxUjk : Ujk), Bstd.2 (some (some_spec (Hjk HxUjk))) BU,
+    let HxWjk  := λ (HxUjk : Ujk), some (some_spec (some_spec (Hjk HxUjk))),
+    let HWjkUj := λ (HxUjk : Ujk), some (some_spec (some_spec (some_spec (Hjk HxUjk)))),
+    let HWjkUk := λ (HxUjk : Ujk), some (some_spec (some_spec (some_spec (some_spec (Hjk HxUjk))))),
+    let HWjk   := λ (HxUjk : Ujk), some_spec (some_spec (some_spec (some_spec (some_spec (Hjk HxUjk))))),
+    let OCjk : covering_standard_basis B ((OC.Uis j) ∩ (OC.Uis k)) :=
+    { γ := Ujk,
+      Uis := Wjk,
+      BUis := BWjk,
+      Hcov := 
+        begin
+          ext z,
+          split,
+          { rintros ⟨W, ⟨⟨OW, ⟨⟨i, HWi⟩, HWival⟩⟩, HzW⟩⟩,
+            rw [←HWival, ←HWi] at HzW,
+            have HzUj := (HWjkUj i) HzW.1,
+            have HzUk := (HWjkUk i) HzW.1,
+            exact ⟨⟨HzUj, HzW.2⟩, ⟨HzUk, HzW.2⟩⟩, },
+          { intros Hz,
+            use [(some (Hjk ⟨z, Hz⟩) ∩ U).val],
+            have Hin : (some (Hjk ⟨z, Hz⟩) ∩ U).val 
+              ∈ subtype.val '' set.range (λ (HxUjk : Ujk), ((some (Hjk HxUjk) ∩ U : opens α))),
+              use [(some (Hjk ⟨z, Hz⟩) ∩ U : opens α)],
+              split,
+              { use ⟨z, Hz⟩, },
+              { refl, },
+            use Hin,
+            have HzWjk := HxWjk ⟨z, Hz⟩,
+            have HzU := Hz.1.2,
+            exact ⟨HzWjk, HzU⟩, }
+        end, },
+    apply (HF BUjk OCjk).1,
+    intros i,
+    rw ←presheaf_on_basis.Hcomp',
+    rw ←presheaf_on_basis.Hcomp',
+    have Hres : 
+        F.res (some (some_spec (Hjk i))) (BWjk i) (set.inter_subset_left _ _)
+          (F.res (BV j) (some (some_spec (Hjk i))) (HWjkUj i) (σ j))
+      = F.res (some (some_spec (Hjk i))) (BWjk i) (set.inter_subset_left _ _)
+          (F.res (BV k) (some (some_spec (Hjk i))) (HWjkUk i) (σ k)),
+      rw (HWjk i),
+    rw ←presheaf_on_basis.Hcomp' at Hres,
+    rw ←presheaf_on_basis.Hcomp' at Hres,
+    use Hres,
+  -- Ready...
+  rcases (Hglue Hsx) with ⟨S, HS⟩,
+  existsi S,
+  apply subtype.eq,
+  dsimp [to_presheaf_of_rings_extension],
+  apply funext,
+  intros x,
+  dsimp [to_stalk_product],
+  apply funext,
+  intros Hx,
+  
+  replace HS := HS ⟨x, Hx⟩,
+  dsimp [sx, res] at HS,
+  rw Hσ ⟨x, Hx⟩,
+  swap,
+  { exact ⟨Hx, HxV ⟨x, Hx⟩⟩, },
+  dsimp,
+  apply quotient.sound,
+  use [(V ⟨x, Hx⟩) ∩ U],
+  use [Bstd.2 (BV ⟨x, Hx⟩) BU],
+  use [⟨HxV ⟨x, Hx⟩, Hx⟩],
+  use [set.inter_subset_right _ _],
+  use [set.inter_subset_left _ _],
+  dsimp,
+  erw HS,
 end
 
 end extension_coincides
