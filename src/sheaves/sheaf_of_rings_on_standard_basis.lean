@@ -1,4 +1,5 @@
 import topology.opens
+import sheaves.stalk
 import sheaves.presheaf_of_rings_on_basis
 import sheaves.presheaf_of_rings_extension
 import sheaves.sheaf_on_standard_basis
@@ -6,6 +7,7 @@ import sheaves.sheaf_of_rings
 
 open topological_space classical
 
+noncomputable theory
 
 universe u
 
@@ -75,6 +77,9 @@ begin
   end
 
 section extension_coincides
+
+#check equiv.of_bijective
+#print function.bijective
 
 --- https://stacks.math.columbia.edu/tag/009M
 
@@ -275,6 +280,156 @@ begin
   use [set.inter_subset_left _ _],
   dsimp,
   erw HS,
+end
+
+lemma to_presheaf_of_rings_extension.bijective
+(F : presheaf_of_rings_on_basis α HB) 
+(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+{U : opens α} (BU : U ∈ B)
+: function.bijective (to_presheaf_of_rings_extension Bstd F BU) :=
+⟨to_presheaf_of_rings_extension.injective Bstd F (λ U BU OC, HF BU OC) BU,
+to_presheaf_of_rings_extension.surjective Bstd F (λ U BU OC, HF BU OC) BU ⟩
+
+lemma to_presheaf_of_rings_extension.equiv
+(F : presheaf_of_rings_on_basis α HB) 
+(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+{U : opens α} (BU : U ∈ B)
+: F.F BU ≃ (F ᵣₑₓₜ Bstd).F U :=
+equiv.of_bijective (to_presheaf_of_rings_extension.bijective Bstd F (λ U BU OC, HF BU OC) BU)
+
+-- We now that they are equivalent as sets. 
+-- Now we to assert that they're isomorphic as rings. 
+-- It suffices to show that it is a ring homomorphism.
+
+lemma to_presheaf_of_rings_extension.is_ring_hom 
+(F : presheaf_of_rings_on_basis α HB) 
+(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+{U : opens α} (BU : U ∈ B)
+: is_ring_hom (to_presheaf_of_rings_extension Bstd F BU) :=
+{ map_one := 
+    begin
+      apply subtype.eq,
+      funext x Hx,
+      apply quotient.sound,
+      use [U, BU, Hx, set.subset.refl _, set.subset_univ _],
+      iterate 2 { erw (F.res_is_ring_hom _ _ _).map_one, },
+    end,
+  map_mul := 
+    begin
+      intros x y,
+      apply subtype.eq,
+      funext z Hz,
+      apply quotient.sound,
+      use [U, BU, Hz], 
+      use [set.subset.refl _, set.subset_inter (set.subset.refl _) (set.subset.refl _)],
+      erw ←(F.res_is_ring_hom _ _ _).map_mul,
+      erw ←presheaf_on_basis.Hcomp', 
+    end,
+  map_add := 
+    begin
+      intros x y,
+      apply subtype.eq,
+      funext z Hz,
+      apply quotient.sound,
+      use [U, BU, Hz], 
+      use [set.subset.refl _, set.subset_inter (set.subset.refl _) (set.subset.refl _)],
+      erw ←(F.res_is_ring_hom _ _ _).map_add,
+      erw ←presheaf_on_basis.Hcomp', 
+    end, }
+
+-- Stalks coincide.
+
+lemma to_stalk_extension
+(F : presheaf_of_rings_on_basis α HB) 
+(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+(x : α)
+: stalk_on_basis F.to_presheaf_on_basis x → stalk (F ᵣₑₓₜ Bstd).to_presheaf x :=
+begin
+  intros BUs,
+  let Us := quotient.out BUs,
+  exact ⟦{U := Us.U, 
+          HxU := Us.Hx, 
+          s := (to_presheaf_of_rings_extension Bstd F Us.BU) Us.s}⟧,
+end
+
+lemma to_stalk_extension.injective 
+(F : presheaf_of_rings_on_basis α HB) 
+(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+(x : α)
+: function.injective (to_stalk_extension Bstd F @HF x) :=
+begin
+  intros Us₁' Us₂', 
+  apply quotient.induction_on₂ Us₁' Us₂',
+  rintros Us₁ Us₂ HUs,
+  rcases (quotient.mk_out Us₁) with ⟨W₁, BW₁, HxW₁, HW₁Us₁, HW₁U₁, Hres₁⟩,
+  rcases (quotient.mk_out Us₂) with ⟨W₂, BW₂, HxW₂, HW₂Us₂, HW₂U₂, Hres₂⟩,
+  dunfold to_stalk_extension at HUs,
+  rw quotient.eq at HUs,
+  rcases HUs with ⟨W, HxW, HWU₁, HWU₂, Hres⟩,
+  dsimp at HWU₁,
+  dsimp at HWU₂,
+  dunfold to_presheaf_of_rings_extension at Hres,
+  dunfold to_stalk_product at Hres,
+  erw subtype.mk.inj_eq at Hres,
+  replace Hres := congr_fun (congr_fun Hres x) HxW,
+  dsimp at Hres,
+  rw quotient.eq at Hres,
+  rcases Hres with ⟨W₃, BW₃, HxW₃, HW₃U₁, HW₃U₂, Hres₃⟩,
+  dsimp at HW₃U₁, 
+  dsimp at HW₃U₂,
+  dsimp at Hres₃,
+  apply quotient.sound,
+  have BW₁₂₃ : W₁ ∩ W₂ ∩ W₃ ∈ B := Bstd.2 (Bstd.2 BW₁ BW₂) BW₃,
+  have HW₁₂₃U₁ : W₁ ∩ W₂ ∩ W₃ ⊆ Us₁.U := λ x Hx, HW₁U₁ Hx.1.1,
+  have HW₁₂₃U₂ : W₁ ∩ W₂ ∩ W₃ ⊆ Us₂.U := λ x Hx, HW₂U₂ Hx.1.2,
+  use [W₁ ∩ W₂ ∩ W₃, BW₁₂₃, ⟨⟨HxW₁, HxW₂⟩, HxW₃⟩, HW₁₂₃U₁, HW₁₂₃U₂],
+  have HW₁W₁₂₃ :  W₁ ∩ W₂ ∩ W₃ ⊆ W₁ := λ x Hx, Hx.1.1,
+  have HW₂W₁₂₃ :  W₁ ∩ W₂ ∩ W₃ ⊆ W₂ := λ x Hx, Hx.1.2,
+  have HW₃W₁₂₃ :  W₁ ∩ W₂ ∩ W₃ ⊆ W₃ := λ x Hx, Hx.2,
+  replace Hres₁ := congr_arg (F.res BW₁ BW₁₂₃ HW₁W₁₂₃) Hres₁,
+  replace Hres₂ := congr_arg (F.res BW₂ BW₁₂₃ HW₂W₁₂₃) Hres₂,
+  replace Hres₃ := congr_arg (F.res BW₃ BW₁₂₃ HW₃W₁₂₃) Hres₃,
+  iterate 2 { rw ←presheaf_on_basis.Hcomp' at Hres₁, },
+  iterate 2 { rw ←presheaf_on_basis.Hcomp' at Hres₂, },
+  iterate 2 { rw ←presheaf_on_basis.Hcomp' at Hres₃, },
+  erw [←Hres₁, ←Hres₂],
+  exact Hres₃,
+end
+
+lemma to_stalk_extension.surjective 
+(F : presheaf_of_rings_on_basis α HB) 
+(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+(x : α)
+: function.surjective (to_stalk_extension Bstd F @HF x) :=
+begin
+  intros Us',
+  apply quotient.induction_on Us',
+  rintros ⟨U, HxU, s⟩,
+  rcases (s.2 x HxU) with ⟨V, BV, HxV, t, Ht⟩,
+  let Vt : stalk_on_basis.elem (F.to_presheaf_on_basis) x 
+    := {U := V, BU := BV, Hx := HxV, s := t},
+  use ⟦Vt⟧,
+  dunfold to_stalk_extension,
+  apply quotient.sound,
+  rcases (quotient.mk_out Vt) with ⟨W, BW, HxW, HWVtV, HWV, Hres⟩,
+  have HUVWV : U ∩ V ∩ W ⊆ (quotient.out ⟦Vt⟧).U := λ x Hx, HWVtV Hx.2,
+  have HUVWU : U ∩ V ∩ W ⊆ U := λ x Hx, Hx.1.1,
+  use [U ∩ V ∩ W, ⟨⟨HxU, HxV⟩, HxW⟩, HUVWV, HUVWU],
+  apply subtype.eq,
+  dsimp only [presheaf_of_rings_on_basis_to_presheaf_of_rings],
+  dsimp only [to_presheaf_of_rings_extension],
+  dsimp only [to_stalk_product],
+  funext y Hy,
+  rw (Ht y Hy.1),
+  apply quotient.sound,
+  have BVW : V ∩ W ∈ B := Bstd.2 BV BW,
+  have HVWVtV : V ∩ W ⊆ (quotient.out ⟦Vt⟧).U := λ x Hx, HWVtV Hx.2,
+  have HVWV : V ∩ W ⊆ V := λ x Hx, Hx.1,
+  use [V ∩ W, BVW, ⟨Hy.1.2,Hy.2⟩, HVWVtV, HVWV],
+  have HVWW : V ∩ W ⊆ W := λ x Hx, Hx.2,
+  replace Hres := congr_arg (F.res BW BVW HVWW) Hres,
+  iterate 2 { rw ←presheaf_on_basis.Hcomp' at Hres, },
+  exact Hres,
 end
 
 end extension_coincides
