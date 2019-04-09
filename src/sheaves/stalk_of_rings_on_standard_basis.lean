@@ -230,6 +230,11 @@ instance has_mul : has_mul (stalk_of_rings_on_standard_basis Bstd F x) :=
       rw [HresU1', HresU2'],
     end}
 
+@[simp] lemma has_mul.mk : ∀ y z,
+  (⟦y⟧ * ⟦z⟧ : stalk_of_rings_on_standard_basis Bstd F x) = 
+  (stalk_of_rings_on_standard_basis.mul_aux Bstd F x) y z :=
+λ y z, rfl
+
 instance mul_semigroup : semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
 { mul_assoc := 
     begin

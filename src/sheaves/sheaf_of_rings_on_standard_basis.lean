@@ -435,8 +435,6 @@ begin
   exact Hres,
 end
 
-
-
 lemma to_stalk_extension.is_ring_hom
 (F : presheaf_of_rings_on_basis α HB) 
 (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
@@ -445,29 +443,84 @@ lemma to_stalk_extension.is_ring_hom
 { map_one := 
     begin
       dunfold to_stalk_extension,
-      let one.elem : Π y, stalk_on_basis.elem F.to_presheaf_on_basis y 
-        := λ y, {U := opens.univ, BU := Bstd.1, Hx := trivial, s:= 1},
-      let one.stalk : Π y, stalk_of_rings_on_standard_basis Bstd F y := λ y, ⟦one.elem y⟧,
-      let one := λ y, quotient.out (one.stalk y),
+      let one.elem : stalk_on_basis.elem F.to_presheaf_on_basis x
+        := {U := opens.univ, BU := Bstd.1, Hx := trivial, s:= 1},
+      let one.stalk : stalk_of_rings_on_standard_basis Bstd F x := ⟦one.elem⟧,
+      let one := quotient.out one.stalk,
       apply quotient.sound,
-      rcases (quotient.mk_out (one.elem x)) with ⟨W₁, BW₁, HxW₁, HW₁Uout, HW₁U, Hres₁⟩,
-      have BUW₁ : (one x).U ∩ W₁ ∈ B := Bstd.2 (one x).BU BW₁,
-      have HUUW₁ : (one x).U ∩ W₁ ⊆ (one x).U := set.inter_subset_left _ _,
-      use [(one x).U ∩ W₁, ⟨(one x).Hx, HxW₁⟩, HUUW₁, set.subset_univ _],
+      rcases (quotient.mk_out one.elem) with ⟨W₁, BW₁, HxW₁, HW₁Uout, HW₁U, Hres₁⟩,
+      have BUW₁ : one.U ∩ W₁ ∈ B := Bstd.2 one.BU BW₁,
+      have HUUW₁ : one.U ∩ W₁ ⊆ one.U := set.inter_subset_left _ _,
+      use [one.U ∩ W₁, ⟨one.Hx, HxW₁⟩, HUUW₁, set.subset_univ _],
       apply subtype.eq,
       dsimp only [presheaf_of_rings_on_basis_to_presheaf_of_rings],
       dsimp only [to_presheaf_of_rings_extension],
       dsimp only [to_stalk_product],
       funext z Hz,
       apply quotient.sound,
-      use [(one x).U ∩ W₁, BUW₁, Hz, set.inter_subset_left _ _, set.subset_univ _],
+      use [one.U ∩ W₁, BUW₁, Hz, set.inter_subset_left _ _, set.subset_univ _],
       dsimp,
-      have HUW₁W₁ : (one x).U ∩ W₁ ⊆ W₁ := set.inter_subset_right _ _,
+      have HUW₁W₁ : one.U ∩ W₁ ⊆ W₁ := set.inter_subset_right _ _,
       replace Hres₁ := congr_arg (F.res BW₁ BUW₁ HUW₁W₁) Hres₁,
       iterate 2 { rw ←presheaf_on_basis.Hcomp' at Hres₁, },
       exact Hres₁,
     end,
-  map_mul := sorry,
+  map_mul := 
+    begin
+      intros y z,
+      apply quotient.induction_on₂ y z,
+      intros Us₁ Us₂,
+      simp,
+      let Us₃ : stalk_on_basis.elem F.to_presheaf_on_basis x :=
+        { U := Us₁.U ∩ Us₂.U, 
+          BU := Bstd.2 Us₁.BU Us₂.BU,
+          Hx := ⟨Us₁.Hx, Us₂.Hx⟩, 
+          s :=  F.res Us₁.BU _ (set.inter_subset_left _ _) Us₁.s * 
+                F.res Us₂.BU _ (set.inter_subset_right _ _) Us₂.s },
+      dunfold to_stalk_extension,
+      apply quotient.sound,
+      dsimp,
+      -- TODO : I really don't need U1 and U2.
+      rcases (quotient.mk_out Us₁) with ⟨W₁, BW₁, HxW₁, HW₁U₁out, HW₁U₁, Hres₁⟩,
+      rcases (quotient.mk_out Us₂) with ⟨W₂, BW₂, HxW₂, HW₂U₂out, HW₂U₂, Hres₂⟩,
+      rcases (quotient.mk_out Us₃) with ⟨W₃, BW₃, HxW₃, HW₃U₃out, HW₃U₃, Hres₃⟩,
+      let W := Us₁.U ∩ Us₂.U ∩ W₁ ∩ W₂ ∩ W₃,
+      have HxW : x ∈ W := ⟨⟨⟨⟨Us₁.Hx, Us₂.Hx⟩, HxW₁⟩, HxW₂⟩, HxW₃⟩,
+      have HWU₁ : W ⊆ Us₁.U := λ x Hx, Hx.1.1.1.1,
+      have HWU₂ : W ⊆ Us₂.U := λ x Hx, Hx.1.1.1.2,
+      have HWW₁ : W ⊆ W₁ := λ x Hx, Hx.1.1.2,
+      have HWW₂ : W ⊆ W₂ := λ x Hx, Hx.1.2,
+      have HWW₃ : W ⊆ W₃ := λ x Hx, Hx.2,
+      have HWU₁out : W ⊆ (quotient.out ⟦Us₁⟧).U := set.subset.trans HWW₁ HW₁U₁out,
+      have HWU₂out : W ⊆ (quotient.out ⟦Us₂⟧).U := set.subset.trans HWW₂ HW₂U₂out,
+      have HWU₃out : W ⊆ (quotient.out ⟦Us₃⟧).U := set.subset.trans HWW₃ HW₃U₃out,
+      have HWU₁₂out : W ⊆ (quotient.out ⟦Us₁⟧).U ∩ (quotient.out ⟦Us₂⟧).U
+        := set.subset_inter HWU₁out HWU₂out,
+      use [W, HxW, HWU₃out, HWU₁₂out],
+      apply subtype.eq,
+      dsimp only [presheaf_of_rings_on_basis_to_presheaf_of_rings],
+      dsimp only [to_presheaf_of_rings_extension],
+      dsimp only [to_stalk_product],
+      funext z HzW,
+      apply quotient.sound,
+      have BW : W ∈ B := Bstd.2 (Bstd.2 (Bstd.2 (Bstd.2 Us₁.BU Us₂.BU) BW₁) BW₂) BW₃,
+      use [W, BW, HzW, HWU₃out, HWU₁₂out],
+      dsimp,
+      rw (presheaf_of_rings_on_basis.res_is_ring_hom _ _ _ _).map_mul,
+      rw ←presheaf_on_basis.Hcomp',
+      rw ←presheaf_on_basis.Hcomp',
+      -- let's go
+      replace Hres₁ := congr_arg (F.res BW₁ BW HWW₁) Hres₁,
+      replace Hres₂ := congr_arg (F.res BW₂ BW HWW₂) Hres₂,
+      replace Hres₃ := congr_arg (F.res BW₃ BW HWW₃) Hres₃,
+      iterate 2 { rw ←presheaf_on_basis.Hcomp' at Hres₁, },
+      iterate 2 { rw ←presheaf_on_basis.Hcomp' at Hres₂, },
+      iterate 2 { rw ←presheaf_on_basis.Hcomp' at Hres₃, },
+      erw [Hres₁, Hres₂, Hres₃],
+      rw (presheaf_of_rings_on_basis.res_is_ring_hom _ _ _ _).map_mul,
+      rw ←presheaf_on_basis.Hcomp',
+      rw ←presheaf_on_basis.Hcomp',
+    end,
   map_add := sorry,}
 
 end extension_coincides
