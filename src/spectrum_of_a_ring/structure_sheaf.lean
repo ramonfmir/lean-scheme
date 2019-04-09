@@ -168,17 +168,22 @@ end
 
 -- Structure sheaf.
 
-def structure_sheaf (R : Type u) [comm_ring R] := 
+def structure_sheaf.presheaf (R : Type u) [comm_ring R] := 
 presheaf_of_rings_on_basis_to_presheaf_of_rings 
   (D_fs_standard_basis R) 
   (structure_presheaf_on_basis R)
 
-theorem strucutre_presheaf_is_sheaf_of_rings 
-: is_sheaf_of_rings (structure_sheaf R) :=
+theorem strucutre_presheaf_is_sheaf_of_rings (R : Type u) [comm_ring R] 
+: is_sheaf_of_rings (structure_sheaf.presheaf R) :=
 begin
   apply extension_is_sheaf_of_rings,
   intros U BU OC,
   exact structure_presheaf_on_basis_is_sheaf_on_basis BU OC,
 end
+
+def structure_sheaf (R : Type u) [comm_ring R] : sheaf_of_rings (Spec R) :=
+{ F := structure_sheaf.presheaf R,
+  locality := (strucutre_presheaf_is_sheaf_of_rings R).1,
+  gluing := (strucutre_presheaf_is_sheaf_of_rings R).2, }
 
 end structure_sheaf 

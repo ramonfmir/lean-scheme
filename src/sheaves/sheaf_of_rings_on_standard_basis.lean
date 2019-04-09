@@ -435,6 +435,14 @@ begin
   exact Hres,
 end
 
+lemma to_stalk_extension.bijective
+(F : presheaf_of_rings_on_basis α HB) 
+(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+(x : α)
+: function.bijective (to_stalk_extension Bstd F @HF x) :=
+⟨to_stalk_extension.injective Bstd F @HF x,
+to_stalk_extension.surjective Bstd F @HF x⟩
+
 lemma to_stalk_extension.is_ring_hom
 (F : presheaf_of_rings_on_basis α HB) 
 (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 

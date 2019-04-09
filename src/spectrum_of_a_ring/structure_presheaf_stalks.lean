@@ -1,11 +1,11 @@
 import ring_theory.ideals
 import ring_theory.localization
 import preliminaries.localisation
+import preliminaries.local_rings
 import sheaves.stalk_of_rings_on_standard_basis
 import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_presheaf_localization
 import spectrum_of_a_ring.structure_presheaf_res
-import preliminaries.local_rings
 
 universe u
 
@@ -19,7 +19,7 @@ open classical
 
 def Bstd := D_fs_standard_basis R
 
-section on_basis
+namespace strucutre_presheaf_stalks
 
 def F := structure_presheaf_on_basis R
 
@@ -147,10 +147,4 @@ lemma stalk_local.localization : is_localization_data (-P.1 : set R) (φ P) :=
 lemma stalk_local : is_local_ring (FP P) :=
 is_local_ring.of_is_localization_data_at_prime P.2 (stalk_local.localization P)
 
-end on_basis 
-
-section extended
-
-
-
-end extended
+end strucutre_presheaf_stalks
