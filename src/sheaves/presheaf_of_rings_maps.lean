@@ -50,7 +50,8 @@ section pullback
 --   ..presheaf.pullback.morphism Hf' F.to_presheaf G.to_presheaf φ.to_morphism }
 
 structure pullback (F : presheaf_of_rings β) :=
-(φ : α → β)
+(φ : α → β) 
+[Hcts : continuous φ]
 (Hφ : ∀ U, is_open (φ '' U))
 (range : opens β :=
   ⟨φ '' set.univ, Hφ set.univ⟩)
