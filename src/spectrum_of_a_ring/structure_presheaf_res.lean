@@ -157,4 +157,14 @@ begin
   rw is_localization_initial_comp,
 end
 
+lemma structure_presheaf_on_basis.res_comp_of' 
+{U V : opens (Spec R)} (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (H : V ⊆ U)
+: ∀ x, 
+(of : R → localization R (S (V))) x
+= structure_presheaf_on_basis.res BU BV H ((of : R → localization R (S (U))) x) :=
+begin
+  intros x,
+  rw structure_presheaf_on_basis.res_comp_of BU BV H,
+end
+
 end res_eq

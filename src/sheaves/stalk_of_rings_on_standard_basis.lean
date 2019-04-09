@@ -73,6 +73,11 @@ instance has_add : has_add (stalk_of_rings_on_standard_basis Bstd F x) :=
       rw [HresU1', HresU2'],
     end }
 
+@[simp] lemma has_add.mk : ∀ y z,
+  (⟦y⟧ + ⟦z⟧ : stalk_of_rings_on_standard_basis Bstd F x) = 
+  (stalk_of_rings_on_standard_basis.add_aux Bstd F x) y z :=
+λ y z, rfl
+
 instance add_semigroup : add_semigroup (stalk_of_rings_on_standard_basis Bstd F x) :=
 { add_assoc := 
     begin
