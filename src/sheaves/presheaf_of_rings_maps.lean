@@ -53,6 +53,75 @@ structure pullback (F : presheaf_of_rings β) :=
     res_is_ring_hom := λ U V HVU, F.res_is_ring_hom _ _ _,
     ..presheaf.pullback Hφ₂ F.to_presheaf })
 
+def pullback_id (F : presheaf_of_rings β) : presheaf_of_rings.pullback β F :=
+begin
+  exact 
+    { φ := (id : β → β),
+      Hφ₁ := continuous_id,
+      Hφ₂ := λ U, by rw set.image_id; by exact U.2, 
+      Hφ₃ := function.injective_id },
+  exact F,
+end
+
+-- TODO : Quite ugly.
+
+lemma pullback_id.iso (F : presheaf_of_rings β) : F ≅ (pullback_id F).carrier :=
+nonempty.intro 
+{ mor := 
+    { map := 
+        begin
+          intros U,
+          have HUU : opens.map (pullback_id F).Hφ₂ U ⊆ U,
+            intros x Hx,
+            dsimp [opens.map] at Hx,
+            erw set.image_id at Hx,
+            exact Hx,
+          exact F.res U (opens.map (pullback_id F).Hφ₂ U) HUU,
+        end,
+      commutes := 
+        begin
+          intros U V HVU,
+          dsimp [pullback_id],
+          rw ←presheaf.Hcomp,
+          rw ←presheaf.Hcomp,
+        end, 
+      ring_homs := by apply_instance, },
+  inv := 
+    { map := 
+        begin
+          intros U,
+          have HUU : U ⊆ opens.map (pullback_id F).Hφ₂ U,
+            intros x Hx,
+            dsimp [opens.map],
+            erw set.image_id,
+            exact Hx,
+          exact F.res (opens.map (pullback_id F).Hφ₂ U) U HUU,
+        end,
+      commutes := 
+        begin
+          intros U V HVU,
+          dsimp [pullback_id],
+          rw ←presheaf.Hcomp,
+          rw ←presheaf.Hcomp,
+        end,  
+      ring_homs := by apply_instance, },
+  mor_inv_id := 
+    begin
+      simp [presheaf.comp],
+      congr,
+      funext U,
+      rw ←presheaf.Hcomp,
+      erw presheaf.Hid,
+    end,
+  inv_mor_id := 
+    begin
+      simp [presheaf.comp],
+      congr,
+      funext U,
+      rw ←presheaf.Hcomp,
+      erw presheaf.Hid,
+    end, }
+
 end pullback
 
 -- f induces a `map` from a presheaf of rings on β to a presheaf of rings on α.

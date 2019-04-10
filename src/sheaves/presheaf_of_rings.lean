@@ -34,6 +34,10 @@ extends presheaf.morphism F.to_presheaf G.to_presheaf :=
 
 infix `⟶`:80 := morphism 
 
+def identity (F : presheaf_of_rings α) : F ⟶ F :=
+{ ring_homs := λ U, is_ring_hom.id,
+  ..presheaf.id F.to_presheaf }
+
 -- Isomorphic presheaves of rings.
 
 structure iso (F G : presheaf_of_rings α) :=
