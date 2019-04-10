@@ -10,7 +10,19 @@ Note that this is still very much a work in progress. Some further clean-up is n
 
 ## Content
 
+This is a general overview of the maths that you can find in this repository.
 
+In the `sheaves` directory we have:
+* Presheaves of sets and of rings on a topological space and on a basis. Similarly, we define sheaves and stalks and prove some basic lemmas about them.
+* The construction of the extension of a presheaf on a basis to a presheaf on the whole space with the usual properties.
+* Locally ringed spaces.
+
+Then, in `spectrum_of_a_ring`, there is:
+* The definition of the topological space Spec(R) together with some general properties such as compactness and some lemmas about the basic opens.
+* The structure presheaf defined on the basic opens and the proof of the sheaf property, which spans several files.
+* The proof that Spec(R) is a locally ringed space.
+
+Finally, a scheme is defined in `scheme.lean` and two examples (the empty scheme and affine schemes) are provided in `instances`. There is also a `to_mathlib` directory with some general results that we found useful. 
 
 ## Installation
 
@@ -22,7 +34,7 @@ leanpkg configure
 leanpkg build
 ```
 
-## Authors and acknowledgement
+## Authors
 
 The main contributors to this project are:
 
