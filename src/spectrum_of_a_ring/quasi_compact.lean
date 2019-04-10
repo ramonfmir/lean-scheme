@@ -6,10 +6,10 @@
 
 import topology.basic
 import linear_algebra.linear_combination
-import preliminaries.opens
-import preliminaries.covering
-import preliminaries.covering_on_standard_basis
-import preliminaries.localisation
+import to_mathlib.opens
+import to_mathlib.ideals
+import sheaves.covering.covering
+import sheaves.covering.covering_on_standard_basis
 import sheaves.sheaf_on_standard_basis
 import spectrum_of_a_ring.standard_basis
 import spectrum_of_a_ring.induced_continuous_map
@@ -24,26 +24,6 @@ local attribute [instance] classical.prop_decidable
 universe u
 
 open topological_space lattice classical localization localization_alt
-
-section facts
-
--- I need this but I really wish I didn't.
-
-lemma ideal.span_mem_finset {R : Type u} [comm_ring R] (S : finset R) (f : R → R)
-: finset.sum S (λ a, f a * a) ∈ (@ideal.span R _ ↑S) :=
-begin
-  unfold ideal.span,
-  apply finset.induction_on S,
-  { simp, },
-  { intros a S Ha IH,
-    rw finset.coe_insert,
-    rw submodule.mem_span_insert',
-    rw finset.sum_insert Ha,
-    use [-f a],
-    simp [IH], }
-end
-
-end facts
 
 variables {α : Type u} [comm_ring α]
 

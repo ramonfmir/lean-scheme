@@ -4,7 +4,7 @@
 -/
 
 import algebra.ring
-import preliminaries.localisation
+import to_mathlib.localization.localization_alt
 
 universes u v w
 

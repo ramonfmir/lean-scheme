@@ -2,7 +2,7 @@
   Second localization test. If e^2 = e then R[1/e] ≅ R[1/(1-e)]. 
 -/
 
-import preliminaries.localisation
+import to_mathlib.localization.localization_alt
 
 -- By Kenny.
 

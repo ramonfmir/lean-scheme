@@ -1,5 +1,9 @@
+/-
+  is_localization from is_localization_data. 
+-/
+
 import ring_theory.localization
-import preliminaries.localisation
+import to_mathlib.localization.localization_alt
 
 universe u 
 

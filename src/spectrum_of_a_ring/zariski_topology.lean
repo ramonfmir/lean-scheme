@@ -1,5 +1,7 @@
 /-
   Kenny's proof that Spec(A) is a topological space.
+
+  https://stacks.math.columbia.edu/tag/00E1
 -/
 
 import topology.basic
@@ -7,7 +9,7 @@ import topology.opens
 import ring_theory.ideals
 import group_theory.submonoid
 import to_mathlib.topologcal_space
-import spectrum_of_a_ring.spectrum
+import spectrum_of_a_ring.spec
 import spectrum_of_a_ring.properties
 
 local attribute [instance] classical.prop_decidable

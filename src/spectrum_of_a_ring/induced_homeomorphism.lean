@@ -6,7 +6,8 @@
 
 import topology.basic
 import ring_theory.localization
-import preliminaries.localisation
+import to_mathlib.localization.localization_alt
+import to_mathlib.localization.localization_ideal
 import spectrum_of_a_ring.zariski_topology
 import spectrum_of_a_ring.induced_continuous_map
 
@@ -46,6 +47,10 @@ end
 lemma h_powers_f_not_mem (I : ideal Rf) (PI : ideal.is_prime I)
 : ∀ fn ∈ powers f, h fn ∉ I :=
 λ fn Hfn HC, (powers_f_not_preimage I PI) fn Hfn HC
+
+-- Now we prove that φ is an open immersion. 
+
+-- First, injectivity.
 
 lemma phi_injective : function.injective φ :=
 begin
@@ -97,174 +102,7 @@ begin
     { exact H, } },
 end
 
--- Random stuff.
-
-lemma ring_hom.pow {A : Type u} [comm_ring A] {B : Type u} [comm_ring B]
-(m : A → B) [is_ring_hom m] (a : A)
-: ∀ (n : ℕ), m (a ^ n) = (m a) ^ n :=
-begin
-  intros n,
-  induction n,
-  { simp,
-    exact is_ring_hom.map_one m, },
-  { rw pow_succ,
-    rw pow_succ,
-    rw is_ring_hom.map_mul m,
-    rw n_ih, }
-end
-
-lemma localization.zero (I : ideal R) [PI : ideal.is_prime I] 
-(Hfn : (0 : R) ∈ powers f)
-: (ideal.map h I : ideal Rf) = ⊥ :=
-begin
-  have HL' := HL,
-  rcases HL' with ⟨Hinv, Hden, Hker⟩,
-  apply ideal.ext,
-  intros x,
-  split,
-  swap,
-  { intros H,
-    simp at H,
-    rw H,
-    rw ←is_ring_hom.map_zero h,
-    apply ideal.mem_map_of_mem,
-    simp, },
-  { intros Hx,
-    rcases (Hden x) with ⟨⟨a, b⟩, Hab⟩,
-    simp at Hab,
-    rcases (Hinv a) with ⟨w, Hw⟩,
-    have Hall : ∀ (y : R), y ∈ submonoid_ann (powers f),
-      intros y,
-      simp [submonoid_ann, set.range, ann_aux],
-      use [⟨y, ⟨0, Hfn⟩⟩],
-      simp,
-    have Htop : submonoid_ann (powers f) = ⊤,
-      apply ideal.ext,
-      intros x,
-      split,
-      { intros Hx,
-        cases Hx,
-        unfold ann_aux at Hx_w, },
-      { intros Hx,
-        exact (Hall x), },
-    replace Hker := inverts_ker (powers f) h (inverts_of_data (powers f) h Hinv),
-    unfold ker at Hker,
-    rw Htop at Hker,
-    have Hx : (1 : R) ∈ (⊤ : ideal R),
-      trivial,
-    replace Hx := Hker Hx,
-    replace Hx : h 1 = 0 := Hx,
-    rw (is_ring_hom.map_one h) at Hx,
-    rw ←mul_one x,
-    rw Hx,
-    simp, },
-end
-
-def localisation_map_ideal (I : ideal R) : ideal Rf :=
-{ carrier := { x | ∃ (y ∈ h '' I) (r : Rf), x = y * r },
-  zero := -- ⟨0, ⟨I.2, is_ring_hom.map_zero h⟩⟩
-    begin
-      use [h 0, 0],
-      exact ⟨I.2, rfl⟩,
-      use 1,
-      rw mul_one,
-      rw ←is_ring_hom.map_zero h,
-    end,
-  add := 
-    begin
-      intros x y Hx Hy,
-      rcases Hx with ⟨a, ⟨Ha, ⟨r, Hx⟩⟩⟩,
-      rcases Hy with ⟨b, ⟨Hb, ⟨t, Hy⟩⟩⟩,
-      rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
-      rcases Hb with ⟨w, ⟨Hw, Hb⟩⟩,
-      rw ←Ha at Hx,
-      rw ←Hb at Hy,
-      rw [Hx, Hy],
-      rcases HL with ⟨Hinv, Hden, Hker⟩,
-      rcases (Hden r) with ⟨⟨fn, l⟩, Hl⟩,
-      rcases (Hinv fn) with ⟨hfninv, Hfn⟩,
-      simp at Hl,
-      rw mul_comm at Hfn,
-      rcases (Hden t) with ⟨⟨fm, k⟩, Hk⟩,
-      rcases (Hinv fm) with ⟨hfminv, Hfm⟩,
-      simp at Hk,
-      rw mul_comm at Hfm,
-      -- Get rid of r.
-      rw ←one_mul (_ + _),
-      rw ←Hfn,
-      rw mul_assoc,
-      rw mul_add,
-      rw mul_comm _ r,
-      rw ←mul_assoc _ r _,
-      rw Hl,
-      -- Get rid of t.
-      rw ←one_mul (_ * _),
-      rw ←Hfm,
-      rw mul_assoc,
-      rw ←mul_assoc (h _) _ _,
-      rw mul_comm (h _),
-      rw mul_assoc _ (h _) _,
-      rw mul_add,
-      rw ←mul_assoc _ _ t,
-      rw add_comm,
-      rw ←mul_assoc (h fm) _ _,
-      rw mul_comm (h fm),
-      rw mul_assoc _ _ t,
-      rw Hk,
-      -- Rearrange.
-      repeat { rw ←is_ring_hom.map_mul h, },
-      rw ←mul_assoc _ _ v,
-      rw mul_assoc ↑fn,
-      rw mul_comm w,
-      rw ←mul_assoc ↑fn,
-      rw ←is_ring_hom.map_add h,
-      rw ←mul_assoc,
-      rw mul_comm,
-      -- Ready to prove it.
-      have HyI : ↑fn * k * w + ↑fm * l * v ∈ ↑I,
-        apply I.3,
-        { apply I.4,
-          exact Hw, },
-        { apply I.4,
-          exact Hv, },
-      use [h (↑fn * k * w + ↑fm * l * v)],
-      use [⟨↑fn * k * w + ↑fm * l * v, ⟨HyI, rfl⟩⟩],
-      use [hfminv * hfninv],
-    end,
-  smul := 
-    begin
-      intros c x Hx,
-      rcases Hx with ⟨a, ⟨Ha, ⟨r, Hx⟩⟩⟩,
-      rcases Ha with ⟨v, ⟨Hv, Ha⟩⟩,
-      rw [Hx, ←Ha],
-      rw mul_comm _ r,
-      unfold has_scalar.smul,
-      rw mul_comm r,
-      rw mul_comm c,
-      rw mul_assoc,
-      use [h v],
-      use [⟨v, ⟨Hv, rfl⟩⟩],
-      use [r * c],
-    end, }
-
-lemma localisation_map_ideal.eq (I : ideal R) [PI : ideal.is_prime I] 
-: ideal.map h I = localisation_map_ideal I :=
-begin
-  have HL' := HL,
-  rcases HL' with ⟨Hinv, Hden, Hker⟩,
-  apply le_antisymm,
-  { have Hgen : h '' I ⊆ localisation_map_ideal I,
-      intros x Hx,
-      use [x, Hx, 1],
-      simp,
-    replace Hgen := ideal.span_mono Hgen,
-    rw ideal.span_eq at Hgen,
-    exact Hgen, },
-  { intros x Hx,
-    rcases Hx with ⟨y, ⟨z, ⟨HzI, Hzy⟩⟩, ⟨r, Hr⟩⟩,
-    rw [Hr, ←Hzy],
-    exact ideal.mul_mem_right _ (ideal.mem_map_of_mem HzI), }
-end
+-- Also, sends opens to opens. Some work is needed to assert this.
 
 lemma localisation_map_ideal.not_top (I : ideal R) [PI : ideal.is_prime I] 
 (Hfn : ∀ fn, (fn ∈ powers f) → fn ∉ I)
@@ -273,7 +111,7 @@ begin
   have HL' := HL,
   rcases HL' with ⟨Hinv, Hden, Hker⟩,
   intros HC,
-  rw localisation_map_ideal.eq at HC,
+  rw localisation_map_ideal.eq HL at HC,
   rw ideal.eq_top_iff_one at HC,
   rcases HC with ⟨x, ⟨y, ⟨HyI, Hyx⟩⟩, ⟨r, Hr⟩⟩,
   rcases (Hden x) with ⟨⟨q, p⟩, Hpq⟩,
@@ -338,7 +176,7 @@ begin
   constructor,
   { exact localisation_map_ideal.not_top I Hfn, },
   { intros x y Hxy,
-    rw localisation_map_ideal.eq at Hxy,
+    rw localisation_map_ideal.eq HL at Hxy,
     rcases Hxy with ⟨w, ⟨z, ⟨HzI, Hwz⟩⟩, ⟨r, Hr⟩⟩,
     rw ←Hwz at Hr,
     rcases (Hden r) with ⟨⟨q, p⟩,  Hpq⟩,
@@ -380,11 +218,7 @@ begin
           replace Ha₁ := @ideal.mem_map_of_mem _ _ _ _ h _ _ _ Ha₁,
           rcases (Hinv b₁) with ⟨w₁, Hw₁⟩,
           have Hx : x = h a₁ * w₁,
-            rw ←(one_mul x),
-            rw ←Hw₁,
-            rw ←mul_comm w₁,
-            rw mul_assoc,
-            rw Ha₁b₁,
+            rw [←(one_mul x), ←Hw₁, ←mul_comm w₁, mul_assoc, Ha₁b₁],
             ring,
           rw Hx,
           exact ideal.mul_mem_right _ Ha₁, },
@@ -392,11 +226,7 @@ begin
           replace Ha₂ := @ideal.mem_map_of_mem _ _ _ _ h _ _ _ Ha₂,
           rcases (Hinv b₂) with ⟨w₂, Hw₂⟩,
           have Hy : y = h a₂ * w₂,
-            rw ←(one_mul y),
-            rw ←Hw₂,
-            rw ←mul_comm w₂,
-            rw mul_assoc,
-            rw Ha₂b₂,
+            rw [←(one_mul y), ←Hw₂, ←mul_comm w₂, mul_assoc, Ha₂b₂],
             ring,
           rw Hy,
           exact ideal.mul_mem_right _ Ha₂, } },
@@ -419,7 +249,7 @@ begin
     replace Hz : z ∈ ideal.comap h (ideal.map h I) := Hz,
     rw ideal.mem_comap at Hz,
     -- TODO : Factor this out! Exactly the same as before.
-    rw (@localisation_map_ideal.eq I PI) at Hz,
+    rw (localisation_map_ideal.eq HL I) at Hz,
     rcases Hz with ⟨w, ⟨a, ⟨HaI, Hwa⟩⟩, ⟨t, Ht⟩⟩,
     rw ←Hwa at Ht,
     rcases (Hden t) with ⟨⟨q, p⟩,  Hpq⟩,
@@ -508,7 +338,7 @@ begin
         simp [Spec.V] at HhI,
         have HyhI : h s * y ∈ ideal.map h I := ideal.mul_mem_left _ (HhI HyE),
         rw Hy at HyhI,
-        rw (@localisation_map_ideal.eq I PI) at HyhI,
+        rw (@localisation_map_ideal.eq R _ Rf _ h _ f HL I PI) at HyhI,
         rcases HyhI with ⟨w, ⟨z, ⟨HzI, Hwz⟩⟩, ⟨t, Ht⟩⟩,
         rcases (Hden t) with ⟨⟨q, p⟩, Hpq⟩,
         simp at Hpq,
@@ -516,10 +346,7 @@ begin
         have Hz : h (r * q - z * p) = 0,
           rw (is_ring_hom.map_sub h),
           repeat { rw (is_ring_hom.map_mul h), },
-          rw ←Hpq, 
-          rw mul_comm _ t,
-          rw ←mul_assoc,
-          rw ←Ht,
+          rw [←Hpq, mul_comm _ t, ←mul_assoc, ←Ht],
           ring,
         replace Hz : r * q - z * p ∈ ker h := Hz,
         replace Hz := Hker Hz,
@@ -573,6 +400,9 @@ begin
     rw ←(set.preimage_image_eq U phi_injective),
     exact Hinv, }
 end
+
+-- Finally we show that φ(Spec(Rf)) = D(f). In particular this shows that, there is
+-- a homeomorphism between Spec(Rf) and D(f).
 
 lemma phi_image_Df : φ '' Spec.univ Rf = Spec.D'(f) :=
 begin

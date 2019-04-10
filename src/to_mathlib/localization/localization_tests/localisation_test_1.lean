@@ -3,8 +3,7 @@
 -/
 
 import ring_theory.localization
-
-import preliminaries.localisation 
+import to_mathlib.localization.localization_alt
 
 universes u v w
 

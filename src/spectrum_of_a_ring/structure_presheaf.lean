@@ -1,9 +1,7 @@
 import ring_theory.localization
-import preliminaries.localisation
-import preliminaries.localisation_tests.localization_of
-
+import to_mathlib.localization.localization_alt
+import to_mathlib.localization.localization_of
 import spectrum_of_a_ring.properties
-
 import sheaves.presheaf_of_rings_on_basis
 import sheaves.sheaf_of_rings_on_standard_basis
 import sheaves.locally_ringed_space

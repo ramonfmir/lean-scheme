@@ -6,8 +6,8 @@
 
 import ring_theory.localization
 import to_mathlib.ideals
-import preliminaries.localisation
-import spectrum_of_a_ring.spectrum
+import to_mathlib.localization.localization_alt
+import spectrum_of_a_ring.spec
 
 open lattice
 

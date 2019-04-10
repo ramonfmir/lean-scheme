@@ -4,6 +4,7 @@
   TODO : Check how much of this isn't actually somehwere in the mathlib.
 -/
 
+import data.finset
 import ring_theory.ideal_operations
 
 universes u v 
@@ -42,4 +43,20 @@ begin
   have HTnB : (⊥ : ideal α) ≠ ⊤ := zero_ne_one_bot_ne_top Hzno,
   rcases (ideal.exists_le_maximal ⊥ HTnB) with ⟨M, ⟨HM, HBM⟩⟩,
   exact ⟨M, HM⟩,
+end
+
+-- I need this but I really wish I didn't.
+
+lemma ideal.span_mem_finset {R : Type u} [decidable_eq R] [comm_ring R] (S : finset R) (f : R → R)
+: finset.sum S (λ a, f a * a) ∈ (@ideal.span R _ ↑S) :=
+begin
+  unfold ideal.span,
+  apply finset.induction_on S,
+  { simp, },
+  { intros a S Ha IH,
+    rw finset.coe_insert,
+    rw submodule.mem_span_insert',
+    rw finset.sum_insert Ha,
+    use [-f a],
+    simp [IH], }
 end

@@ -5,7 +5,7 @@
 -/
 
 import topology.basic
-import preliminaries.opens
+import to_mathlib.opens
 import spectrum_of_a_ring.zariski_topology
 import spectrum_of_a_ring.properties
 
