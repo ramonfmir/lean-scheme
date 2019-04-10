@@ -65,9 +65,28 @@ end
 
 -- TODO : Quite ugly.
 
-lemma pullback_id.iso (F : presheaf_of_rings β) : F ≅ (pullback_id F).carrier :=
+lemma pullback_id.iso (F : presheaf_of_rings β) : (pullback_id F).carrier ≅ F :=
 nonempty.intro 
 { mor := 
+    { map := 
+      begin
+        intros U,
+        have HUU : U ⊆ opens.map (pullback_id F).Hφ₂ U,
+          intros x Hx,
+          dsimp [opens.map],
+          erw set.image_id,
+          exact Hx,
+        exact F.res (opens.map (pullback_id F).Hφ₂ U) U HUU,
+      end,
+    commutes := 
+      begin
+        intros U V HVU,
+        dsimp [pullback_id],
+        rw ←presheaf.Hcomp,
+        rw ←presheaf.Hcomp,
+      end,  
+    ring_homs := by apply_instance, },
+  inv := 
     { map := 
         begin
           intros U,
@@ -85,25 +104,6 @@ nonempty.intro
           rw ←presheaf.Hcomp,
           rw ←presheaf.Hcomp,
         end, 
-      ring_homs := by apply_instance, },
-  inv := 
-    { map := 
-        begin
-          intros U,
-          have HUU : U ⊆ opens.map (pullback_id F).Hφ₂ U,
-            intros x Hx,
-            dsimp [opens.map],
-            erw set.image_id,
-            exact Hx,
-          exact F.res (opens.map (pullback_id F).Hφ₂ U) U HUU,
-        end,
-      commutes := 
-        begin
-          intros U V HVU,
-          dsimp [pullback_id],
-          rw ←presheaf.Hcomp,
-          rw ←presheaf.Hcomp,
-        end,  
       ring_homs := by apply_instance, },
   mor_inv_id := 
     begin

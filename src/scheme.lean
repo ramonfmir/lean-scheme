@@ -13,7 +13,7 @@ import spectrum_of_a_ring.structure_sheaf
 
 open topological_space
 
-universes u
+universes u v
 
 open presheaf_of_rings
 
@@ -23,6 +23,6 @@ structure scheme (α : Type u) [topological_space α] :=
 (carrier    : locally_ringed_space α)
 (cov        : covering.univ α)
 (Haffinecov : 
-  ∀ i, ∃ (R) [comm_ring R] (fpU : pullback (Spec R) carrier.O.F),
+  ∀ i, ∃ (R : Type v) [comm_ring R] (fpU : pullback (Spec R) carrier.O.F),
       fpU.range = cov.Uis i
     ∧ fpU.carrier ≅ structure_sheaf.presheaf R)
