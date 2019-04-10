@@ -4,7 +4,7 @@
   https://stacks.math.columbia.edu/tag/008C
 -/
 
-import preliminaries.opens
+import to_mathlib.opens
 import sheaves.presheaf
 
 universes u v w
@@ -84,6 +84,21 @@ def comp {F : presheaf α} {G : presheaf β} {H : presheaf γ}
       rw ←function.comp.assoc _ _ (g_.map _),
       rw f_.commutes,
       refl,
+    end, }
+
+def id (F : presheaf α) : fmap continuous_id F F :=
+{ map := λ U,
+    begin
+      have HUU : opens.comap continuous_id U ⊆ U,
+        intros x Hx,
+        dsimp [opens.comap] at Hx,
+        exact Hx,
+      exact (F.res U (opens.comap continuous_id U) HUU),
+    end,
+  commutes := 
+    begin
+      intros U V HUV,
+      iterate 2 { rw ←F.Hcomp, },
     end, }
 
 end fmap
