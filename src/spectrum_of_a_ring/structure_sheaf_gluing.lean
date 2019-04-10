@@ -1,5 +1,11 @@
+/- 
+  Second argument of the ring lemma.
+
+  We show that the map R[1/fᵢ] → R[1/fᵢfⱼ] inverts fᵢ/1 * fⱼ/1.
+-/
+
 import ring_theory.localization
-import preliminaries.localisation
+import to_mathlib.localization.localization_alt
 import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_presheaf_localization
 import spectrum_of_a_ring.structure_presheaf_res

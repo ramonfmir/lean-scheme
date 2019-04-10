@@ -2,17 +2,17 @@
   If (fᵢ) = R, the sequene R → Π R[1/fᵢ] → Π R[1/fᵢfⱼ] is exact.
 
   https://stacks.math.columbia.edu/tag/00EJ
+
+  TODO : Factor out all the finset sum lemmas and clean up the main proof.
 -/
 
 import ring_theory.localization
 import algebra.pi_instances
 import linear_algebra.linear_combination
-import preliminaries.localisation
+import to_mathlib.localization.localization_alt
 import to_mathlib.finset_range
 import to_mathlib.ring_hom
 import spectrum_of_a_ring.structure_presheaf_res
-
---import tactic.find
 
 universes u v w
 

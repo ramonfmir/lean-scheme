@@ -1,5 +1,11 @@
+/-
+  The structure presheaf is a sheaf of rings.
+
+  https://stacks.math.columbia.edu/tag/01HR
+-/
+
 import topology.basic
-import preliminaries.localisation
+import to_mathlib.localization.localization_alt
 import sheaves.sheaf_on_standard_basis
 import spectrum_of_a_ring.induced_homeomorphism
 import spectrum_of_a_ring.quasi_compact

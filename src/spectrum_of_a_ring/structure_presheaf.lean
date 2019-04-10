@@ -5,7 +5,7 @@ import spectrum_of_a_ring.properties
 import sheaves.presheaf_of_rings_on_basis
 import sheaves.sheaf_of_rings_on_standard_basis
 import sheaves.locally_ringed_space
-import spectrum_of_a_ring.spectrum
+import spectrum_of_a_ring.spec
 import spectrum_of_a_ring.zariski_topology
 import spectrum_of_a_ring.standard_basis
 

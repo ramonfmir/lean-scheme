@@ -1,7 +1,11 @@
+/-
+  The stalks of the structure presheaf on the basis are local rings.
+-/
+
 import ring_theory.ideals
 import ring_theory.localization
-import preliminaries.localisation
-import preliminaries.local_rings
+import to_mathlib.localization.local_rings
+import to_mathlib.localization.localization_alt
 import sheaves.stalk_of_rings_on_standard_basis
 import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_presheaf_localization

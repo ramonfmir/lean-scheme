@@ -1,7 +1,11 @@
+/-
+  Stalks of the structure sheaf are local rings.
+-/
+
 import ring_theory.ideals
-import preliminaries.local_rings
-import preliminaries.localisation_of_iso
-import preliminaries.localisation
+import to_mathlib.localization.local_rings
+import to_mathlib.localization.localization_of_iso
+import to_mathlib.localization.localization_alt
 import spectrum_of_a_ring.structure_presheaf_stalks
 import spectrum_of_a_ring.structure_sheaf
 import spectrum_of_a_ring.structure_presheaf_stalks

@@ -1,4 +1,8 @@
-import preliminaries.localisation
+/-
+  We show that R[1/S(D(f))] ≅ R[1/f]. Where S(U) := { r | U ⊆ D(r) }
+-/
+
+import to_mathlib.localization.localization_alt
 import spectrum_of_a_ring.structure_presheaf
 
 universe u

@@ -1,3 +1,8 @@
+/-
+  Relate restriction maps of the structure presheaf to the universal property
+  of localization.
+-/
+
 import spectrum_of_a_ring.structure_presheaf
 import spectrum_of_a_ring.structure_presheaf_localization
 
