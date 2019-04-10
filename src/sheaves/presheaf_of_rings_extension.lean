@@ -1,4 +1,10 @@
-import preliminaries.opens
+/-
+  Presheaf of rings extension.
+
+  https://stacks.math.columbia.edu/tag/009N
+-/
+
+import to_mathlib.opens
 import sheaves.presheaf_of_rings
 import sheaves.presheaf_of_rings_on_basis
 import sheaves.sheaf_on_basis

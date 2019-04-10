@@ -1,6 +1,10 @@
+/-
+  Package the definition of an open cover of an open set.
+-/
+
 import topology.basic
 import topology.opens
-import preliminaries.opens
+import to_mathlib.opens
 
 universes u 
 

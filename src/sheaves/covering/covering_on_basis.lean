@@ -1,6 +1,11 @@
+/-
+  Same as covering but the Ui's are elements of the basis and such that Ui ∩ Uj
+  (not necessarily in the basis) is covered by Uijk's all in the basis.
+-/
+
 import topology.basic
-import preliminaries.opens
-import preliminaries.covering
+import to_mathlib.opens
+import sheaves.covering.covering
 
 universes u v
 

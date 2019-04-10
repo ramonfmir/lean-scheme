@@ -1,3 +1,8 @@
+/-
+  If f : A → B has the localization property for a multiplicative S and g : B → C
+  is a bijective ring homomorphism, then (g ∘ f) has the localization property for S too.
+-/
+
 import algebra.ring
 import preliminaries.localisation
 

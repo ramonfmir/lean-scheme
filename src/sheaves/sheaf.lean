@@ -4,7 +4,7 @@
     https://stacks.math.columbia.edu/tag/006S
 -/
 
-import preliminaries.covering
+import sheaves.covering.covering
 import sheaves.presheaf
 
 universes u v

@@ -1,5 +1,5 @@
 /-
-  I want to show that a ring with the localization property at a prime is local.
+  A ring with the localization property at a prime ideal is a local ring.
 -/
 
 import ring_theory.ideals

@@ -1,3 +1,9 @@
+/-
+  Presheaf (of types) extension.
+
+  https://stacks.math.columbia.edu/tag/009N
+-/
+
 import topology.opens
 import sheaves.presheaf
 import sheaves.presheaf_of_rings_on_basis

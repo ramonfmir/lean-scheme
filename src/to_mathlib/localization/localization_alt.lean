@@ -1,11 +1,16 @@
+/-
+  The localization predicate (by Neil Strickland).
+
+  This is Kenny's refactoring of the originial code taken from:
+  https://github.com/kckennylau/Lean/blob/master/localization_alt.lean
+-/
+
 import algebra.ring
 import group_theory.submonoid
 import ring_theory.ideal_operations
 import linear_algebra.basic
 
 import to_mathlib.ring_hom
-
--- https://github.com/kckennylau/Lean/blob/master/localization_alt.lean
 
 namespace localization_alt
 
@@ -202,6 +207,8 @@ begin
   apply useful S f hf g hg,
   rw [← h1, is_ring_hom.map_mul f, mul_comm]
 end
+
+-- Uniqueness.
 
 def inverts_data_aux (h : B → C) [is_ring_hom h] (hf : is_localization_data S f) :
   inverts_data S (h ∘ f) := λ s,

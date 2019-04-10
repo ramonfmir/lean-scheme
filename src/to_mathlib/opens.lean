@@ -1,3 +1,9 @@
+/-
+  Basic definitions and lemmas about opens.
+
+  TODO : Not use opens as sets when possible.
+-/
+
 import topology.basic
 import topology.opens
 

@@ -1,3 +1,12 @@
+/-
+  Extension of a sheaf of rings on the basis to a sheaf of rings on the whole space.
+
+  https://stacks.math.columbia.edu/tag/009M
+  https://stacks.math.columbia.edu/tag/009N
+
+  TODO : Clean this up and split it in smaller files.
+-/
+
 import topology.opens
 import sheaves.stalk_of_rings
 import sheaves.stalk_of_rings_on_standard_basis
@@ -79,12 +88,9 @@ begin
 
 section extension_coincides
 
-#check equiv.of_bijective
-#print function.bijective
+-- The extension is done in a way that F(U) ≅ Fext(U).
 
---- https://stacks.math.columbia.edu/tag/009M
-
--- The map F(U) → Π x ∈ U, Fx
+-- The map ψ : F(U) → Π x ∈ U, Fx
 
 def to_stalk_product (F : presheaf_on_basis α HB) {U : opens α} (BU : U ∈ B)
 : F.F BU → Π (x ∈ U), stalk_on_basis F x :=
@@ -126,8 +132,7 @@ begin
   exact some_spec (some_spec (some_spec (some_spec (some_spec (quotient.eq.1 (Hsx i)))))),
 end
 
--- We want to show that F(U) ≃ Fext(U) as rings when U ∈ B and F is a presheaf of rings.
--- From this it will follow that the stalks are isomorphic.
+-- The map φ : F(U) → im(ψ).
 
 def to_presheaf_of_rings_extension (F : presheaf_of_rings_on_basis α HB) {U : opens α} (BU : U ∈ B)
 : F.F BU → (F ᵣₑₓₜ Bstd).F U :=
@@ -160,7 +165,6 @@ begin
   let HxV := λ (HxU : U), some (some_spec (some_spec (s.2 HxU.1 HxU.2))),
   let σ := λ (HxU : U), some (some_spec (some_spec (some_spec (s.2 HxU.1 HxU.2)))),
   let Hσ := λ (HxU : U), some_spec (some_spec (some_spec (some_spec (s.2 HxU.1 HxU.2)))),
-  -- 
   let OC : covering_standard_basis B U :=
   { γ := U,
     Uis := λ HxU, (V HxU) ∩ U,
@@ -266,7 +270,6 @@ begin
   dsimp [to_stalk_product],
   apply funext,
   intros Hx,
-  
   replace HS := HS ⟨x, Hx⟩,
   dsimp [sx, res] at HS,
   rw Hσ ⟨x, Hx⟩,
@@ -338,7 +341,7 @@ lemma to_presheaf_of_rings_extension.is_ring_hom
       erw ←presheaf_on_basis.Hcomp', 
     end, }
 
--- Stalks coincide.
+-- Moreover, for all x, Fₓ ≅ Fextₓ. This is crucial for 
 
 open stalk_of_rings_on_standard_basis
 

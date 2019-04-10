@@ -2,7 +2,7 @@
   Presheaf of rings on basis.
 
   https://stacks.math.columbia.edu/tag/007L
-    (just says that the category of rings is a type of algebraic structure)
+  (just says that the category of rings is a type of algebraic structure)
 -/
 
 import sheaves.presheaf_on_basis

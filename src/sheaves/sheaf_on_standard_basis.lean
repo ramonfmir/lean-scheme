@@ -4,9 +4,9 @@
   https://stacks.math.columbia.edu/tag/009L
 -/
 
-import preliminaries.opens
-import preliminaries.covering_on_standard_basis
 import topology.basic
+import to_mathlib.opens
+import sheaves.covering.covering_on_standard_basis
 import sheaves.presheaf
 import sheaves.stalk_on_basis
 import sheaves.presheaf_of_rings_on_basis
@@ -82,6 +82,8 @@ locality Bstd F BU OC ∧ gluing Bstd F BU OC
 end sheaf_condition
 
 section cofinal_system
+
+-- Suffices to prove the sheaf condition for finite covers.
 
 def is_sheaf_on_standard_basis_cofinal_system (F : presheaf_on_basis α HB) : Prop :=
 ∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U) (Hfin : fintype OC.γ),

@@ -1,6 +1,10 @@
+/-
+  Same as covering bu thte Ui's are required to be on the basis. 
+-/
+
 import topology.basic
-import preliminaries.opens
-import preliminaries.covering
+import to_mathlib.opens
+import sheaves.covering.covering
 
 universes u 
 

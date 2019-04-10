@@ -5,7 +5,7 @@
   https://stacks.math.columbia.edu/tag/009N
 -/
 
-import preliminaries.covering_on_basis
+import sheaves.covering.covering_on_basis
 import sheaves.presheaf
 import sheaves.presheaf_on_basis
 import sheaves.presheaf_extension

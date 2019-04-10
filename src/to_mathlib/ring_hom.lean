@@ -1,3 +1,7 @@
+/-
+  A ring homomorphism is injective iff the kernel is trivial.
+-/
+
 import algebra.ring
 import ring_theory.ideal_operations
 import linear_algebra.basic

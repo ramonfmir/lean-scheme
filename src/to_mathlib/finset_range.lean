@@ -1,3 +1,9 @@
+/-
+  Some basic results about ranges over finite sets that I found useful.
+
+  TODO : Check how much of this isn't actually somehwere in the mathlib.
+-/
+
 import data.finset
 import data.finsupp
 import data.nat.choose
@@ -14,7 +20,7 @@ lemma finset.coe_image_univ {α : Type u} {β : Type v} [fintype α] [decidable_
 : set.range f = ↑(finset.image f finset.univ) :=
 by rw [finset.coe_image, finset.coe_univ, ←set.image_univ]
 
---
+-- f (Σi=1..n ai) = Σi=1..n f (ai).
 
 lemma is_ring_hom.map_finset_sum 
 {A : Type u} {B : Type v} [comm_ring A] [comm_ring B] (f : A → B) [is_ring_hom f] 
@@ -73,6 +79,8 @@ end basics
 -- (a + b)^(n + m) = x * b ^ m + y * a ^ n
 --  where x = Σi=0..(n-1) ((n+m), i) * a^i * b^(n-i),
 --        y = Σi=0..m ((n+m), (i+n)) * a^i * b^(m-i).
+
+-- Note: This might be way too specific.
 
 lemma add_pow_sum
 {α : Type u} [comm_ring α] 

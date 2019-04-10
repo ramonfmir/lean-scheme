@@ -1,3 +1,7 @@
+/-
+  Defining a topological space by giving the closeds instead of the opens.
+-/
+
 import topology.basic
 
 universe u

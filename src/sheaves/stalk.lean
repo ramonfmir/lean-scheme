@@ -4,7 +4,7 @@
     https://stacks.math.columbia.edu/tag/0078
 -/
 
-import preliminaries.opens
+import to_mathlib.opens
 import topology.basic
 import sheaves.presheaf
 

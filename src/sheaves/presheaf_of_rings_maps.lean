@@ -4,7 +4,7 @@
   https://stacks.math.columbia.edu/tag/008C
 -/
 
-import preliminaries.opens
+import to_mathlib.opens
 import sheaves.presheaf_of_rings
 import sheaves.presheaf_maps
 
@@ -38,23 +38,11 @@ end pushforward
 
 section pullback
 
--- variable (Hf' : ∀ U, is_open (f '' U))
-
--- def pullback (F : presheaf_of_rings β) : presheaf_of_rings α :=
--- { Fring := λ U, F.Fring _,
---   res_is_ring_hom := λ U V HVU, F.res_is_ring_hom _ _ _,
---   ..presheaf.pullback Hf' F.to_presheaf }
-
--- lemma pullback.morphism (F G : presheaf_of_rings β) (φ : F ⟶ G) : pullback Hf' F ⟶ pullback Hf' G :=
--- { ring_homs := λ U, φ.ring_homs _,
---   ..presheaf.pullback.morphism Hf' F.to_presheaf G.to_presheaf φ.to_morphism }
-
 structure pullback (F : presheaf_of_rings β) :=
-(φ : α → β) 
-[Hcts : continuous φ]
-(Hφ : ∀ U, is_open (φ '' U))
-(range : opens β :=
-  ⟨φ '' set.univ, Hφ set.univ⟩)
+(φ       : α → β) 
+(Hcts    : continuous φ)
+(Hφ      : ∀ U, is_open (φ '' U))
+(range   : opens β := ⟨φ '' set.univ, Hφ set.univ⟩)
 (carrier : presheaf_of_rings α :=
   { Fring := λ U, F.Fring _,
     res_is_ring_hom := λ U V HVU, F.res_is_ring_hom _ _ _,

@@ -1,3 +1,9 @@
+/-
+  Basic constructions involving ideals.
+
+  TODO : Check how much of this isn't actually somehwere in the mathlib.
+-/
+
 import ring_theory.ideal_operations
 
 universes u v 

@@ -5,7 +5,7 @@
     (just says that the category of rings is a type of algebraic structure)
 -/
 
-import preliminaries.opens
+import to_mathlib.opens
 import topology.basic
 import sheaves.stalk_on_basis
 import sheaves.presheaf_of_rings_on_basis

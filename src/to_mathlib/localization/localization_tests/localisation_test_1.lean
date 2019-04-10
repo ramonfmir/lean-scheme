@@ -1,6 +1,9 @@
+/-
+  First localization test. R[1/a][1/b] ≅ R[1/ab].
+-/
+
 import ring_theory.localization
 
--- Kenny's refactoring of Neil's code.
 import preliminaries.localisation 
 
 universes u v w
