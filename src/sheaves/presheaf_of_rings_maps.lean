@@ -14,13 +14,14 @@ open topological_space
 
 variables {α : Type u} [topological_space α]
 variables {β : Type v} [topological_space β]
-variables {f : α → β} (Hf : continuous f) 
 
 namespace presheaf_of_rings
 
 -- f induces a functor PSh(α) ⟶ PSh(β).
 
 section pushforward
+
+variables {f : α → β} (Hf : continuous f) 
 
 def pushforward (F : presheaf_of_rings α) : presheaf_of_rings β :=
 { Fring := λ U, F.Fring _,
@@ -38,6 +39,8 @@ end pushforward
 
 section pullback
 
+variable (α)
+
 structure pullback (F : presheaf_of_rings β) :=
 (φ       : α → β) 
 -- Open immersion. TODO: Package this.
@@ -53,6 +56,10 @@ structure pullback (F : presheaf_of_rings β) :=
 end pullback
 
 -- f induces a `map` from a presheaf of rings on β to a presheaf of rings on α.
+
+variable {α}
+
+variables {f : α → β} (Hf : continuous f) 
 
 def fmap (F : presheaf_of_rings α) (G : presheaf_of_rings β) :=
 presheaf.fmap Hf F.to_presheaf G.to_presheaf

@@ -23,6 +23,6 @@ structure scheme (α : Type u) [topological_space α] :=
 (carrier    : locally_ringed_space α)
 (cov        : covering.univ α)
 (Haffinecov : 
-  ∀ i, ∃ (R) [comm_ring R] (fpU : pullback carrier.O.F),
+  ∀ i, ∃ (R) [comm_ring R] (fpU : pullback (Spec R) carrier.O.F),
       fpU.range = cov.Uis i
-    ∧ nonempty (fpU.carrier ≅ structure_sheaf.presheaf R))
+    ∧ fpU.carrier ≅ structure_sheaf.presheaf R)
