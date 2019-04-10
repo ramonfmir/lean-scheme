@@ -1,6 +1,7 @@
 import topology.basic
 import ring_theory.localization
 import sheaves.presheaf_maps
+import sheaves.presheaf_of_rings_maps
 import sheaves.presheaf_of_rings
 import sheaves.sheaf_of_rings
 import sheaves.stalk_of_rings

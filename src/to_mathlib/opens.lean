@@ -63,7 +63,7 @@ end opens_comap
 section opens_map
 
 variables {β : Type v} [topological_space β]
-variables {f : α → β} (Hf : ∀ U, is_open (f '' U))
+variables {f : α → β} (Hf : ∀ (U : opens α), is_open (f '' U))
 
 def opens.map : opens α → opens β := 
 λ U, ⟨f '' U, Hf U⟩

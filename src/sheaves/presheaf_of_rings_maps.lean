@@ -40,13 +40,15 @@ section pullback
 
 structure pullback (F : presheaf_of_rings β) :=
 (φ       : α → β) 
-(Hcts    : continuous φ)
-(Hφ      : ∀ U, is_open (φ '' U))
-(range   : opens β := ⟨φ '' set.univ, Hφ set.univ⟩)
+-- Open immersion. TODO: Package this.
+(Hφ₁     : continuous φ)
+(Hφ₂     : ∀ (U : opens α), is_open (φ '' U))
+(Hφ₃     : function.injective φ)
+(range   : opens β := ⟨φ '' set.univ, Hφ₂ opens.univ⟩)
 (carrier : presheaf_of_rings α :=
   { Fring := λ U, F.Fring _,
     res_is_ring_hom := λ U V HVU, F.res_is_ring_hom _ _ _,
-    ..presheaf.pullback Hφ F.to_presheaf })
+    ..presheaf.pullback Hφ₂ F.to_presheaf })
 
 end pullback
 

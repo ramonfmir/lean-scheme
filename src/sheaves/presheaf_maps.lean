@@ -41,7 +41,7 @@ end pushforward
 
 section pullback
 
-variable (Hf' : ∀ U, is_open (f '' U))
+variable (Hf' : ∀ (U : opens α), is_open (f '' U))
 
 def pullback (F : presheaf β) : presheaf α :=
 { F := λ U, F (opens.map Hf' U),
