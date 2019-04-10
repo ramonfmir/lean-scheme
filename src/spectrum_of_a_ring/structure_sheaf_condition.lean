@@ -307,8 +307,6 @@ begin
   exact HN,
 end
 
-set_option trace.check true
-
 lemma standard_covering₂
 (Hone : (1:R) ∈ ideal.span (set.range f)) (s : Π i, Rfi i)
 : β s = 0 ↔ ∃ r : R, α r = s := 
