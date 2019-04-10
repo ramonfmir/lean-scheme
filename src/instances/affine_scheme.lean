@@ -12,7 +12,7 @@ open topological_space
 
 variables (R : Type u) [comm_ring R]
 
--- Spec(R) is a locally ringed space. It covers itself
+-- Spec(R) is a locally ringed space and it covers itself.
 
 def affine_scheme : scheme (Spec R) :=
 { carrier := Spec.locally_ringeed_space R,
