@@ -5,6 +5,6 @@ universe u
 
 variables (R : Type u) [comm_ring R]
 
-def Spec.locally_ringeed_space : locally_ringed_space (Spec R) :=
+def Spec.locally_ringed_space : locally_ringed_space (Spec R) :=
 { O := structure_sheaf R, 
   Hstalks := λ P, structure_sheaf.stalk_local P, }
