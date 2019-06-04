@@ -15,12 +15,12 @@ variables (R : Type u) [comm_ring R]
 -- Spec(R) is a locally ringed space and it covers itself.
 
 def affine_scheme : scheme (Spec R) :=
-{ carrier := Spec.locally_ringeed_space R,
+{ carrier := Spec.locally_ringed_space R,
   cov := 
-    { γ := ulift ℕ,
+    { γ := punit,
       Uis := λ x, opens.univ,
       Hcov := opens.ext $ set.ext $ λ x, 
-        ⟨λ Hx, trivial, λ Hx, ⟨set.univ, ⟨⟨opens.univ, ⟨(by simp; by use 1), rfl⟩⟩, Hx⟩⟩⟩ },
+        ⟨λ Hx, trivial, λ Hx, ⟨set.univ, ⟨⟨opens.univ, ⟨⟨punit.star, rfl⟩, rfl⟩⟩, Hx⟩⟩⟩ },
   Haffinecov := 
     begin
       intros i,
