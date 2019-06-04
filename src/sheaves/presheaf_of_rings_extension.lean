@@ -5,9 +5,9 @@
 -/
 
 import to_mathlib.opens
+import sheaves.covering.covering
 import sheaves.presheaf_of_rings
 import sheaves.presheaf_of_rings_on_basis
-import sheaves.sheaf_on_basis
 import sheaves.stalk_of_rings_on_standard_basis
 
 universes u v w

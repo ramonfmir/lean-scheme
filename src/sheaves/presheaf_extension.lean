@@ -6,7 +6,7 @@
 
 import topology.opens
 import sheaves.presheaf
-import sheaves.presheaf_of_rings_on_basis
+import sheaves.presheaf_on_basis
 import sheaves.stalk_on_basis
 
 universe u 

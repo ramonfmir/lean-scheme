@@ -12,6 +12,7 @@ import sheaves.stalk_of_rings
 import sheaves.stalk_of_rings_on_standard_basis
 import sheaves.presheaf_of_rings_on_basis
 import sheaves.presheaf_of_rings_extension
+import sheaves.sheaf_on_basis
 import sheaves.sheaf_on_standard_basis
 import sheaves.sheaf_of_rings
 

@@ -7,8 +7,6 @@
 import topology.basic
 import to_mathlib.opens
 import sheaves.covering.covering_on_standard_basis
-import sheaves.presheaf
-import sheaves.stalk_on_basis
 import sheaves.presheaf_of_rings_on_basis
 
 universe u 
