@@ -74,6 +74,12 @@ structure iso (F G : presheaf α) :=
 
 infix `≅`:80 := iso
 
-end morphism
+end morphism 
+
+-- Equality lemma
+
+lemma presheaf_eq_of_subset_eq (F : presheaf α) (U V : opens α) 
+: U = V → F U = F V :=
+λ h, by rw h
 
 end presheaf

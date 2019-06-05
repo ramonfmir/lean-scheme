@@ -49,7 +49,7 @@ infixl `⊚`:80 := comp
 def locally_ringed_space.id (OX : locally_ringed_space A) : morphism OX OX :=
 { f := id, 
   Hf := continuous_id,
-  fO := presheaf.fmap.id OX.O.F, }
+  fO := presheaf.fmap.id OX.O.F.to_presheaf, }
 
 structure iso (OX : locally_ringed_space A) (OY : locally_ringed_space B) :=
 (mor : OX ⟶ OY)

@@ -4,7 +4,11 @@
   https://stacks.math.columbia.edu/tag/006N
 -/
 
+import data.equiv.algebra
+import topology.opens
 import sheaves.presheaf
+
+open topological_space
 
 universes u v
 
@@ -15,9 +19,9 @@ extends presheaf α :=
 (Fring           : ∀ (U), comm_ring (F U))
 (res_is_ring_hom : ∀ (U V) (HVU : V ⊆ U), is_ring_hom (res U V HVU))
 
-instance {α : Type u} [topological_space α] 
-: has_coe (presheaf_of_rings α) (presheaf α) 
-:= ⟨λ F, F.to_presheaf⟩
+instance (α : Type u) [topological_space α] : has_coe_to_fun (presheaf_of_rings α) :=
+{ F := λ _, opens α → Type v,
+  coe := λ F, (presheaf_of_rings.to_presheaf F).F }
 
 attribute [instance] presheaf_of_rings.Fring
 attribute [instance] presheaf_of_rings.res_is_ring_hom
@@ -47,5 +51,11 @@ structure iso (F G : presheaf_of_rings α) :=
 (inv_mor_id : inv.to_morphism ⊚ mor.to_morphism = presheaf.id G.to_presheaf)
 
 infix `≅`:80 := λ A B, nonempty (iso A B)
+
+-- Equality lemma
+
+lemma presheaf_of_rings_eq_of_subset_eq (F : presheaf_of_rings α) (U V : opens α) 
+: U = V → ring_equiv (F U) (F V) :=
+λ h, by rw h; by apply ring_equiv.refl
 
 end presheaf_of_rings
