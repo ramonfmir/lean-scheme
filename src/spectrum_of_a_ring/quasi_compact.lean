@@ -112,7 +112,7 @@ begin
     rw ←set.compl_empty,
     congr,
     rw Spec.V.set_eq_span,
-    rw Spec.V.empty_iff_ideal_top,
+    erw Spec.V.empty_iff_ideal_top,
     suffices Hsuff : (1:R) ∈ ideal.span (↑(lc.support) : set R),
       rw ((ideal.eq_top_iff_one _).2 Hsuff),
     rw lc.total_apply at H,
@@ -213,7 +213,7 @@ begin
   apply Spec.quasi_compact.aux,
 end
 
--- This is what we really need.
+-- This is what we really need. 
 
 -- D(f) = ⋃i=1,..,n D(gi)
 

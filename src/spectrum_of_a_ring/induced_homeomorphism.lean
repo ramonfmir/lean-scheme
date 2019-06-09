@@ -70,8 +70,6 @@ begin
     have Hdenx := Hden x,
     rcases Hdenx with ⟨⟨fn, r⟩, Hhr⟩,
     simp at Hhr,
-    have Hinvfn := Hinv fn,
-    rcases Hinvfn with ⟨s, Hfn⟩,
     have H := @ideal.mul_mem_left _ _ I (h fn) _ Hx,
     rw Hhr at H,
     replace H : r ∈ ideal.comap h I := H,

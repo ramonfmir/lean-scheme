@@ -136,7 +136,7 @@ end
 
 -- Localization map A --> A[1/a][1/b].
 
-@[reducible] def h : R → Rab := λ x, ⟦⟨⟦⟨x, 1, one_powers_a⟩⟧, 1, one_powers_b1⟩⟧
+@[reducible] def h : R → Rab := λ x, ⟦⟨⟦⟨x, 1, is_submonoid.one_mem _⟩⟧, 1, is_submonoid.one_mem _⟩⟧
 instance is_ring_hom_h : is_ring_hom h :=
 { map_one := rfl,
   map_add := λ x y,
@@ -311,7 +311,9 @@ end
 
 -- R[1/a][1/b] = R[1/ab].
 
-lemma loc_Rab : is_localization' {a * b} h :=
+open localization
+
+lemma loc_Rab : is_localization' {a * b} ((of ∘ of) : R → Rab) :=
 ⟨loc_inverts, loc_has_denom, loc_ker_ann⟩
 
 end localization_ab_proof

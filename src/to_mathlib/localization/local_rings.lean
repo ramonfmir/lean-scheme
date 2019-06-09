@@ -39,7 +39,7 @@ begin
       exact Hone, },
     { change v ∉ P at HvnP,
       exact (HvnP Hv), }, },
-  { -- x and y units then x + y is a unit.
+  { -- x and y nonunits then x + y is not a unit.
     intros x y Hx Hy HC,
     change ¬is_unit x at Hx,
     change ¬is_unit y at Hy,

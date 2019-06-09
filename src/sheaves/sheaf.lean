@@ -47,18 +47,15 @@ end sheaf_condition
  
 -- Definition of a sheaf of types.
 
-structure sheaf (α : Type u) [T : topological_space α] :=
-(F        : presheaf α)
-(locality : locality F)
-(gluing   : gluing F) 
+structure sheaf (α : Type u) [T : topological_space α] 
+extends presheaf α :=
+(locality : locality to_presheaf)
+(gluing   : gluing to_presheaf) 
 
 section sheaf_of_types
 
 variables {α : Type u} [T : topological_space α]
 include T
-
-instance sheaf.to_presheaf : has_coe (sheaf α) (presheaf α) := 
-⟨λ S, S.F⟩
 
 def is_sheaf (F : presheaf α) :=
 locality F ∧ gluing F

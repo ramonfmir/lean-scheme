@@ -21,6 +21,8 @@ section properties
 
 variables {R : Type u} [comm_ring R]
 
+open Spec
+
 -- Lemma 1.
 -- The spectrum of a ring R is empty if and only if R is the zero ring.
 
@@ -58,7 +60,7 @@ end
 -- Lemma 5.
 -- V(S) = V((S)).
 
-lemma Spec.V.set_eq_span (S : set R) : Spec.V S = Spec.V (ideal.span S).1 :=
+lemma Spec.V.set_eq_span (S : set R) : V(S) = V(ideal.span S) :=
 set.ext $ λ ⟨I, PI⟩,
 ⟨λ HI x Hx,
   begin 
@@ -71,7 +73,7 @@ set.ext $ λ ⟨I, PI⟩,
 -- Lemma 8.
 -- V(I) = ∅ iff I = R.
 
-lemma Spec.V.empty_iff_ideal_top (I : ideal R) : Spec.V I.1 = ∅ ↔ I = ⊤ :=
+lemma Spec.V.empty_iff_ideal_top (I : ideal R) : V(I.1) = ∅ ↔ I = ⊤ :=
 begin
   split,
   { intros HI,
@@ -94,7 +96,7 @@ end
 -- Lemma 15.
 -- If f,g ∈ R, then D(fg) = D(f) ∩ D(g).
 
-lemma Spec.V'.product_eq_union (f g : R) : Spec.V' (f * g) = Spec.V' f ∪ Spec.V' g :=
+lemma Spec.V'.product_eq_union (f g : R) : V'(f * g) = V'(f) ∪ V'(g) :=
 begin
   unfold Spec.V',
   apply set.ext,
@@ -116,7 +118,7 @@ begin
       apply ideal.mul_mem_left x Hg, } }
 end
 
-lemma Spec.D'.product_eq_inter (f g : R) : Spec.D' (f * g) = Spec.D' f ∩ Spec.D' g :=
+lemma Spec.D'.product_eq_inter (f g : R) : D'(f * g) = D'(f) ∩ D'(g) :=
 begin
   unfold Spec.D',
   rw Spec.V'.product_eq_union,
@@ -126,7 +128,7 @@ end
 -- Lemma 16.
 -- ⋃D(fi) is the complement of V({fi}).
 
-lemma Spec.D'.union (F : set R) : ⋃₀ ((Spec.D') '' F) = -Spec.V F :=
+lemma Spec.D'.union (F : set R) : ⋃₀ (D' '' F) = -V(F) :=
 begin
   apply set.ext,
   intros x,
@@ -145,9 +147,10 @@ begin
     use [Spec.D' f, ⟨f, HfF, rfl⟩], }
 end
 
+
 -- D(g) ⊆ D(f) → f ∈ R[1/g]*.
 
-lemma inverts.of_Dfs_subset {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f)) 
+lemma inverts.of_Dfs_subset {f g : R} (H : D'(g) ⊆ D'(f)) 
 : localization_alt.inverts (powers f) (localization.of : R → localization R (powers g)) :=
 begin
   rintros ⟨fn, Hfn⟩,
@@ -213,7 +216,7 @@ end
 
 -- D(g) ⊆ D(f) → ∃ a e, g^e = a * f.
 
-lemma pow_eq.of_Dfs_subset {f g : R} (H : Spec.D'(g) ⊆ Spec.D'(f)) 
+lemma pow_eq.of_Dfs_subset {f g : R} (H : D'(g) ⊆ D'(f)) 
 : ∃ (a : R) (e : ℕ), g^e = a * f :=
 begin 
   have Hinv := inverts.of_Dfs_subset H,
