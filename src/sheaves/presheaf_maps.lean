@@ -6,6 +6,7 @@
 
 import to_mathlib.opens
 import sheaves.presheaf
+import sheaves.stalk
 
 universes u v w
 
@@ -100,6 +101,27 @@ def id (F : presheaf α) : fmap continuous_id F F :=
       intros U V HUV,
       iterate 2 { rw ←F.Hcomp, },
     end, }
+
+-- Induced map on stalks.
+
+def induced
+(F : presheaf α) (G : presheaf β) (f' : fmap Hf F G) (x : α) 
+: stalk G (f x) → stalk F x :=
+begin
+  intros Us,
+  let g : stalk.elem G (f x) → stalk F x :=
+    λ Us, (⟦⟨opens.comap Hf Us.U, Us.HxU, f'.map Us.U Us.s⟩⟧),
+  apply quotient.lift_on Us g,
+  rintros a b ⟨V, HxV, HVaU, HVbU, Hres⟩,
+  apply quotient.sound,
+  use [opens.comap Hf V, HxV],
+  use [set.preimage_mono HVaU, set.preimage_mono HVbU],
+  have Ha := congr_fun (f'.commutes a.U V HVaU) a.s,
+  have Hb := congr_fun (f'.commutes b.U V HVbU) b.s,
+  dsimp only [function.comp] at *,
+  erw [←Ha, ←Hb, Hres],
+end
+
 
 end fmap
 

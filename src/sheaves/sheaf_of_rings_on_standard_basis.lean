@@ -60,7 +60,7 @@ begin
     intros HxUi,
     have HxU : x ∈ U := OC.Hcov ▸ (opens_supr_subset OC.Uis i) HxUi,
     let HyUi := λ t, ∃ (H : t ∈ set.range OC.Uis), x ∈ t,
-    dunfold presheaf_of_rings_on_basis_to_presheaf_of_rings; dsimp,
+    dunfold presheaf_of_rings_extension; dsimp,
     dunfold global_section; dsimp,
     -- Same process of dealing with subtype.rec.
     let HyUi := λ t, ∃ (H : t ∈ subtype.val '' set.range OC.Uis), x ∈ t,
@@ -72,7 +72,7 @@ begin
     let HSUi := λ i, OC.Uis i = OUl,
     cases (classical.indefinite_description HSUi _) with l HSUil; dsimp,
     -- Now we just need to apply Hsec in the right way.
-    dunfold presheaf_of_rings_on_basis_to_presheaf_of_rings at Hsec,
+    dunfold presheaf_of_rings_extension at Hsec,
     dunfold res_to_inter_left at Hsec,
     dunfold res_to_inter_right at Hsec,
     dsimp at Hsec,
@@ -295,20 +295,12 @@ lemma to_presheaf_of_rings_extension.bijective
 ⟨to_presheaf_of_rings_extension.injective Bstd F (λ U BU OC, HF BU OC) BU,
 to_presheaf_of_rings_extension.surjective Bstd F (λ U BU OC, HF BU OC) BU ⟩
 
-lemma to_presheaf_of_rings_extension.equiv
-(F : presheaf_of_rings_on_basis α HB) 
-(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
-{U : opens α} (BU : U ∈ B)
-: F.F BU ≃ (F ᵣₑₓₜ Bstd).F U :=
-equiv.of_bijective (to_presheaf_of_rings_extension.bijective Bstd F (λ U BU OC, HF BU OC) BU)
-
 -- We now that they are equivalent as sets. 
 -- Now we to assert that they're isomorphic as rings. 
 -- It suffices to show that it is a ring homomorphism.
 
 lemma to_presheaf_of_rings_extension.is_ring_hom 
 (F : presheaf_of_rings_on_basis α HB) 
-(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
 {U : opens α} (BU : U ∈ B)
 : is_ring_hom (to_presheaf_of_rings_extension Bstd F BU) :=
 { map_one := 
@@ -342,13 +334,24 @@ lemma to_presheaf_of_rings_extension.is_ring_hom
       erw ←presheaf_on_basis.Hcomp', 
     end, }
 
+lemma to_presheaf_of_rings_extension.ring_equiv
+(F : presheaf_of_rings_on_basis α HB) 
+(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+{U : opens α} (BU : U ∈ B)
+: F BU ≃r (presheaf_of_rings_extension Bstd F) U :=
+begin
+  have H := function.bijective_iff_has_inverse.1 (to_presheaf_of_rings_extension.bijective Bstd F @HF BU),
+  rcases (classical.indefinite_description _ H) with ⟨inv, Hlinv, Hrinv⟩,
+  use [(to_presheaf_of_rings_extension Bstd F BU), inv, Hlinv, Hrinv],
+  exact (to_presheaf_of_rings_extension.is_ring_hom Bstd F BU),
+end
+
 -- Moreover, for all x, Fₓ ≅ Fextₓ. This is crucial for 
 
 open stalk_of_rings_on_standard_basis
 
 lemma to_stalk_extension
 (F : presheaf_of_rings_on_basis α HB) 
-(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
 (x : α)
 : stalk_of_rings_on_standard_basis Bstd F x → stalk_of_rings (F ᵣₑₓₜ Bstd) x :=
 begin
@@ -361,9 +364,8 @@ end
 
 lemma to_stalk_extension.injective 
 (F : presheaf_of_rings_on_basis α HB) 
-(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
 (x : α)
-: function.injective (to_stalk_extension Bstd F @HF x) :=
+: function.injective (to_stalk_extension Bstd F x) :=
 begin
   intros Us₁' Us₂', 
   apply quotient.induction_on₂ Us₁' Us₂',
@@ -405,9 +407,8 @@ end
 
 lemma to_stalk_extension.surjective 
 (F : presheaf_of_rings_on_basis α HB) 
-(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
 (x : α)
-: function.surjective (to_stalk_extension Bstd F @HF x) :=
+: function.surjective (to_stalk_extension Bstd F x) :=
 begin
   intros Us',
   apply quotient.induction_on Us',
@@ -423,7 +424,7 @@ begin
   have HUVWU : U ∩ V ∩ W ⊆ U := λ x Hx, Hx.1.1,
   use [U ∩ V ∩ W, ⟨⟨HxU, HxV⟩, HxW⟩, HUVWV, HUVWU],
   apply subtype.eq,
-  dsimp only [presheaf_of_rings_on_basis_to_presheaf_of_rings],
+  dsimp only [presheaf_of_rings_extension],
   dsimp only [to_presheaf_of_rings_extension],
   dsimp only [to_stalk_product],
   funext y Hy,
@@ -441,17 +442,15 @@ end
 
 lemma to_stalk_extension.bijective
 (F : presheaf_of_rings_on_basis α HB) 
-(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
 (x : α)
-: function.bijective (to_stalk_extension Bstd F @HF x) :=
-⟨to_stalk_extension.injective Bstd F @HF x,
-to_stalk_extension.surjective Bstd F @HF x⟩
+: function.bijective (to_stalk_extension Bstd F x) :=
+⟨to_stalk_extension.injective Bstd F x,
+to_stalk_extension.surjective Bstd F x⟩
 
 lemma to_stalk_extension.is_ring_hom
 (F : presheaf_of_rings_on_basis α HB) 
-(HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
 (x : α)
-: is_ring_hom (to_stalk_extension Bstd F @HF x) :=
+: is_ring_hom (to_stalk_extension Bstd F x) :=
 { map_one := 
     begin
       dunfold to_stalk_extension,
@@ -465,7 +464,7 @@ lemma to_stalk_extension.is_ring_hom
       have HUUW₁ : one.U ∩ W₁ ⊆ one.U := set.inter_subset_left _ _,
       use [one.U ∩ W₁, ⟨one.Hx, HxW₁⟩, HUUW₁, set.subset_univ _],
       apply subtype.eq,
-      dsimp only [presheaf_of_rings_on_basis_to_presheaf_of_rings],
+      dsimp only [presheaf_of_rings_extension],
       dsimp only [to_presheaf_of_rings_extension],
       dsimp only [to_stalk_product],
       funext z Hz,
@@ -506,7 +505,7 @@ lemma to_stalk_extension.is_ring_hom
         := set.subset_inter HWU₁out HWU₂out,
       use [W, HxW, HWU₃out, HWU₁₂out],
       apply subtype.eq,
-      dsimp only [presheaf_of_rings_on_basis_to_presheaf_of_rings],
+      dsimp only [presheaf_of_rings_extension],
       dsimp only [to_presheaf_of_rings_extension],
       dsimp only [to_stalk_product],
       funext z HzW,
@@ -556,7 +555,7 @@ lemma to_stalk_extension.is_ring_hom
         := set.subset_inter HWU₁out HWU₂out,
       use [W, HxW, HWU₃out, HWU₁₂out],
       apply subtype.eq,
-      dsimp only [presheaf_of_rings_on_basis_to_presheaf_of_rings],
+      dsimp only [presheaf_of_rings_extension],
       dsimp only [to_presheaf_of_rings_extension],
       dsimp only [to_stalk_product],
       funext z HzW,
@@ -577,6 +576,18 @@ lemma to_stalk_extension.is_ring_hom
       rw ←presheaf_on_basis.Hcomp',
       rw ←presheaf_on_basis.Hcomp',
     end, }
+
+lemma to_stalk_extension.ring_equiv
+(F : presheaf_of_rings_on_basis α HB) 
+(x : α)
+: stalk_of_rings_on_standard_basis Bstd F x ≃r 
+stalk_of_rings (presheaf_of_rings_extension Bstd F) x :=
+begin
+  have H := function.bijective_iff_has_inverse.1 (to_stalk_extension.bijective Bstd F x),
+  rcases (classical.indefinite_description _ H) with ⟨inv, Hlinv, Hrinv⟩,
+  use [(to_stalk_extension Bstd F x), inv, Hlinv, Hrinv],
+  exact (to_stalk_extension.is_ring_hom Bstd F x),
+end
 
 end extension_coincides
 

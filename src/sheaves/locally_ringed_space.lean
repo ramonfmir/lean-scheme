@@ -22,11 +22,14 @@ structure locally_ringed_space (X : Type u) [topological_space X] :=
 
 -- TODO: Work on coercions.
 
+
+
 structure morphism {X : Type u} {Y : Type v} [topological_space X] [topological_space Y]
 (OX : locally_ringed_space X) (OY : locally_ringed_space Y) :=
-(f  : X → Y)
-(Hf : continuous f)
-(fO : presheaf.fmap Hf OX.O.F.to_presheaf OY.O.F.to_presheaf)
+(f       : X → Y)
+(Hf      : continuous f)
+(fO      : presheaf_of_rings.fmap Hf OX.O.F OY.O.F)
+(Hstalks : )
 
 infix `⟶`:80 := morphism 
 
