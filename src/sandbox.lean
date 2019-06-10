@@ -1022,6 +1022,7 @@ begin
   funext U σ, exact (presheaf.Hid' _ _ _).symm.trans (H2 U σ)
 end
 
+/- https://stacks.math.columbia.edu/tag/01I1 -/
 theorem mor_to_hom_to_mor {X : Type u} [topological_space X] (OX : locally_ringed_space X)
   (R : Type u) [comm_ring R] (f : OX.morphism (Spec.locally_ringed_space R)) :
   hom_to_mor OX R (mor_to_hom OX R f) = f :=
@@ -1080,6 +1081,23 @@ begin
   dsimp only [induced_basis], simp only [localization.lift_of, function.comp_apply],
   dsimp only [mor_to_hom], rw [← presheaf.Hcomp', ← presheaf.Hcomp'],
   exact presheaf.Hid' _ _ _,
+end
+
+/- https://stacks.math.columbia.edu/tag/01I1 -/
+theorem hom_to_mor_to_hom {X : Type u} [topological_space X] (OX : locally_ringed_space X)
+  (R : Type u) [comm_ring R] (f : (Spec.locally_ringed_space R).O ⊤ → OX.O ⊤) [is_ring_hom f] :
+  mor_to_hom OX R (hom_to_mor OX R f) = f :=
+begin
+  funext x,
+  rcases to_presheaf_of_rings_extension.surjective (D_fs_standard_basis R) _ structure_presheaf_on_basis_is_sheaf_on_basis (D_fs_standard_basis R).1 x with ⟨r, rfl⟩,
+  suffices : mor_to_hom OX R (hom_to_mor OX R f) ∘ to_presheaf_of_rings_extension (D_fs_standard_basis R) (structure_presheaf_on_basis R) (D_fs_standard_basis R).1 =
+    f ∘ to_presheaf_of_rings_extension (D_fs_standard_basis R) (structure_presheaf_on_basis R) (D_fs_standard_basis R).1,
+  { convert congr_fun this r },
+  refine localization.funext _ _ (λ r, _),
+  dsimp only [function.comp_apply, mor_to_hom, hom_to_mor],
+  rw [induced_sheafification_to_presheaf_of_rings_extension, sheaf_of_rings.of_to_extension],
+  dsimp only [induced_basis], rw [localization.lift_coe], dsimp only [function.comp_apply],
+  rw ← presheaf.Hcomp', exact presheaf.Hid' _ _ _
 end
 
 end tag01I1
