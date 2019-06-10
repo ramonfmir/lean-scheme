@@ -536,9 +536,13 @@ variables {X : Type u} [topological_space X] (OX : locally_ringed_space X)
 variables (R : Type v) [comm_ring R]
 
 /- https://stacks.math.columbia.edu/tag/01I1 -/
-def mor_to_hom (f : morphism OX (Spec.locally_ringed_space R)) :
+def mor_to_hom (f : OX.morphism (Spec.locally_ringed_space R)) :
   (Spec.locally_ringed_space R).O ⊤ → OX.O ⊤ :=
-cast (congr_arg OX.O.F $ opens.comap_top f.Hf) ∘ f.fO.map ⊤
+OX.O.F.res (opens.comap f.Hf ⊤) ⊤ (opens.comap_top f.Hf ▸ set.subset.refl _) ∘ f.fO.map ⊤
+
+instance mor_to_hom.is_ring_hom (f : OX.morphism (Spec.locally_ringed_space R)) :
+  is_ring_hom (mor_to_hom OX R f) :=
+by unfold mor_to_hom; apply_instance
 
 variables (f : (Spec.locally_ringed_space R).O ⊤ → OX.O ⊤) [is_ring_hom f]
 
@@ -675,6 +679,19 @@ noncomputable def induced_sheafification {X : Type u} [topological_space X] (OX 
 ⟨λ x hxU, induced_stalk OX R f x (s.1 x hxU),
 λ x hxU, let ⟨V, HVB, hxV, s1, hs1⟩ := s.2 x hxU in
 ⟨V, HVB, hxV, induced_basis OX R f V HVB s1, λ g hg, funext $ λ hgU, by rw hs1 g hg; refl⟩⟩
+
+theorem induced_sheafification_to_presheaf_of_rings_extension
+  {X : Type u} [topological_space X] (OX : locally_ringed_space X)
+  (R : Type u) [comm_ring R]
+  (f : (Spec.locally_ringed_space R).O ⊤ → OX.O ⊤) [is_ring_hom f]
+  (U : topological_space.opens (Spec R)) (HUB : U ∈ D_fs R)
+  (σ : (structure_presheaf_on_basis R).F HUB) :
+  induced_sheafification OX R f U (to_presheaf_of_rings_extension (D_fs_standard_basis R) _ HUB σ) =
+    sheaf_of_rings.to_extension _ _ _ _ (induced_basis OX R _ _ HUB σ) :=
+subtype.eq $ funext $ λ p, funext $ λ hpU, quotient.sound ⟨U ∩ opens.some (sheaf_of_rings.to_extension._proof_1 (D_fs_basis R) U p hpU),
+  (D_fs_standard_basis R).2 HUB (sheaf_of_rings.to_extension._proof_2 (D_fs_basis R) U p hpU),
+  ⟨hpU, (sheaf_of_rings.to_extension._proof_3 (D_fs_basis R) U p hpU)⟩,
+  set.inter_subset_left _ _, set.inter_subset_right _ _, presheaf.Hcomp' _ _ _ _ _ _ _⟩
 
 instance is_ring_hom_induced_basis (U : topological_space.opens $ Spec R) (HUB : U ∈ D_fs R) :
   is_ring_hom (induced_basis OX R f U HUB) :=
@@ -858,6 +875,21 @@ begin
     rw [localization.mk_mul_mk, mul_comm], exact localization.mk_self }
 end
 
+theorem is_unit_to_stalk_affine' (p : Spec R)
+  (U : topological_space.opens (Spec R)) (HUB : U ∈ D_fs R) (hpU : p ∈ U) (σ : (structure_presheaf_on_basis R).F HUB) :
+  is_unit (to_stalk (Spec.locally_ringed_space R).O.F p U hpU (to_presheaf_of_rings_extension _ _ HUB σ)) ↔
+  ∀ r : R, ∀ s : S U, localization.mk r s = σ → p ∈ Spec.D' r :=
+begin
+  rw is_unit_to_stalk_affine, split,
+  { rintros ⟨r1, s1, hp1, hrs⟩ r2 s2 rfl, rcases quotient.exact hrs with ⟨t, hts, ht⟩,
+    change (s1.1 * r2 - s2.1 * r1) * t = 0 at ht, rw [sub_mul, sub_eq_zero_iff_eq] at ht,
+    suffices : p ∈ Spec.D' (s1.1 * r2 * t),
+    { rw [Spec.D'.product_eq_inter, Spec.D'.product_eq_inter] at this, exact this.1.2 },
+    rw ht, rw [Spec.D'.product_eq_inter, Spec.D'.product_eq_inter],
+    exact ⟨⟨s2.2 hpU, hp1⟩, hts hpU⟩ },
+  { refine localization.induction_on σ (λ r s h, ⟨r, s, h r s rfl, rfl⟩) }
+end
+
 theorem is_unit_to_stalk_on_basis {X : Type u} [topological_space X]
   {B : set (topological_space.opens X)} (HB : topological_space.opens.is_basis B) (Bstd)
   (F : presheaf_of_rings_on_basis X HB)
@@ -973,5 +1005,81 @@ noncomputable def hom_to_mor {X : Type u} [topological_space X] (OX : locally_ri
     change localization.mk (r * s.1) ⟨s.1 * r, _⟩ = 1,
     rw mul_comm, exact localization.mk_self
   end }
+
+theorem cast_eq_of_heq : ∀ {α β : Sort u} {a : α} {b : β} (H : a == b), cast (type_eq_of_heq H) a = b
+| α _ a _ heq.rfl := rfl
+
+@[extensionality] theorem locally_ringed_space.morphism.ext {X : Type u} [topological_space X] {OX : locally_ringed_space X}
+  {Y : Type v} [topological_space Y] {OY : locally_ringed_space Y}
+  {m₁ m₂ : OX.morphism OY} (H1 : ∀ x, m₁.f x = m₂.f x)
+  (H2 : ∀ U σ, OX.O.F.res (opens.comap m₁.Hf U) (opens.comap m₂.Hf U)
+    (show m₂.f⁻¹' U ⊆ m₁.f⁻¹' U, from (funext H1 : m₁.f = m₂.f) ▸ set.subset.refl _)
+    (m₁.fO.map U σ) = m₂.fO.map U σ) : m₁ = m₂ :=
+begin
+  rcases m₁ with ⟨⟨f, hf, ⟨mf, hmf⟩⟩, hf1, hf2⟩,
+  rcases m₂ with ⟨⟨g, hg, ⟨mg, hmg⟩⟩, hg1, hg2⟩,
+  have : f = g := funext H1, subst this, congr' 3,
+  funext U σ, exact (presheaf.Hid' _ _ _).symm.trans (H2 U σ)
+end
+
+theorem mor_to_hom_to_mor {X : Type u} [topological_space X] (OX : locally_ringed_space X)
+  (R : Type u) [comm_ring R] (f : OX.morphism (Spec.locally_ringed_space R)) :
+  hom_to_mor OX R (mor_to_hom OX R f) = f :=
+begin
+  have : ((hom_to_mor OX R (mor_to_hom OX R f)).to_morphism).f = (f.to_morphism).f,
+  { funext x, apply subtype.eq, ext s,
+    change ¬ is_unit (to_stalk _ _ _ _ (OX.O.F.res _ _ _ _)) ↔ f.f x ∈ Spec.V' s,
+    rw to_stalk_res _ x (opens.comap f.Hf ⊤) _ trivial, split,
+    { rintros hu, classical, by_contradiction hfxs, apply hu,
+      change is_unit (presheaf.fmap.stalk_of_rings f.fO x (to_stalk _ _ ⊤ trivial (to_Spec_top R s))),
+      haveI := is_ring_hom_stalk_of_rings f.fO,
+      refine is_unit.map _ _, refine (is_unit_to_stalk_affine _ _ _ _ _ _).2 ⟨s, 1, hfxs, rfl⟩ },
+    { exact λ hsfx HV, (is_unit_to_stalk_affine' _ _ _ _ _ _).1
+        (f.hlocal x (to_stalk _ _ ⊤ trivial (to_Spec_top R s)) HV) _ _ rfl hsfx } },
+  fapply locally_ringed_space.morphism.ext, { intros, rw this },
+  intros U σ,
+  refine @sheaf_of_rings.ext (Spec R) _ _ (D_fs_basis R) (OX.O.pushforward f.Hf) U _ _ (λ p hpU, _),
+  rcases topological_space.opens.is_basis_iff_nbhd.1 (D_fs_basis R) hpU with ⟨V, HVB, hpV, HVU⟩,
+  refine quotient.sound ⟨V, hpV, HVU, HVU, _⟩,
+  change OX.O.F.res _ _ _ (OX.O.F.res _ _ _ _) = OX.O.F.res _ _ _ _,
+  rw presheaf.fmap.commutes' f.fO U V HVU,
+  rw ← presheaf.Hcomp',
+  rw presheaf.Hcomp' _ (opens.comap (hom_to_mor OX R (mor_to_hom OX R f)).Hf U)
+      (opens.comap (hom_to_mor OX R (mor_to_hom OX R f)).Hf V) (opens.comap f.Hf V)
+      (show f.f ⁻¹' V ⊆ (hom_to_mor OX R (mor_to_hom OX R f)).f ⁻¹' V, by rw this)
+      (opens.comap_mono _ _ _ HVU),
+  rw presheaf.fmap.commutes' _ U V HVU,
+  generalize : ((((Spec.locally_ringed_space R).O).F).to_presheaf).res U V HVU σ = τ,
+  rcases to_presheaf_of_rings_extension.surjective _ _ structure_presheaf_on_basis_is_sheaf_on_basis HVB τ with ⟨x, rfl⟩,
+  haveI := (hom_to_mor OX R (mor_to_hom OX R f)).hom,
+  refine congr_fun (localization.funext
+    (OX.O.F.res (opens.comap (hom_to_mor OX R (mor_to_hom OX R f)).Hf V) (opens.comap f.Hf V) _ ∘
+      (hom_to_mor OX R (mor_to_hom OX R f)).fO.map V ∘
+         to_presheaf_of_rings_extension _ (structure_presheaf_on_basis R) HVB)
+    (f.fO.map V ∘ to_presheaf_of_rings_extension _ (structure_presheaf_on_basis R) HVB) _) x,
+  intros r, dsimp only [function.comp_apply],
+  rw [show ((r : localization R (S V)) : (structure_presheaf_on_basis R).F HVB) =
+      (structure_presheaf_on_basis R).res (D_fs_standard_basis R).1 _ _ (localization.of r), from rfl,
+    ← res_to_presheaf_of_rings_extension _ _ _ _ _ (D_fs_standard_basis R).1 _ (set.subset_univ _)],
+  change (((OX.O).F).to_presheaf).res (opens.comap _ V) (opens.comap _ V) _
+      ((((hom_to_mor OX R (mor_to_hom OX R f)).to_morphism).fO).map V
+         (((Spec.locally_ringed_space R).O.F.to_presheaf).res opens.univ V _
+            (to_presheaf_of_rings_extension _ (structure_presheaf_on_basis R) _ (localization.of r)))) =
+    ((f.to_morphism).fO).map V
+      (((Spec.locally_ringed_space R).O.F.to_presheaf).res opens.univ V _
+         (to_presheaf_of_rings_extension _ (structure_presheaf_on_basis R) _ (localization.of r))),
+  rw [← presheaf.fmap.commutes', ← presheaf.fmap.commutes'],
+  swap, { exact opens.comap_mono _ _ _ (set.subset_univ _) }, swap, { exact opens.comap_mono _ _ _ (set.subset_univ _) },
+  dsimp only [hom_to_mor], rw ← presheaf.Hcomp',
+  rw presheaf.Hcomp' OX.O.F.to_presheaf (opens.comap (induced_continuous OX R (mor_to_hom OX R f)) opens.univ)
+      (opens.comap f.Hf ⊤) (opens.comap f.Hf V)
+      (opens.comap_mono _ _ _ (set.subset_univ _))
+      (λ _ _, trivial),
+  congr' 1,
+  rw [induced_sheafification_to_presheaf_of_rings_extension, sheaf_of_rings.of_to_extension],
+  dsimp only [induced_basis], simp only [localization.lift_of, function.comp_apply],
+  dsimp only [mor_to_hom], rw [← presheaf.Hcomp', ← presheaf.Hcomp'],
+  exact presheaf.Hid' _ _ _,
+end
 
 end tag01I1
