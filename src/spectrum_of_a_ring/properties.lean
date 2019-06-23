@@ -58,7 +58,7 @@ end
 -- Lemma 5.
 -- V(S) = V((S)).
 
-lemma Spec.V.set_eq_span (S : set R) : Spec.V S = Spec.V (ideal.span S).1 :=
+lemma Spec.V.set_eq_span (S : set R) : Spec.V S = Spec.V (ideal.span S) :=
 set.ext $ λ ⟨I, PI⟩,
 ⟨λ HI x Hx,
   begin 

@@ -145,7 +145,7 @@ def comp {F : presheaf_of_rings α} {G : presheaf_of_rings β} {H : presheaf_of_
 (f_ : fmap Hf F G) (g_ : fmap Hg G H) : fmap (continuous.comp Hf Hg) F H :=
 presheaf.fmap.comp f_ g_
 
-def fmap.induced
+def induced
 (F : presheaf_of_rings α) (G : presheaf_of_rings β) 
 (f' : fmap Hf F G) (x : α) 
 : stalk_of_rings G (f x) → stalk_of_rings F x :=
