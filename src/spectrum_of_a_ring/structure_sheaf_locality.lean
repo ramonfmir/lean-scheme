@@ -23,8 +23,6 @@ open classical
 open localization
 open localization_alt
 
--- Needed.
-
 variables {R : Type u} [comm_ring R]
 variables {U V : opens (Spec R)} (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (H : V ⊆ U)
 
@@ -36,7 +34,6 @@ begin
   rintros ⟨s, Hs⟩,
   rcases (indefinite_description _ Hs) with ⟨n, Hn⟩,
   rw ←@is_semiring_hom.map_pow R _ _ _ of (@is_ring_hom.is_semiring_hom _ _ _ _ of of.is_ring_hom) _ _ at Hn,
-  --rw ←@is_semiring_hom.map_pow _ _ _ _ (of : R → localization R (S U)) _ (some BV) n,
   dsimp only [subtype.coe_mk],
   rw ←Hn,
   dsimp [structure_presheaf_on_basis.res],
@@ -75,10 +72,7 @@ begin
   rcases (indefinite_description _ Hq) with ⟨n, Hn⟩,
   dsimp only [subtype.coe_mk] at Hpq,
   have Hofp : structure_presheaf_on_basis.res BU BV H (of p) = 0,
-    rw ←Hpq,
-    rw is_ring_hom.map_mul (structure_presheaf_on_basis.res BU BV H),
-    rw Hx,
-    rw mul_zero,
+    rw [←Hpq, is_ring_hom.map_mul (structure_presheaf_on_basis.res BU BV H), Hx, mul_zero],
   dsimp only [structure_presheaf_on_basis.res] at Hofp,
   rw is_localization_initial_comp at Hofp,
   have Hpker : p ∈ ker (of : R → localization R (S V)) := Hofp,
@@ -97,24 +91,12 @@ begin
     exact ⟨(e * n + m), rfl⟩,
   have Hxann : x * g' = 0,
     dsimp [g'],
-    rw ←is_semiring_hom.map_pow (of : R → localization R (S U)),
-    rw pow_add,
-    rw is_ring_hom.map_mul (of : R → localization R (S U)),
-    rw pow_mul,
-    rw Hea,
-    rw mul_pow,
-    rw is_ring_hom.map_mul (of : R → localization R (S U)),
-    rw ←mul_assoc,
-    rw ←mul_assoc,
-    rw Hn,
-    rw mul_comm x,
-    rw Hpq,
-    rw mul_comm (of p),
-    rw mul_assoc,
-    rw ←is_ring_hom.map_mul (of : R → localization R (S U)),
-    rw Huv,
-    rw is_ring_hom.map_zero (of : R → localization R (S U)),
-    rw mul_zero,
+    rw [←is_semiring_hom.map_pow (of : R → localization R (S U)), pow_add],
+    rw [is_ring_hom.map_mul (of : R → localization R (S U)), pow_mul, Hea, mul_pow],
+    rw [is_ring_hom.map_mul (of : R → localization R (S U))],
+    rw [←mul_assoc, ←mul_assoc, Hn, mul_comm x, Hpq, mul_comm (of p), mul_assoc],
+    rw [←is_ring_hom.map_mul (of : R → localization R (S U)), Huv],
+    rw [is_ring_hom.map_zero (of : R → localization R (S U)), mul_zero],
   use ⟨⟨x, ⟨g', Hg'⟩⟩, Hxann⟩,
 end
 

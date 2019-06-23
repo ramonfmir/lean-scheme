@@ -23,10 +23,6 @@ structure scheme (α : Type u) [topological_space α] :=
 (carrier    : locally_ringed_space α)
 (Haffinecov : ∃ (OC : covering.univ α), 
   ∀ i, ∃ (R : Type v) [comm_ring R] 
-  (fpU : pullback (Spec R) carrier.O.F),
+  (fpU : open_immersion_pullback (Spec R) carrier.O.F),
       fpU.range = OC.Uis i
     ∧ fpU.carrier ≅ structure_sheaf.presheaf R)
-
-def empty_scheme : scheme empty :=
-{carrier := sorry,
-Haffinecov := sorry}

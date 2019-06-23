@@ -52,4 +52,5 @@ end
 
 theorem Zariski.induced.preimage_D (x : α) 
 : Zariski.induced f ⁻¹' (Spec.D' x) = Spec.D' (f x) :=
-set.ext $ λ x, by simp [Spec.D', Spec.V', Zariski.induced]
+set.ext $ λ ⟨P, HP⟩, 
+by simp [Spec.D', Spec.V', Zariski.induced]

@@ -320,7 +320,6 @@ begin
       apply funext,
       exact Hr,
     simp [α],
-
     -- Setting up.
     replace H := sub_eq_zero.1 H,
     replace H := congr_fun H,
@@ -336,28 +335,20 @@ begin
       iterate 2 { rw pow_add, rw ←mul_assoc, },
       rw [←Hfiri i, ←Hfiri j],
       exact (HN i j),
-
     -- We use the fact that if (ti) = R then (ti') = R.
     replace Hone := (one_mem_span_pow_of_mem_span f (λ i, r i + N) Hone),
     rcases (finset.image_sum_of_mem_span Hone) with ⟨a, Ha⟩,
     dsimp at Ha,
     use [finset.univ.sum (λ i, a i * (t i) * (f i) ^ N)],
     intros i,
-
     -- Note that: si = ti / fi^ri.
     have Hsi : αi i ((f i)^(r i)) * (s i) = αi i (t i),
       rw ←Hfiri i,
       exact ((Hlocα' i).has_denom (s i)).2,
-    
     -- Multiply the sum by fi^(ri + N) / fi^(ri + N).
     rcases (Hlocα' i).inverts ⟨(f i)^(r i + N), ⟨r i + N, rfl⟩⟩ with ⟨w, Hw⟩,
     dsimp only [subtype.coe_mk] at Hw,
-    rw ←mul_one (αi i _ ),
-    rw ←Hw,
-    rw ←mul_assoc,
-    rw ←is_ring_hom.map_mul (αi i),
-    rw finset.sum_mul,
-
+    rw [←mul_one (αi i _ ), ←Hw, ←mul_assoc, ←is_ring_hom.map_mul (αi i), finset.sum_mul],
     -- Key part : Σ ax tx' fi' = Σ ax fx' ti'.
     have Hsum : (λ x, a x * t x * f x ^ N * f i ^ (r i + N)) = 
                 (λ x, a x * f x ^ (r x + N) * (t i * f i ^ N)),
@@ -367,25 +358,12 @@ begin
       rw (HN i j),
       symmetry,
       rw mul_comm (_ * _),
-    
     -- Rewrite sum and use the fact that it is one.
-    rw Hsum,
-    rw ←finset.sum_mul,
-    rw is_ring_hom.map_mul (αi i),
-    rw ←Ha,
-    rw is_ring_hom.map_one (αi i),
-    rw one_mul,
-    rw ←mul_one (s i),
-
-    -- Kill it.
-    rw ←Hw,
-    rw pow_add,
-    rw is_ring_hom.map_mul (αi i),
-    rw is_ring_hom.map_mul (αi i),
-    rw ←mul_assoc,
-    rw ←mul_assoc,
-    rw mul_comm (s i),
-    rw Hsi, },
+    rw [Hsum, ←finset.sum_mul, is_ring_hom.map_mul (αi i)],
+    rw [←Ha, is_ring_hom.map_one (αi i), one_mul, ←mul_one (s i)],
+    -- Finishing.
+    rw [←Hw, pow_add, is_ring_hom.map_mul (αi i), is_ring_hom.map_mul (αi i)],
+    rw [←mul_assoc, ←mul_assoc, mul_comm (s i), Hsi], },
   { rintros ⟨r, Hr⟩,
     rw ←Hr,
     erw sub_eq_zero,

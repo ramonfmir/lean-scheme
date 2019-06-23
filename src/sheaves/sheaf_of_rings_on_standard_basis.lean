@@ -344,7 +344,6 @@ begin
   exact (to_presheaf_of_rings_extension.is_ring_hom Bstd F BU),
 end
 
-
 -- Moreover, for all x, Fₓ ≅ Fextₓ.
 
 -- We will need this to show that the stalks of the structure sheaf on
