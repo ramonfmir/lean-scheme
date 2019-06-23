@@ -122,7 +122,6 @@ begin
   erw [←Ha, ←Hb, Hres],
 end
 
-
 end fmap
 
 end presheaf

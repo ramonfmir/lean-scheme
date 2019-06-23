@@ -3,8 +3,6 @@
 
   https://stacks.math.columbia.edu/tag/009M
   https://stacks.math.columbia.edu/tag/009N
-
-  TODO : Clean this up and split it in smaller files.
 -/
 
 import topology.opens
@@ -214,14 +212,14 @@ begin
     -- Therefore there exists Wjk where σj|Wjk = σk|Wjk. We will use these as a cover.
     let Ujk : opens α := (OC.Uis j) ∩ (OC.Uis k),
     let BUjk := Bstd.2 (OC.BUis j) (OC.BUis k),
-    --
-    let Hjk    := λ (HxUjk : Ujk), quotient.eq.1 (Hstalks HxUjk.2),
-    let Wjk    := λ (HxUjk : Ujk), some (Hjk HxUjk) ∩ U,
-    let BWjk   := λ (HxUjk : Ujk), Bstd.2 (some (some_spec (Hjk HxUjk))) BU,
-    let HxWjk  := λ (HxUjk : Ujk), some (some_spec (some_spec (Hjk HxUjk))),
+    -- Again, all the information we will need but on Uj ∩ Uk.
+    let Hjk := λ (HxUjk : Ujk), quotient.eq.1 (Hstalks HxUjk.2),
+    let Wjk := λ (HxUjk : Ujk), some (Hjk HxUjk) ∩ U,
+    let BWjk := λ (HxUjk : Ujk), Bstd.2 (some (some_spec (Hjk HxUjk))) BU,
+    let HxWjk := λ (HxUjk : Ujk), some (some_spec (some_spec (Hjk HxUjk))),
     let HWjkUj := λ (HxUjk : Ujk), some (some_spec (some_spec (some_spec (Hjk HxUjk)))),
     let HWjkUk := λ (HxUjk : Ujk), some (some_spec (some_spec (some_spec (some_spec (Hjk HxUjk))))),
-    let HWjk   := λ (HxUjk : Ujk), some_spec (some_spec (some_spec (some_spec (some_spec (Hjk HxUjk))))),
+    let HWjk := λ (HxUjk : Ujk), some_spec (some_spec (some_spec (some_spec (some_spec (Hjk HxUjk))))),
     let OCjk : covering_standard_basis B ((OC.Uis j) ∩ (OC.Uis k)) :=
     { γ := Ujk,
       Uis := Wjk,
@@ -261,7 +259,7 @@ begin
     rw ←presheaf_on_basis.Hcomp' at Hres,
     rw ←presheaf_on_basis.Hcomp' at Hres,
     use Hres,
-  -- Ready...
+  -- Ready to prove it.
   rcases (Hglue Hsx) with ⟨S, HS⟩,
   existsi S,
   apply subtype.eq,
@@ -346,7 +344,11 @@ begin
   exact (to_presheaf_of_rings_extension.is_ring_hom Bstd F BU),
 end
 
--- Moreover, for all x, Fₓ ≅ Fextₓ. This is crucial for 
+
+-- Moreover, for all x, Fₓ ≅ Fextₓ.
+
+-- We will need this to show that the stalks of the structure sheaf on
+-- Spec(R) are local rings.
 
 open stalk_of_rings_on_standard_basis
 

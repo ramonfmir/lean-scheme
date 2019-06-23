@@ -1,3 +1,9 @@
+/-
+  Locally ringed spaces.
+
+  https://stacks.math.columbia.edu/tag/01HA
+-/
+
 import topology.basic
 import ring_theory.localization
 import sheaves.presheaf_maps
@@ -45,19 +51,19 @@ def comp (F : morphism OA OB) (G : morphism OB OC) : morphism OA OC :=
   fO := presheaf.fmap.comp F.fO G.fO,
   Hstalks :=
     begin
-        intros x s H,
-        apply G.Hstalks,
-        apply F.Hstalks,
-        convert H,
-        unfold presheaf.fmap.comp,
-        unfold presheaf_of_rings.fmap.induced,
-        unfold presheaf.fmap.induced,
-        dsimp,
-        apply quotient.induction_on s,
-        rintros ⟨U, HxU, s⟩; simp,
-        use [opens.comap F.Hf (opens.comap G.Hf U), HxU]; dsimp,
-        use [(λ x Hx, Hx), (λ x Hx, Hx)],
-        refl,
+      intros x s H,
+      apply G.Hstalks,
+      apply F.Hstalks,
+      convert H,
+      unfold presheaf.fmap.comp,
+      unfold presheaf_of_rings.fmap.induced,
+      unfold presheaf.fmap.induced,
+      dsimp,
+      apply quotient.induction_on s,
+      rintros ⟨U, HxU, s⟩; simp,
+      use [opens.comap F.Hf (opens.comap G.Hf U), HxU]; dsimp,
+      use [(λ x Hx, Hx), (λ x Hx, Hx)],
+      refl,
     end }
 
 infixl `⊚`:80 := comp
@@ -68,26 +74,26 @@ def locally_ringed_space.id (OX : locally_ringed_space A) : morphism OX OX :=
   fO := presheaf.fmap.id OX.O.F.to_presheaf,
   Hstalks := 
     begin
-        intros x a,
-        unfold presheaf.fmap.id,
-        unfold presheaf_of_rings.fmap.induced,
-        unfold presheaf.fmap.induced,
-        dsimp,
-        apply quotient.induction_on a,
-        rintros ⟨U, HxU, s⟩; simp,
-        intros H,
-        have HU : opens.comap continuous_id U = U,
-        {   unfold opens.comap,
-            apply subtype.eq; dsimp,
-            rw set.preimage_id, },
-        convert H,
-        { use HU.symm, },
-        { dsimp only [subtype.coe_mk],
-            have Hid := OX.O.F.to_presheaf.Hid' U s,
-            rw ←Hid,
-            congr,
-            { exact HU.symm, },
-            { exact Hid.symm, }, },
+      intros x a,
+      unfold presheaf.fmap.id,
+      unfold presheaf_of_rings.fmap.induced,
+      unfold presheaf.fmap.induced,
+      dsimp,
+      apply quotient.induction_on a,
+      rintros ⟨U, HxU, s⟩; simp,
+      intros H,
+      have HU : opens.comap continuous_id U = U,
+      { unfold opens.comap,
+        apply subtype.eq; dsimp,
+        rw set.preimage_id, },
+      convert H,
+      { use HU.symm, },
+      { dsimp only [subtype.coe_mk],
+        have Hid := OX.O.F.to_presheaf.Hid' U s,
+        rw ←Hid,
+        congr,
+        { exact HU.symm, },
+        { exact Hid.symm, }, },
     end }
 
 structure iso (OX : locally_ringed_space A) (OY : locally_ringed_space B) :=
@@ -96,7 +102,7 @@ structure iso (OX : locally_ringed_space A) (OY : locally_ringed_space B) :=
 (mor_inv_id : mor ⊚ inv = locally_ringed_space.id OX)
 (inv_mor_id : inv ⊚ mor = locally_ringed_space.id OY)
 
-infix `≅`:80 := iso
+infix `≅`:80 := λ OX OY, nonempty (iso OX OY)
 
 end morphism
 

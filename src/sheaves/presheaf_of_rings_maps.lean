@@ -42,29 +42,27 @@ section pullback
 
 variable (α)
 
-structure pullback (F : presheaf_of_rings β) :=
-(φ       : α → β) 
--- Open immersion. TODO: Package this.
-(Hφ₁     : continuous φ)
-(Hφ₂     : ∀ (U : opens α), is_open (φ '' U))
-(Hφ₃     : function.injective φ)
-(range   : opens β := ⟨φ '' set.univ, Hφ₂ opens.univ⟩)
+structure open_immersion_pullback (F : presheaf_of_rings β) :=
+(f       : α → β) 
+-- Open immersion. TODO: Use open embedding.
+(Hf₁     : continuous f)
+(Hf₂     : ∀ (U : opens α), is_open (f '' U))
+(Hf₃     : function.injective f)
+(range   : opens β := ⟨f '' set.univ, Hf₂ opens.univ⟩)
 (carrier : presheaf_of_rings α :=
   { Fring := λ U, F.Fring _,
     res_is_ring_hom := λ U V HVU, F.res_is_ring_hom _ _ _,
-    ..presheaf.pullback Hφ₂ F.to_presheaf })
+    ..presheaf.pullback Hf₂ F.to_presheaf })
 
-def pullback_id (F : presheaf_of_rings β) : presheaf_of_rings.pullback β F :=
+def pullback_id (F : presheaf_of_rings β) : open_immersion_pullback β F :=
 begin
   exact 
-    { φ := (id : β → β),
-      Hφ₁ := continuous_id,
-      Hφ₂ := λ U, by rw set.image_id; by exact U.2, 
-      Hφ₃ := function.injective_id },
+    { f := (id : β → β),
+      Hf₁ := continuous_id,
+      Hf₂ := λ U, by rw set.image_id; by exact U.2, 
+      Hf₃ := function.injective_id },
   exact F,
 end
-
--- TODO : Quite ugly.
 
 lemma pullback_id.iso (F : presheaf_of_rings β) : (pullback_id F).carrier ≅ F :=
 nonempty.intro 
@@ -72,12 +70,12 @@ nonempty.intro
     { map := 
       begin
         intros U,
-        have HUU : U ⊆ opens.map (pullback_id F).Hφ₂ U,
+        have HUU : U ⊆ opens.map (pullback_id F).Hf₂ U,
           intros x Hx,
           dsimp [opens.map],
           erw set.image_id,
           exact Hx,
-        exact F.res (opens.map (pullback_id F).Hφ₂ U) U HUU,
+        exact F.res (opens.map (pullback_id F).Hf₂ U) U HUU,
       end,
     commutes := 
       begin
@@ -91,12 +89,12 @@ nonempty.intro
     { map := 
         begin
           intros U,
-          have HUU : opens.map (pullback_id F).Hφ₂ U ⊆ U,
+          have HUU : opens.map (pullback_id F).Hf₂ U ⊆ U,
             intros x Hx,
             dsimp [opens.map] at Hx,
             erw set.image_id at Hx,
             exact Hx,
-          exact F.res U (opens.map (pullback_id F).Hφ₂ U) HUU,
+          exact F.res U (opens.map (pullback_id F).Hf₂ U) HUU,
         end,
       commutes := 
         begin

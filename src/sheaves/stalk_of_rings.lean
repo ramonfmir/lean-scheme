@@ -382,8 +382,6 @@ by dsimp; rw [←hg W U HWU s, ←hg W V HWV t, Hres])
 theorem to_stalk.rec_to_stalk (U HxU) 
 : (to_stalk.rec F x S G hg) ∘ (to_stalk F x U HxU) = G U := rfl
 
-#check quotient.lift_on'
-
 include HG
 
 lemma to_stalk.rec_is_ring_hom : is_ring_hom (to_stalk.rec F x S G hg) :=
