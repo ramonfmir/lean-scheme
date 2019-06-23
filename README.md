@@ -6,7 +6,7 @@ The content of this repository is the result of completely refactoring the [lean
 * The use of the `is_localization` predicate, defined by Prof Neil Strickland [here](https://github.com/NeilStrickland/lean_comm_alg/blob/master/src/localization.lean), throughout instead of the concrete construction of a localized ring. Thanks to this, we avoided complicated arguments about *canonically isomorphic* rings.
 * Usability. We have re-structured the previous repository and re-named all the files and many of the definitions and lemmas with the intention of providing a usable interface.
 
-Note that this is still very much a work in progress. Some further clean-up is necessary, many proofs can be simplified and the API needs to be tested with more examples of schemes.
+Note that this is still very much a work in progress. The API needs to be tested with more examples of schemes and constructions involving schemes.
 
 ## Content
 
@@ -42,3 +42,5 @@ The main contributors to this project are:
 * Chris Hughes ([@ChrisHughes24](https://github.com/ChrisHughes24)).
 * Kenny Lau ([@kckennylau](https://github.com/kckennylau)).
 * Ramon Fernández Mir ([@ramonfmir](https://github.com/ramonfmir)).
+
+All the files have been written from scratch by the last author (some of them based on the work in the previous repository) unless stated otherwise.
