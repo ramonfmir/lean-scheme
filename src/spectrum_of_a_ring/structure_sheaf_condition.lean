@@ -309,7 +309,7 @@ end
 
 lemma standard_covering₂
 (Hone : (1:R) ∈ ideal.span (set.range f)) (s : Π i, Rfi i)
-: β s = 0 ↔ ∃ r : R, α r = s := 
+: β s = 0 ↔ ∃ r, α r = s := 
 begin
   rw finset.coe_image_univ at Hone,
   split,

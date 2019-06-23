@@ -374,15 +374,15 @@ lemma to_stalk.is_ring_hom (U) (HxU) : is_ring_hom (to_stalk F x U HxU) :=
 include hg
 
 protected def to_stalk.rec (y : stalk_of_rings F x) : S :=
-quotient.lift_on' y (λ Us, G Us.1 Us.3) $ 
-λ ⟨U, HxU, s⟩ ⟨V, HxV, t⟩ ⟨W, HxW, HWU, HWV, Hres⟩,
-begin 
-    dsimp,
-    rw [←hg W U HWU s, ←hg W V HWV t, Hres],
-end
+quotient.lift_on' y (λ Us, G Us.1 Us.3) 
+(λ ⟨U, HxU, s⟩ ⟨V, HxV, t⟩ ⟨W, HxW, HWU, HWV, Hres⟩,
+by dsimp; rw [←hg W U HWU s, ←hg W V HWV t, Hres])
 
-theorem to_stalk.rec_to_stalk (U HxU s) 
-: to_stalk.rec F x S G hg (to_stalk F x U HxU s) = G U s := rfl
+
+theorem to_stalk.rec_to_stalk (U HxU) 
+: (to_stalk.rec F x S G hg) ∘ (to_stalk F x U HxU) = G U := rfl
+
+#check quotient.lift_on'
 
 include HG
 

@@ -175,7 +175,7 @@ end
 -- Structure sheaf.
 
 def structure_sheaf.presheaf (R : Type u) [comm_ring R] := 
-presheaf_of_rings_on_basis_to_presheaf_of_rings 
+presheaf_of_rings_extension
   (D_fs_standard_basis R) 
   (structure_presheaf_on_basis R)
 

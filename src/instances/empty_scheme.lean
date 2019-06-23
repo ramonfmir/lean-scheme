@@ -16,6 +16,8 @@ lemma Spec_empty : Spec R → false :=
 
 include HR
 
+variables (X : Type u) [topological_space X] (H : X → false)
+
 @[reducible] def empty_presheaf : presheaf_of_rings (Spec R) :=
 { F := λ U, R,
   res := λ U V HUV, id,

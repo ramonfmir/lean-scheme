@@ -6,6 +6,7 @@
 
 import to_mathlib.opens
 import sheaves.presheaf_of_rings
+import sheaves.stalk_of_rings
 import sheaves.presheaf_maps
 
 universes u v w
@@ -143,6 +144,12 @@ variable {Hf}
 def comp {F : presheaf_of_rings α} {G : presheaf_of_rings β} {H : presheaf_of_rings γ} 
 (f_ : fmap Hf F G) (g_ : fmap Hg G H) : fmap (continuous.comp Hf Hg) F H :=
 presheaf.fmap.comp f_ g_
+
+def induced
+(F : presheaf_of_rings α) (G : presheaf_of_rings β) 
+(f' : fmap Hf F G) (x : α) 
+: stalk_of_rings G (f x) → stalk_of_rings F x :=
+presheaf.fmap.induced F.to_presheaf G.to_presheaf f' x
 
 end fmap
 

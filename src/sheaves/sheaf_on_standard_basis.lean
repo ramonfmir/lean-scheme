@@ -25,6 +25,7 @@ section properties
 
 -- Compactness definition.
 
+-- Basis elementsfinite subcover
 def basis_is_compact : Prop := 
 ∀ {U} (BU : U ∈ B) (OC : covering_standard_basis B U),
 ∃ (γ : Type u) (Hfin : fintype γ) (f : γ → OC.γ), (⋃ (OC.Uis ∘ f)) = U
