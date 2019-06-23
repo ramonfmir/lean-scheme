@@ -72,7 +72,7 @@ structure iso (F G : presheaf α) :=
 (mor_inv_id : mor ⊚ inv = id F)
 (inv_mor_id : inv ⊚ mor = id G)
 
-infix `≅`:80 := iso
+infix `≅`:80 := λ A B, nonempty (iso A B)
 
 end morphism 
 
