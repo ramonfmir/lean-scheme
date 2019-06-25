@@ -118,13 +118,6 @@ def covering_comap {Y : Type u} [topological_space Y] {f : X → Y} (Hf : contin
     λ i hi, let ⟨V, ⟨U, ⟨j, hjU⟩, hUV⟩, hfiV⟩ := set.mem_sUnion.1 (((set.ext_iff _ _).1 (congr_arg subtype.val OC.Hcov) (f i)).2 hi) in
     set.mem_sUnion.2 ⟨f ⁻¹' V, ⟨opens.comap Hf ⟨V, hUV ▸ U.2⟩, ⟨j, congr_arg (opens.comap Hf) $ hjU.trans $ by exact subtype.eq hUV⟩, rfl⟩, hfiV⟩ }
 
-def covering_res (U V : opens X) (HVU : V ⊆ U) (OC : covering U) : covering V :=
-{ γ := OC.γ,
-  Uis := λ i : OC.γ, OC.Uis i ∩ V,
-  Hcov := opens.ext $ set.subset.antisymm (set.sUnion_subset $ λ t ⟨W, ⟨i, hiVW⟩, hWt⟩, hWt ▸ hiVW ▸ set.inter_subset_right _ _) $
-    λ x hxV, let ⟨t, ⟨W, ⟨i, hiW⟩, HWt⟩, hxt⟩ := set.mem_sUnion.1 (((set.ext_iff _ _).1 (congr_arg subtype.val OC.Hcov) x).2 (HVU hxV)) in
-    set.mem_sUnion.2 ⟨t ∩ V, ⟨(W ∩ V : opens X), ⟨i, hiW ▸ rfl⟩, HWt ▸ rfl⟩, hxt, hxV⟩ }
-
 end opens
 
 end topological_space
