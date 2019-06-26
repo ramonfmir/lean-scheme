@@ -209,7 +209,7 @@ variables (O : sheaf_of_rings X)
 include HB
 set_option pp.universes true
 
-@[extensionality] theorem ext (U : opens X) (f g : O U) (hfg : ∀ x ∈ U, to_stalk O.F x U H f = to_stalk O.F x U H g) : f = g :=
+theorem ext (U : opens X) (f g : O U) (hfg : ∀ x ∈ U, to_stalk O.F x U H f = to_stalk O.F x U H g) : f = g :=
 begin
   have := λ x : U, quotient.exact (hfg x.1 x.2), choose C hc1 hc2 hc3 hc4,
   refine O.locality (opens.covering_of_opens U C hc1) f g (λ i, _),
@@ -331,7 +331,7 @@ theorem of_extension_res (U V : opens X) (HVU : V ⊆ U)
   (f : ((presheaf_of_rings_to_presheaf_of_rings_on_basis Bstd O.F)ᵣₑₓₜ Bstd) U) :
   of_extension HB Bstd O V (presheaf.res _ U V HVU f) = O.F.res U V HVU (of_extension HB Bstd O U f) :=
 begin
-  ext, { exact HB }, intros x hxV, apply quotient.sound,
+  apply sheaf_of_rings.ext, { exact HB }, intros x hxV, apply quotient.sound,
   rcases of_extension_spec HB Bstd O U f x (HVU hxV) with ⟨W1, HWB1, hxW1, HWU1, hw1⟩,
   rcases of_extension_spec HB Bstd O V (presheaf.res _ U V HVU f) x hxV with ⟨W2, HWB2, hxW2, HWV2, hw2⟩,
   rcases quotient.exact (hw1.symm.trans hw2) with ⟨W3, HWB3, hxW3, HW31, HW32, hw3⟩,
@@ -365,7 +365,7 @@ def to_extension (U : opens X) (f : O U) :
 theorem of_to_extension (U : opens X) (f : O U) :
   of_extension HB Bstd O U (to_extension HB Bstd O U f) = f :=
 begin
-  ext, { exact HB }, intros x hxU,
+  apply sheaf_of_rings.ext, { exact HB }, intros x hxU,
   rcases of_extension_spec HB Bstd O U (to_extension HB Bstd O U f) x hxU with ⟨V, HVB, hsV, HVU, hv⟩,
   rcases quotient.exact hv with ⟨W, HWB, hxW, HW1, HW2, hw⟩,
   refine quotient.sound ⟨W, hxW, set.subset.trans HW2 HVU, set.subset.trans HW2 HVU, _⟩,

@@ -97,6 +97,26 @@ theorem res_res_subset (F : sheaf_on_opens X U) (V HVU S HSV T HTV HTS x) :
   (F.res_subset V HVU).res S HSV T HTV HTS x = F.res S (le_trans HSV HVU) T (le_trans HTV HVU) HTS x :=
 rfl
 
+def stalk (F : sheaf_on_opens.{v} X U) (x : X) (hx : x ∈ U) : Type (max u v) :=
+stalk F.1 x
+
+def to_stalk (F : sheaf_on_opens X U) (x : X) (hx : x ∈ U) (V : opens X) (hxV : x ∈ V) (HVU : V ≤ U) (s : F.eval V HVU) : F.stalk x hx :=
+⟦⟨V, hxV, s⟩⟧
+
+@[simp] lemma to_stalk_res (F : sheaf_on_opens X U) (x : X) (hx : x ∈ U) (V : opens X) (hxV : x ∈ V) (HVU : V ≤ U)
+  (W : opens X) (hxW : x ∈ W) (HWV : W ≤ V) (s : F.eval V HVU) :
+  F.to_stalk x hx W hxW (le_trans HWV HVU) (F.res _ _ _ _ HWV s) = F.to_stalk x hx V hxV HVU s :=
+quotient.sound ⟨W, hxW, set.subset.refl W.1, HWV, by dsimp only [res]; rw ← presheaf.Hcomp'; refl⟩
+
+@[elab_as_eliminator] theorem stalk.induction_on {F : sheaf_on_opens X U} {x : X} {hx : x ∈ U}
+  {C : F.stalk x hx → Prop} (g : F.stalk x hx)
+  (H : ∀ V : opens X, ∀ hxV : x ∈ V, ∀ HVU : V ≤ U, ∀ s : F.eval V HVU, C (F.to_stalk x hx V hxV HVU s)) :
+  C g :=
+quotient.induction_on g $ λ e,
+have (⟦e⟧ : F.stalk x hx) = ⟦⟨e.1 ⊓ U, ⟨e.2, hx⟩, F.F.res _ _ (set.inter_subset_left _ _) e.3⟩⟧,
+from quotient.sound ⟨e.1 ⊓ U, ⟨e.2, hx⟩, set.inter_subset_left _ _, set.subset.refl _, by dsimp only; rw ← presheaf.Hcomp'; refl⟩,
+this.symm ▸ H (e.1 ⊓ U) ⟨e.2, hx⟩ inf_le_right _
+
 structure morphism (F : sheaf_on_opens.{v} X U) (G : sheaf_on_opens.{w} X U) : Type (max u v w) :=
 (map : ∀ V ≤ U, F.eval V H → G.eval V H)
 (commutes : ∀ (V : opens X) (HV : V ≤ U) (W : opens X) (HW : W ≤ U) (HWV : W ≤ V) (x),
@@ -112,6 +132,11 @@ def comp {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} {H : sheaf_on
   (η : G.morphism H) (ξ : F.morphism G) : F.morphism H :=
 { map := λ V HV x, η.map V HV (ξ.map V HV x),
   commutes := λ V HV W HW HWV x, by rw [ξ.commutes, η.commutes] }
+
+@[simp] lemma comp_apply {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} {H : sheaf_on_opens.{u₁} X U}
+  (η : G.morphism H) (ξ : F.morphism G) (V HV s) :
+  (η.comp ξ).1 V HV s = η.1 V HV (ξ.1 V HV s) :=
+rfl
 
 @[extensionality] lemma ext {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U}
   {η ξ : F.morphism G} (H : ∀ V HV x, η.map V HV x = ξ.map V HV x) : η = ξ :=
@@ -135,6 +160,10 @@ def res_subset {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} (η : F
 { map := λ W HWV, η.map W (le_trans HWV HVU),
   commutes := λ S HSV T HTV, η.commutes S (le_trans HSV HVU) T (le_trans HTV HVU) }
 
+@[simp] lemma res_subset_apply {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} (η : F.morphism G) (V : opens X) (HVU : V ≤ U)
+  (W HWV s) : (η.res_subset V HVU).1 W HWV s = η.1 W (le_trans HWV HVU) s :=
+rfl
+
 @[simp] lemma comp_res_subset {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} {H : sheaf_on_opens.{u₁} X U}
   (η : G.morphism H) (ξ : F.morphism G) (V : opens X) (HVU : V ≤ U) :
   (η.res_subset V HVU).comp (ξ.res_subset V HVU) = (η.comp ξ).res_subset V HVU :=
@@ -144,18 +173,33 @@ rfl
   (morphism.id F).res_subset V HVU = morphism.id (F.res_subset V HVU) :=
 rfl
 
+def stalk {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} (η : F.morphism G) (x : X) (hx : x ∈ U)
+  (s : F.stalk x hx) : G.stalk x hx :=
+quotient.lift_on s (λ g, ⟦(⟨g.1 ⊓ U, (⟨g.2, hx⟩ : x ∈ g.1 ⊓ U),
+  η.map _ inf_le_right (presheaf.res F.1 _ _ (set.inter_subset_left _ _) g.3)⟩ : stalk.elem _ _)⟧) $
+λ g₁ g₂ ⟨V, hxV, HV1, HV2, hg⟩, quotient.sound ⟨V ⊓ U, ⟨hxV, hx⟩, set.inter_subset_inter_left _ HV1, set.inter_subset_inter_left _ HV2,
+calc  G.res _ _ (V ⊓ U) inf_le_right (inf_le_inf HV1 (le_refl _)) (η.map (g₁.U ⊓ U) inf_le_right ((F.F).res (g₁.U) (g₁.U ⊓ U) (set.inter_subset_left _ _) (g₁.s)))
+    = η.map (V ⊓ U) inf_le_right ((F.F).res V (V ⊓ U) (set.inter_subset_left _ _) ((F.F).res (g₁.U) V HV1 (g₁.s))) : by rw [← η.2, res, ← presheaf.Hcomp', ← presheaf.Hcomp']
+... = G.res _ _ (V ⊓ U) _ _ (η.map (g₂.U ⊓ U) inf_le_right ((F.F).res (g₂.U) (g₂.U ⊓ U) _ (g₂.s))) : by rw [hg, ← η.2, res, ← presheaf.Hcomp', ← presheaf.Hcomp']⟩
+
+@[simp] lemma stalk_to_stalk {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} (η : F.morphism G) (x : X) (hx : x ∈ U)
+  (V : opens X) (HVU : V ≤ U) (hxV : x ∈ V) (s : F.eval V HVU) : η.stalk x hx (F.to_stalk x hx V hxV HVU s) = G.to_stalk x hx V hxV HVU (η.map V HVU s) :=
+quotient.sound ⟨V, hxV, set.subset_inter (set.subset.refl _) HVU, set.subset.refl _,
+calc  G.res (V ⊓ U) inf_le_right V HVU (le_inf (le_refl V) HVU) (η.map (V ⊓ U) inf_le_right (F.res V HVU (V ⊓ U) inf_le_right inf_le_left s))
+    = G.res V HVU V HVU (le_refl V) (η.map V HVU s) : by rw [η.2, res_res]⟩
+
 end morphism
 
 structure equiv (F : sheaf_on_opens.{v} X U) (G : sheaf_on_opens.{w} X U) : Type (max u v w) :=
 (to_fun : morphism F G)
 (inv_fun : morphism G F)
-(left_inv : inv_fun.comp to_fun = morphism.id F)
-(right_inv : to_fun.comp inv_fun = morphism.id G)
+(left_inv : ∀ V HVU s, inv_fun.1 V HVU (to_fun.1 V HVU s) = s)
+(right_inv : ∀ V HVU s, to_fun.1 V HVU (inv_fun.1 V HVU s) = s)
 
 namespace equiv
 
 def refl (F : sheaf_on_opens.{v} X U) : equiv F F :=
-⟨morphism.id F, morphism.id F, rfl, rfl⟩
+⟨morphism.id F, morphism.id F, λ _ _ _, rfl, λ _ _ _, rfl⟩
 
 @[simp] lemma refl_apply (F : sheaf_on_opens.{v} X U) (V HV s) :
   (refl F).1.1 V HV s = s := rfl
@@ -166,8 +210,8 @@ def symm {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{v} X U} (e : equiv F 
 def trans {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{v} X U} {H : sheaf_on_opens.{u₁} X U}
   (e₁ : equiv F G) (e₂ : equiv G H) : equiv F H :=
 ⟨e₂.1.comp e₁.1, e₁.2.comp e₂.2,
-by rw [morphism.comp_assoc, ← e₂.2.comp_assoc, e₂.3, morphism.id_comp, e₁.3],
-by rw [morphism.comp_assoc, ← e₁.1.comp_assoc, e₁.4, morphism.id_comp, e₂.4]⟩
+λ _ _ _, by rw [morphism.comp_apply, morphism.comp_apply, e₂.3, e₁.3],
+λ _ _ _, by rw [morphism.comp_apply, morphism.comp_apply, e₁.4, e₂.4]⟩
 
 @[simp] lemma trans_apply {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{v} X U} {H : sheaf_on_opens.{u₁} X U}
   (e₁ : equiv F G) (e₂ : equiv G H) (V HV s) :
@@ -177,13 +221,20 @@ rfl
 def res_subset {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} (e : equiv F G)
   (V : opens X) (HVU : V ≤ U) : equiv (F.res_subset V HVU) (G.res_subset V HVU) :=
 ⟨e.1.res_subset V HVU, e.2.res_subset V HVU,
-by rw [morphism.comp_res_subset, e.3, morphism.id_res_subset],
-by rw [morphism.comp_res_subset, e.4, morphism.id_res_subset]⟩
+λ _ _ _, by rw [morphism.res_subset_apply, morphism.res_subset_apply, e.3],
+λ _ _ _, by rw [morphism.res_subset_apply, morphism.res_subset_apply, e.4]⟩
 
 @[simp] lemma res_subset_apply {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} (e : equiv F G)
   (V : opens X) (HVU : V ≤ U) (W HW s) :
   (e.res_subset V HVU).1.1 W HW s = e.1.1 W (le_trans HW HVU) s :=
 rfl
+
+def stalk {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} (e : equiv F G) (x : X) (hx : x ∈ U) :
+  F.stalk x hx ≃ G.stalk x hx :=
+{ to_fun := e.1.stalk x hx,
+  inv_fun := e.2.stalk x hx,
+  left_inv := λ g, stalk.induction_on g $ λ V hxV HVU s, by rw [morphism.stalk_to_stalk, morphism.stalk_to_stalk, e.3],
+  right_inv := λ g, stalk.induction_on g $ λ V hxV HVU s, by rw [morphism.stalk_to_stalk, morphism.stalk_to_stalk, e.4] }
 
 end equiv
 
@@ -324,11 +375,8 @@ def sheaf_glue {I : Type u} (S : I → opens X) (F : Π (i : I), sheaf_on_opens.
 
 def universal_property (I : Type u) (S : I → opens X) (F : Π (i : I), sheaf_on_opens.{v} X (S i))
   (φ : Π i j, equiv ((F i).res_subset ((S i) ⊓ (S j)) inf_le_left) ((F j).res_subset ((S i) ⊓ (S j)) inf_le_right))
-  (Hφ1 : ∀ i, φ i i = equiv.refl (F i))
-  (Hφ2 : ∀ i j k,
-    ((φ i j).res_subset ((S i) ⊓ (S j) ⊓ (S k)) inf_le_left).trans
-      ((φ j k).res_subset ((S i) ⊓ (S j) ⊓ (S k)) (le_inf (le_trans inf_le_left inf_le_right) inf_le_right)) =
-    (φ i k).res_subset ((S i) ⊓ (S j) ⊓ (S k)) (le_inf (le_trans inf_le_left inf_le_left) inf_le_right))
+  (Hφ1 : ∀ i V HV s, (φ i i).1.1 V HV s = s)
+  (Hφ2 : ∀ i j k V HV1 HV2 HV3 s, (φ j k).1.1 V HV1 ((φ i j).1.1 V HV2 s) = (φ i k).1.1 V HV3 s)
   (i : I) :
   equiv (res_subset (sheaf_glue S F φ) (S i) (le_supr S i)) (F i) :=
 { to_fun :=
@@ -339,18 +387,13 @@ def universal_property (I : Type u) (S : I → opens X) (F : Π (i : I), sheaf_o
         ((F i).res _ _ _ (le_trans inf_le_right H) inf_le_right s),
       λ j k, begin
         have h1 : S j ⊓ S k ⊓ U ≤ S i ⊓ S j := le_inf (le_trans inf_le_right H) (le_trans inf_le_left inf_le_left),
-        have h2 : S i ⊓ S j ⊓ S k ≤ S j ⊓ S k := by rw inf_assoc; exact inf_le_right,
-        have h3 : S j ⊓ S k ⊓ U ≤ S i ⊓ S j ⊓ S k := by rw  [inf_comm, inf_assoc]; exact inf_le_inf H (le_refl _),
-        have h4 : S j ⊓ S k ⊓ U ≤ S i ⊓ S k := le_inf (le_trans inf_le_right H) (le_trans inf_le_left inf_le_right),
-        rw [← res_res_subset (F j) _ _ _ _ _ h1, ← (φ i j).1.2],
-        rw ← equiv.res_subset_apply (φ j k) (S i ⊓ S j ⊓ S k) h2 (S j ⊓ S k ⊓ U) h3,
-        rw ← equiv.res_subset_apply (φ i j) (S i ⊓ S j ⊓ S k) inf_le_left (S j ⊓ S k ⊓ U) h3,
-        rw [← equiv.trans_apply, Hφ2 i j k, equiv.res_subset_apply, res_res_subset, res_res],
-        rw [← res_res_subset (F k) _ _ _ _ _ h4, ← (φ i k).1.2, res_res_subset, res_res],
+        have h2 : S j ⊓ S k ⊓ U ≤ S i ⊓ S k := le_inf (le_trans inf_le_right H) (le_trans inf_le_left inf_le_right),
+        rw [← res_res_subset (F j) _ _ _ _ _ h1, ← (φ i j).1.2, Hφ2 _ _ _ _ _ _ h2, res_res_subset, res_res],
+        rw [← res_res_subset (F k) _ _ _ _ _ h2, ← (φ i k).1.2, res_res_subset, res_res],
       end⟩,
     commutes := λ U HU V HV HVU s, subtype.eq $ funext $ λ j, by dsimp only [res_res_subset, sheaf_glue_res_val];
       rw [← res_res_subset (F j), ← (φ i j).1.2, res_res_subset, res_res, res_res] },
-  left_inv := morphism.ext $ λ V HV s, subtype.eq $ funext $ λ j, have _, from s.2 i j, calc
+  left_inv := λ V HV s, subtype.eq $ funext $ λ j, have _, from s.2 i j, calc
       _ = (φ i j).1.map (S j ⊓ V) (le_inf (le_trans inf_le_right HV) inf_le_left)
             ((F i).res V HV (S j ⊓ V) (le_trans inf_le_right HV) inf_le_right
               ((F i).res (S i ⊓ V) _ V HV (le_inf HV (le_refl _)) (s.1 i))) : rfl
@@ -363,7 +406,6 @@ def universal_property (I : Type u) (S : I → opens X) (F : Π (i : I), sheaf_o
                 (le_inf (le_trans inf_le_left inf_le_left) inf_le_right)
                 (s.1 i))) : by rw [res_res_subset, res_res]
     ... = s.1 j : by rw [(φ i j).1.2, s.2 i j, res_res_subset, res_res, res_self],
-  right_inv := morphism.ext $ λ V HV s, by dsimp only [morphism.comp, morphism.id, id];
-    erw [Hφ1, equiv.refl_apply (F i), res_res, res_self] }
+  right_inv := λ V HV s, by dsimp only; erw [Hφ1, res_res, res_self] }
 
 end sheaf_on_opens
