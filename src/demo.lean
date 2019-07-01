@@ -1,3 +1,5 @@
+import data.real.basic
+
 -- The natural numbers.
 inductive mynat 
 | zero : mynat
@@ -14,17 +16,21 @@ lemma forall_exists_of_exists_forall
 lemma forall_exists_of_exists_forall' 
 : (∃ x, ∀ y, R x y) → (∀ y, ∃ x, R x y) :=
 begin
-  intros H b,
+  intro H,
+  intro b,
   cases H with a Ha,
   existsi a,
   exact (Ha b),
 end
 
--- Suppose R is a function.
-axiom is_function : ∀ x, ∃! y, R x y
+-- Consider a new relation on ℝ.
+variable (R' : ℝ → ℝ → Prop)
+
+-- Suppose R' has the following property.
+axiom property : ∀ x, ∃ y, R' x y
 
 -- Classical library example.
 noncomputable def find_image
-: Π n, {m // R n m} :=
+: Π n, {m // R' n m} :=
 λ n, classical.choice 
-  (let ⟨m, ⟨Hm, _⟩⟩ := is_function R n in ⟨⟨m, Hm⟩⟩)
+  (let ⟨m, Hm⟩ := property R' n in ⟨⟨m, Hm⟩⟩)
