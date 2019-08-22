@@ -19,7 +19,7 @@ variables (Hloc : is_localization_data (-P : set α) f)
 
 include Hloc
 
-lemma is_local_ring.of_is_localization_data_at_prime : is_local_ring β :=
+lemma is_local_ring.of_is_localization_data_at_prime : local_ring β :=
 begin
   apply local_of_nonunits_ideal,
   { -- 0 ≠ 1.

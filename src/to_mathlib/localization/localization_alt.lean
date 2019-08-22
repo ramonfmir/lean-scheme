@@ -250,7 +250,6 @@ begin
   rw [←hb, is_ring_hom.map_mul h, mul_comm (h (f s)), mul_assoc, Hw, mul_one],
 end
 
-
 end localization_initial
 
 end localization_alt
