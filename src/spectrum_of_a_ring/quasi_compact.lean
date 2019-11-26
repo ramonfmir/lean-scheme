@@ -5,7 +5,8 @@
 -/
 
 import topology.basic
-import linear_algebra.linear_combination
+import linear_algebra.basic
+import linear_algebra.finsupp
 import to_mathlib.opens
 import to_mathlib.ideals
 import sheaves.covering.covering
@@ -79,6 +80,16 @@ section quasi_compact
 
 variables (R : Type u) [comm_ring R]
 
+lemma mem_span_iff_total' {s : set R} {x : R}:
+  x ∈ ideal.span s → ∃ l ∈ finsupp.supported R R s, finsupp.total R R R id l = x :=
+begin
+  intro H,
+  have Hfs := (@finsupp.mem_span_iff_total R _ R _ _ _ id s x).1,
+  simp at Hfs,
+  rcases (Hfs H) with ⟨l, ⟨Hl, Hlfs⟩⟩,
+  use ⟨l, ⟨Hl, Hlfs⟩⟩,
+end 
+
 lemma D_fs_quasi_compact : 
 ∀ S : set R, ⋃₀ (Spec.D' '' S) = Spec.univ R →
 ∃ F ⊆ S, 
@@ -97,9 +108,9 @@ begin
   have HST := (Spec.V.empty_iff_ideal_top _).1 HVS,
   have Hone : (1 : R) ∈ ideal.span S := by simp [HST],
   -- Deduce that 1 = Σrᵢfᵢ for some {f₁, ..., fₙ}.
-  have Hlc := mem_span_iff_lc.1 Hone,
+  have Hlc := mem_span_iff_total' R Hone,
   rcases Hlc with ⟨lc, Hlc, H⟩,
-  have Hfs := (@_root_.lc.mem_supported _ _ _ _ _ _ _).1 Hlc,
+  have Hfs := (finsupp.mem_supported _ _).1 Hlc,
   use ↑lc.support,
   refine ⟨_, ⟨_, _⟩⟩,
   { -- {f₁, ..., fₙ} ⊆ S.
@@ -115,7 +126,7 @@ begin
     erw Spec.V.empty_iff_ideal_top,
     suffices Hsuff : (1:R) ∈ ideal.span (↑(lc.support) : set R),
       rw ((ideal.eq_top_iff_one _).2 Hsuff),
-    rw lc.total_apply at H,
+    rw finsupp.total_apply at H,
     rw ←H,
     simp [finsupp.sum],
     apply ideal.span_mem_finset, }

@@ -398,7 +398,7 @@ begin
     exact Hinv, }
 end
 
--- Finally we show that φ(Spec(Rf)) = D(f). In particular this shows that, there is
+-- Finally we show that φ(Spec(Rf)) = D(f). In particular this shows that there is
 -- a homeomorphism between Spec(Rf) and D(f).
 
 lemma phi_image_Df : φ '' Spec.univ Rf = Spec.D'(f) :=

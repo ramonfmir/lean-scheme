@@ -4,6 +4,7 @@
   https://stacks.math.columbia.edu/tag/00E0
 -/
 
+import algebra.module
 import ring_theory.localization
 import to_mathlib.ideals
 import to_mathlib.localization.localization_alt
@@ -150,6 +151,8 @@ end
 
 -- D(g) ⊆ D(f) → f ∈ R[1/g]*.
 
+--set_option trace.class_instances true
+
 lemma inverts.of_Dfs_subset {f g : R} (H : D'(g) ⊆ D'(f)) 
 : localization_alt.inverts (powers f) (localization.of : R → localization R (powers g)) :=
 begin
@@ -185,15 +188,12 @@ begin
     apply (Hne u.inv),
     rw HC,
     exact u.3,
+  letI Rgr : comm_ring (localization.away g) := by apply_instance, 
   let F : ideal (localization.away g) := ideal.span {(localization.of f)},
-  have HFnT : F ≠ ⊤,
-    intros HC,
-    rw ideal.span_singleton_eq_top at HC,
-    exact (Hnu HC),
-  rcases (ideal.exists_le_maximal F HFnT) with ⟨S, ⟨HMS, HFS⟩⟩,
-  have HfF : localization.of f ∈ F,
+  rcases (ideal.exists_le_maximal F (λ HC, Hnu (ideal.span_singleton_eq_top.1 HC))) with ⟨S, ⟨HMS, HFS⟩⟩,
+  have HfF : (localization.of f : localization.away g) ∈ F,
     suffices Hsuff : localization.of f ∈ {localization.of f},
-      exact ideal.subset_span Hsuff,
+      refine ideal.subset_span Hsuff,
     exact set.mem_singleton _,
   have HfM : localization.of f ∈ S := HFS HfF,
   have PS := ideal.is_maximal.is_prime HMS,
@@ -201,7 +201,7 @@ begin
     := @ideal.is_prime.comap _ _ _ _ localization.of _ _ PS,
   let S' : Spec R := ⟨ideal.comap localization.of S, PS'⟩,
   have HfS' : f ∈ S'.val,
-    rw ideal.mem_comap,
+    erw ideal.mem_comap,
     exact HfM,
   replace HfS' : S' ∈ {P : Spec R | f ∈ P.val} := HfS',
   have HgS' : g ∈ ideal.comap localization.of S := H HfS',
