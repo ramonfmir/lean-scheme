@@ -47,7 +47,7 @@ variable {OC : locally_ringed_space C}
 
 def comp (F : morphism OA OB) (G : morphism OB OC) : morphism OA OC :=
 { f := G.f ∘ F.f,
-  Hf := continuous.comp F.Hf G.Hf,
+  Hf := continuous.comp G.Hf F.Hf,
   fO := presheaf.fmap.comp F.fO G.fO,
   Hstalks :=
     begin
@@ -85,7 +85,7 @@ def locally_ringed_space.id (OX : locally_ringed_space A) : morphism OX OX :=
       have HU : opens.comap continuous_id U = U,
       { unfold opens.comap,
         apply subtype.eq; dsimp,
-        rw set.preimage_id, },
+        refl, },
       convert H,
       { use HU.symm, },
       { dsimp only [subtype.coe_mk],

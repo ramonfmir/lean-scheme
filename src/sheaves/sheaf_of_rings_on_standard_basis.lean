@@ -336,12 +336,13 @@ lemma to_presheaf_of_rings_extension.ring_equiv
 (F : presheaf_of_rings_on_basis α HB) 
 (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
 {U : opens α} (BU : U ∈ B)
-: F BU ≃r (presheaf_of_rings_extension Bstd F) U :=
+: F BU ≃+* (presheaf_of_rings_extension Bstd F) U :=
 begin
   have H := function.bijective_iff_has_inverse.1 (to_presheaf_of_rings_extension.bijective Bstd F @HF BU),
   rcases (classical.indefinite_description _ H) with ⟨inv, Hlinv, Hrinv⟩,
   use [(to_presheaf_of_rings_extension Bstd F BU), inv, Hlinv, Hrinv],
-  exact (to_presheaf_of_rings_extension.is_ring_hom Bstd F BU),
+  { apply (to_presheaf_of_rings_extension.is_ring_hom Bstd F BU).map_mul, },
+  { apply (to_presheaf_of_rings_extension.is_ring_hom Bstd F BU).map_add, }
 end
 
 -- Moreover, for all x, Fₓ ≅ Fextₓ.
@@ -581,13 +582,14 @@ lemma to_stalk_extension.is_ring_hom
 lemma to_stalk_extension.ring_equiv
 (F : presheaf_of_rings_on_basis α HB) 
 (x : α)
-: stalk_of_rings_on_standard_basis Bstd F x ≃r 
+: stalk_of_rings_on_standard_basis Bstd F x ≃+* 
 stalk_of_rings (presheaf_of_rings_extension Bstd F) x :=
 begin
   have H := function.bijective_iff_has_inverse.1 (to_stalk_extension.bijective Bstd F x),
   rcases (classical.indefinite_description _ H) with ⟨inv, Hlinv, Hrinv⟩,
   use [(to_stalk_extension Bstd F x), inv, Hlinv, Hrinv],
-  exact (to_stalk_extension.is_ring_hom Bstd F x),
+  { apply (to_stalk_extension.is_ring_hom Bstd F x).map_mul, },
+  { apply (to_stalk_extension.is_ring_hom Bstd F x).map_add, }
 end
 
 end extension_coincides

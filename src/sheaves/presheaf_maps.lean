@@ -75,7 +75,7 @@ variables {g : β → γ} {Hg : continuous g}
 variable {Hf}
 
 def comp {F : presheaf α} {G : presheaf β} {H : presheaf γ} 
-(f_ : fmap Hf F G) (g_ : fmap Hg G H) : fmap (continuous.comp Hf Hg) F H :=
+(f_ : fmap Hf F G) (g_ : fmap Hg G H) : fmap (continuous.comp Hg Hf) F H :=
 { map := λ U, (f_.map (opens.comap Hg U)) ∘ (g_.map U),
   commutes := 
     begin

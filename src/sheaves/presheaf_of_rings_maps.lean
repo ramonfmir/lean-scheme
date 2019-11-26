@@ -140,7 +140,7 @@ variables {g : β → γ} {Hg : continuous g}
 variable {Hf}
 
 def comp {F : presheaf_of_rings α} {G : presheaf_of_rings β} {H : presheaf_of_rings γ} 
-(f_ : fmap Hf F G) (g_ : fmap Hg G H) : fmap (continuous.comp Hf Hg) F H :=
+(f_ : fmap Hf F G) (g_ : fmap Hg G H) : fmap (continuous.comp Hg Hf) F H :=
 presheaf.fmap.comp f_ g_
 
 def induced
