@@ -22,7 +22,7 @@ section locally_ringed_spaces
 
 structure locally_ringed_space (X : Type u) [topological_space X] :=
 (O       : sheaf_of_rings X)
-(Hstalks : ∀ x, is_local_ring (stalk_of_rings O.F x))
+(Hstalks : ∀ x, local_ring (stalk_of_rings O.F x))
 
 -- Morphism of locally ringed spaces.
 

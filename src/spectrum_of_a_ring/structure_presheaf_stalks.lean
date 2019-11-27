@@ -144,7 +144,7 @@ lemma stalk_local.localization : is_localization_data (-P.1 : set R) (φ P) :=
   has_denom := stalk_local.has_denom_data P, 
   ker_le := stalk_local.ker_le P, }
 
-lemma stalk_local : is_local_ring (FP P) :=
-is_local_ring.of_is_localization_data_at_prime P.2 (stalk_local.localization P)
+lemma stalk_local : local_ring (FP P) :=
+local_ring.of_is_localization_data_at_prime P.2 (stalk_local.localization P)
 
 end strucutre_presheaf_stalks

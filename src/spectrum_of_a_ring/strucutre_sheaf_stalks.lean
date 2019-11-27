@@ -33,7 +33,7 @@ by simp [O_P]; by apply_instance
 -- Now we use what we proved about the stalks on basis and the fact
 -- that the extension doesn't change stalks to prove the property.
 
-lemma structure_sheaf.stalk_local : is_local_ring (O_P P) :=
+lemma structure_sheaf.stalk_local : local_ring (O_P P) :=
 begin
   have Hbij := to_stalk_extension.bijective
     (D_fs_standard_basis R) 
@@ -57,5 +57,5 @@ begin
       (strucutre_presheaf_stalks.φ P) _ _ _ 
       (to_stalk_extension _ _ P)
       Hhom,
-  use is_local_ring.of_is_localization_data_at_prime P.2 Hloc',
+  exact local_ring.of_is_localization_data_at_prime P.2 Hloc',
 end

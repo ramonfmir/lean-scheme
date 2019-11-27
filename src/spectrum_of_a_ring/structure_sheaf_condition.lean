@@ -8,7 +8,7 @@
 
 import ring_theory.localization
 import algebra.pi_instances
-import linear_algebra.linear_combination
+import linear_algebra.finsupp
 import to_mathlib.localization.localization_alt
 import to_mathlib.finset_range
 import to_mathlib.ring_hom
@@ -28,10 +28,12 @@ lemma finset.sum_of_mem_span
   ∃ r : β → α, x = finset.sum S (λ y, r y • y) :=
 begin
   intros Hx,
-  rw mem_span_iff_lc at Hx,
+  have Hfs := (@finsupp.mem_span_iff_total β _ α _ _ _ id S.to_set x).1,
+  simp at Hfs,
+  replace Hx := Hfs Hx,
   rcases Hx with ⟨l, Hls, Hlt⟩,
-  rw lc.total_apply at Hlt,
-  rw lc.mem_supported at Hls,
+  rw finsupp.total_apply at Hlt,
+  rw finsupp.mem_supported at Hls,
   rw ←Hlt,
   simp [finsupp.sum],
   use (λ x, if x ∈ S then l.to_fun x else 0),
@@ -265,8 +267,9 @@ begin
   rcases v with ⟨v, ⟨n, Hn⟩⟩,
   dsimp only [subtype.coe_mk] at Huv,
   rw ←Hn at Huv,
-  use n,
-  exact Huv,
+  existsi n,
+  rw ←Huv,
+  simp,
 end
 
 lemma standard_covering₂.aux₂ (s : Π i, Rfi i)
@@ -279,7 +282,7 @@ begin
   intros Hs,
   let n : γ × γ → ℕ := λ ij, classical.some (standard_covering₂.aux s ij.1 ij.2 (Hs ij.1 ij.2)),
   let N := finset.sum (@finset.univ (γ × γ) _) n,
-  use N,
+  existsi N,
   intros i j,
   have Hn : ∀ i j, n (i, j) ≤ N,
     intros i j,

@@ -80,16 +80,6 @@ section quasi_compact
 
 variables (R : Type u) [comm_ring R]
 
-lemma mem_span_iff_total' {s : set R} {x : R}:
-  x ∈ ideal.span s → ∃ l ∈ finsupp.supported R R s, finsupp.total R R R id l = x :=
-begin
-  intro H,
-  have Hfs := (@finsupp.mem_span_iff_total R _ R _ _ _ id s x).1,
-  simp at Hfs,
-  rcases (Hfs H) with ⟨l, ⟨Hl, Hlfs⟩⟩,
-  use ⟨l, ⟨Hl, Hlfs⟩⟩,
-end 
-
 lemma D_fs_quasi_compact : 
 ∀ S : set R, ⋃₀ (Spec.D' '' S) = Spec.univ R →
 ∃ F ⊆ S, 
@@ -108,7 +98,7 @@ begin
   have HST := (Spec.V.empty_iff_ideal_top _).1 HVS,
   have Hone : (1 : R) ∈ ideal.span S := by simp [HST],
   -- Deduce that 1 = Σrᵢfᵢ for some {f₁, ..., fₙ}.
-  have Hlc := mem_span_iff_total' R Hone,
+  have Hlc := ideal.mem_span_iff_total Hone,
   rcases Hlc with ⟨lc, Hlc, H⟩,
   have Hfs := (finsupp.mem_supported _ _).1 Hlc,
   use ↑lc.support,
