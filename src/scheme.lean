@@ -21,8 +21,8 @@ open presheaf_of_rings
 
 structure scheme (α : Type u) [topological_space α] :=
 (carrier    : locally_ringed_space α)
-(cov        : covering.univ α)
-(Haffinecov : 
-  ∀ i, ∃ (R : Type v) [comm_ring R] (fpU : pullback (Spec R) carrier.O.F),
-      fpU.range = cov.Uis i
+(Haffinecov : ∃ (OC : covering.univ α), 
+  ∀ i, ∃ (R : Type v) [comm_ring R] 
+  (fpU : open_immersion_pullback (Spec R) carrier.O.F),
+      fpU.range = OC.Uis i
     ∧ fpU.carrier ≅ structure_sheaf.presheaf R)

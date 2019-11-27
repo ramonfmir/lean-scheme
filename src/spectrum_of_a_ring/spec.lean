@@ -9,34 +9,34 @@ import ring_theory.ideals
 
 universe u
 
-section spectrum
-
-parameters (α : Type u) [comm_ring α]
+variables (R : Type u) [comm_ring R]
 
 -- Spec(R).
 
-def Spec := {P : ideal α // ideal.is_prime P}
+def Spec := {P : ideal R // ideal.is_prime P}
 
-parameter {α}
+variable {R}
 
 -- General definitions.
 
-def Spec.V : set α → set Spec := λ E, {P | E ⊆ P.val}
+namespace Spec
 
-def Spec.V' : α → set Spec := λ f, {P | f ∈ P.val}
+def V : set R → set (Spec R) := λ E, {P | E ⊆ P.val}
 
-def Spec.D : set α → set Spec := λ E, -Spec.V(E)
+def V' : R → set (Spec R) := λ f, {P | f ∈ P.val}
 
-def Spec.D' : α → set Spec := λ f, -Spec.V'(f)
+def D : set R → set (Spec R) := λ E, -V(E)
 
-parameter (α)
+def D' : R → set (Spec R) := λ f, -V'(f)
 
-def Spec.univ := @set.univ Spec
+variable (R)
 
-def Spec.empty := (∅ : set Spec)
+def univ := @set.univ (Spec R)
 
-def Spec.open : set (set Spec) := {A | ∃ U, Spec.D U = A}
+def empty := (∅ : set (Spec R))
 
-def Spec.closed : set (set Spec) := {A | ∃ E, Spec.V E = A}
+def opens : set (set (Spec R)) := {A | ∃ U, D U = A}
 
-end spectrum
+def closeds : set (set (Spec R)) := {A | ∃ E, Spec.V E = A}
+
+end Spec

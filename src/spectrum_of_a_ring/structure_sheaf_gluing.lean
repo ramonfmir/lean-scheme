@@ -24,14 +24,10 @@ open classical
 open localization
 open localization_alt
 
--- Needed.
-
 variables {R : Type u} [comm_ring R]
 variables {U V W : opens (Spec R)} 
 variables (BU : U ∈ D_fs R) (BV : V ∈ D_fs R) (BW : W ∈ D_fs R) 
 variables (HVU : V ⊆ U) (HWU : W ⊆ U)
-
--------
 
 def BVW : V ∩ W ∈ D_fs R := (D_fs_standard_basis R).2 BV BW
 def HVWU : V ∩ W ⊆ U := set.subset.trans (set.inter_subset_left V W) HVU
@@ -62,8 +58,6 @@ instance structure_presheaf_on_basis.res_to_inter_to_inter_right.is_ring_hom
 : is_ring_hom (structure_presheaf_on_basis.res_to_inter_right BV BW) :=
 by simp [structure_presheaf_on_basis.res_to_inter_right, structure_presheaf_on_basis.res]; 
 by apply_instance
-
--------
 
 -- (f' g')^e = a * (fg)' 
 
@@ -98,8 +92,6 @@ begin
   -- Hence (f*g)^e = a * fg.
   exact pow_eq.of_Dfs_subset HDfg,
 end
-
--------
 
 lemma structure_presheaf.res_to_inter.inverts_data
 : inverts_data 

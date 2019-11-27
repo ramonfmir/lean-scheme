@@ -29,14 +29,12 @@ def F := structure_presheaf_on_basis R
 
 def FP := stalk_of_rings_on_standard_basis Bstd F P
 
--- This is essentially the map from x to x/1
+-- This is essentially the map from x to x/1.
 def φ : R → FP P := λ x, 
 ⟦{ U := opens.univ,
    BU := (D_fs_standard_basis R).1,
    Hx := set.mem_univ P,
    s := (of : R → localization R (S (opens.univ))) x, }⟧
-
------
 
 instance FP.is_comm_ring : comm_ring (FP P) :=
 by simp [FP]; by apply_instance
@@ -69,8 +67,6 @@ instance φP.is_ring_hom : is_ring_hom (φ P) :=
       rw of.is_ring_hom.map_add,
       rw (F.res_is_ring_hom _ _ _).map_add,
     end, }
-
------
 
 lemma stalk_local.inverts_data : inverts_data (-P.1 : set R) (φ P) :=
 begin
@@ -148,7 +144,7 @@ lemma stalk_local.localization : is_localization_data (-P.1 : set R) (φ P) :=
   has_denom := stalk_local.has_denom_data P, 
   ker_le := stalk_local.ker_le P, }
 
-lemma stalk_local : is_local_ring (FP P) :=
-is_local_ring.of_is_localization_data_at_prime P.2 (stalk_local.localization P)
+lemma stalk_local : local_ring (FP P) :=
+local_ring.of_is_localization_data_at_prime P.2 (stalk_local.localization P)
 
 end strucutre_presheaf_stalks

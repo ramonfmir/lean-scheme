@@ -26,6 +26,10 @@ namespace presheaf_of_rings_on_basis
 variables {α : Type u} [topological_space α]
 variables {B : set (opens α)} {HB : opens.is_basis B}
 
+instance : has_coe_to_fun (presheaf_of_rings_on_basis α HB) :=
+{ F := λ _, Π {U}, U ∈ B → Type*,
+  coe := λ F, (presheaf_of_rings_on_basis.to_presheaf_on_basis F).F }
+
 -- Morphism of presheaf of rings on basis.
 
 structure morphism (F G : presheaf_of_rings_on_basis α HB) 

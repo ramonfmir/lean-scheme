@@ -245,7 +245,7 @@ def presheaf_of_rings_to_presheaf_of_rings_on_basis
 
 -- F defined on the bases extended to the whole space.
 
-def presheaf_of_rings_on_basis_to_presheaf_of_rings
+def presheaf_of_rings_extension
 (F : presheaf_of_rings_on_basis α HB) : presheaf_of_rings α :=
 { F := λ U, {s : Π (x ∈ U), stalk_on_basis F.to_presheaf_on_basis x //
         ∀ (x ∈ U), ∃ (V) (BV : V ∈ B) (Hx : x ∈ V) (σ : F.to_presheaf_on_basis BV),
@@ -275,6 +275,6 @@ def presheaf_of_rings_on_basis_to_presheaf_of_rings
           refl,
         end, } }
 
-notation F `ᵣₑₓₜ`:1 Bstd := presheaf_of_rings_on_basis_to_presheaf_of_rings Bstd F
+notation F `ᵣₑₓₜ`:1 Bstd := presheaf_of_rings_extension Bstd F
 
 end presheaf_of_rings_extension

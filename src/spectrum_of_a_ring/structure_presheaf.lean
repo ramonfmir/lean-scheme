@@ -13,7 +13,6 @@ universe u
 
 local attribute [instance] classical.prop_decidable
 
-noncomputable theory
 
 variables {R : Type u} [comm_ring R]
 
@@ -24,7 +23,9 @@ open localization_alt
 
 -- Define S(U) so that R[1/f] ≃ R[1/S(D(f))].
 
-def S (U : opens (Spec R)) : set R := { r : R | U ⊆ Spec.DO R (r) }
+open Spec
+
+def S (U : opens (Spec R)) : set R := { r : R | U.1 ⊆ D'(r) }
 
 instance S.is_submonoid (U : opens (Spec R)) : is_submonoid (S U) :=
 { one_mem := λ ⟨P, PI⟩ HP, ((ideal.ne_top_iff_one P).1 PI.1),
@@ -58,9 +59,8 @@ def structure_presheaf_on_basis : presheaf_of_rings_on_basis (Spec R) (D_fs_basi
   res := λ U V BU BV HVU,
     begin
       have H := S.rev_mono HVU,
-      apply quotient.lift (λ (x : R × (S U)), ⟦(x.1, (⟨x.2.1, H x.2.2⟩ : (S V)))⟧),
-      { rintros ⟨a1, b1, Hb1⟩ ⟨a2, b2, Hb2⟩ ⟨t, Ht, Habt⟩,
-        simp,
+      apply quotient.lift (λ (x : R × (S U)), ⟦(x.1, (⟨x.2.1, H x.2.2⟩ : S V))⟧),
+      { rintros ⟨a1, b1, Hb1⟩ ⟨a2, b2, Hb2⟩ ⟨t, Ht, Habt⟩; simp,
         use [t, H Ht, Habt], },
     end,
   Hid := λ U BU, funext $ λ x, quotient.induction_on x $ λ a, by simp,

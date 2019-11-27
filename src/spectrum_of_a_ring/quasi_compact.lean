@@ -5,7 +5,8 @@
 -/
 
 import topology.basic
-import linear_algebra.linear_combination
+import linear_algebra.basic
+import linear_algebra.finsupp
 import to_mathlib.opens
 import to_mathlib.ideals
 import sheaves.covering.covering
@@ -97,9 +98,9 @@ begin
   have HST := (Spec.V.empty_iff_ideal_top _).1 HVS,
   have Hone : (1 : R) ∈ ideal.span S := by simp [HST],
   -- Deduce that 1 = Σrᵢfᵢ for some {f₁, ..., fₙ}.
-  have Hlc := mem_span_iff_lc.1 Hone,
+  have Hlc := ideal.mem_span_iff_total Hone,
   rcases Hlc with ⟨lc, Hlc, H⟩,
-  have Hfs := (@_root_.lc.mem_supported _ _ _ _ _ _ _).1 Hlc,
+  have Hfs := (finsupp.mem_supported _ _).1 Hlc,
   use ↑lc.support,
   refine ⟨_, ⟨_, _⟩⟩,
   { -- {f₁, ..., fₙ} ⊆ S.
@@ -112,10 +113,10 @@ begin
     rw ←set.compl_empty,
     congr,
     rw Spec.V.set_eq_span,
-    rw Spec.V.empty_iff_ideal_top,
+    erw Spec.V.empty_iff_ideal_top,
     suffices Hsuff : (1:R) ∈ ideal.span (↑(lc.support) : set R),
       rw ((ideal.eq_top_iff_one _).2 Hsuff),
-    rw lc.total_apply at H,
+    rw finsupp.total_apply at H,
     rw ←H,
     simp [finsupp.sum],
     apply ideal.span_mem_finset, }
@@ -213,7 +214,7 @@ begin
   apply Spec.quasi_compact.aux,
 end
 
--- This is what we really need.
+-- This is what we really need. 
 
 -- D(f) = ⋃i=1,..,n D(gi)
 
