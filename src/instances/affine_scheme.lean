@@ -8,6 +8,8 @@ import scheme
 
 universe u 
 
+noncomputable theory
+
 open topological_space
 
 variables (R : Type u) [comm_ring R]
