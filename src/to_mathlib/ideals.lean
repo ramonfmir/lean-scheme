@@ -5,6 +5,7 @@
 -/
 
 import data.finset
+import linear_algebra.finsupp
 import ring_theory.ideal_operations
 
 universes u v 
@@ -52,7 +53,7 @@ lemma ideal.span_mem_finset {R : Type u} [decidable_eq R] [comm_ring R] (S : fin
 begin
   unfold ideal.span,
   apply finset.induction_on S,
-  { simp, },
+  { dsimp; simp, },
   { intros a S Ha IH,
     rw finset.coe_insert,
     rw submodule.mem_span_insert',
@@ -60,3 +61,15 @@ begin
     use [-f a],
     simp [IH], }
 end
+
+-- Element in ideal span is a finite linear combination.
+
+lemma ideal.mem_span_iff_total {R : Type u} [comm_ring R] {s : set R} {x : R}:
+  x ∈ ideal.span s → ∃ l ∈ finsupp.supported R R s, finsupp.total R R R id l = x :=
+begin
+  intro H,
+  have Hfs := (@finsupp.mem_span_iff_total R _ R _ _ _ id s x).1,
+  simp at Hfs,
+  rcases (Hfs H) with ⟨l, ⟨Hl, Hlfs⟩⟩,
+  use ⟨l, ⟨Hl, Hlfs⟩⟩,
+end 
