@@ -1,5 +1,7 @@
 /- Theory of presheaves of categories on a topological space
 
+cf :   https://stacks.math.columbia.edu/tag/006D
+
 Notes: KMB has never really understood whether we should be using
 category theory or not when working with sheaves on a topological space.
 By explicitly avoiding this and doing everything from first principles
@@ -34,10 +36,10 @@ structure topological_space (α : Type u) :=
 open category_theory
 open topological_space
 
-universes v u w
+universes v u -- Homs in C and the top space will be in the same universe v ("sets").
 
 -- when I hover over 𝟙 I don't get the keyboard shortcut
-structure topological_space.presheaf (X : Type w) [topological_space X]
+structure topological_space.presheaf (X : Type v) [topological_space X]
   (C : Type u) [𝒞 : category.{v} C] :=
 (val : Π (U : opens X), C) -- ℱ
 (res   : ∀ (U V) (HVU : V ⊆ U), val U ⟶ val V)
