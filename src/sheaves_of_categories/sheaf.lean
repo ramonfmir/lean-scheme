@@ -156,7 +156,7 @@ variable [has_equalizers.{v} C]
 --def is_sheaf (F : presheaf X C) :=
 --locality F ∧ gluing F
 
-def is_sheaf' (ℱ : sheaf X C) {U : opens X} (OC : covering U) :
+def condition (ℱ : sheaf X C) {U : opens X} (OC : covering U) :
   ℱ.to_presheaf.to_fork OC ≅
     (limit.cone (parallel_pair (ℱ.to_presheaf.res_left OC) (ℱ.to_presheaf.res_right OC))) :=
 is_limit.unique_up_to_iso (ℱ.is_limit OC) (limit.is_limit _)
