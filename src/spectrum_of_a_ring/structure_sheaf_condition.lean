@@ -8,7 +8,7 @@
 
 import ring_theory.localization
 import algebra.pi_instances
-import linear_algebra.linear_combination
+import linear_algebra.finsupp
 import to_mathlib.localization.localization_alt
 import to_mathlib.finset_range
 import to_mathlib.ring_hom
@@ -28,10 +28,12 @@ lemma finset.sum_of_mem_span
   ∃ r : β → α, x = finset.sum S (λ y, r y • y) :=
 begin
   intros Hx,
-  rw mem_span_iff_lc at Hx,
+  have Hfs := (@finsupp.mem_span_iff_total β _ α _ _ _ id S.to_set x).1,
+  simp at Hfs,
+  replace Hx := Hfs Hx,
   rcases Hx with ⟨l, Hls, Hlt⟩,
-  rw lc.total_apply at Hlt,
-  rw lc.mem_supported at Hls,
+  rw finsupp.total_apply at Hlt,
+  rw finsupp.mem_supported at Hls,
   rw ←Hlt,
   simp [finsupp.sum],
   use (λ x, if x ∈ S then l.to_fun x else 0),
@@ -265,8 +267,9 @@ begin
   rcases v with ⟨v, ⟨n, Hn⟩⟩,
   dsimp only [subtype.coe_mk] at Huv,
   rw ←Hn at Huv,
-  use n,
-  exact Huv,
+  existsi n,
+  rw ←Huv,
+  simp,
 end
 
 lemma standard_covering₂.aux₂ (s : Π i, Rfi i)
@@ -279,7 +282,7 @@ begin
   intros Hs,
   let n : γ × γ → ℕ := λ ij, classical.some (standard_covering₂.aux s ij.1 ij.2 (Hs ij.1 ij.2)),
   let N := finset.sum (@finset.univ (γ × γ) _) n,
-  use N,
+  existsi N,
   intros i j,
   have Hn : ∀ i j, n (i, j) ≤ N,
     intros i j,
@@ -309,7 +312,7 @@ end
 
 lemma standard_covering₂
 (Hone : (1:R) ∈ ideal.span (set.range f)) (s : Π i, Rfi i)
-: β s = 0 ↔ ∃ r : R, α r = s := 
+: β s = 0 ↔ ∃ r, α r = s := 
 begin
   rw finset.coe_image_univ at Hone,
   split,
@@ -320,7 +323,6 @@ begin
       apply funext,
       exact Hr,
     simp [α],
-
     -- Setting up.
     replace H := sub_eq_zero.1 H,
     replace H := congr_fun H,
@@ -336,28 +338,20 @@ begin
       iterate 2 { rw pow_add, rw ←mul_assoc, },
       rw [←Hfiri i, ←Hfiri j],
       exact (HN i j),
-
     -- We use the fact that if (ti) = R then (ti') = R.
     replace Hone := (one_mem_span_pow_of_mem_span f (λ i, r i + N) Hone),
     rcases (finset.image_sum_of_mem_span Hone) with ⟨a, Ha⟩,
     dsimp at Ha,
     use [finset.univ.sum (λ i, a i * (t i) * (f i) ^ N)],
     intros i,
-
     -- Note that: si = ti / fi^ri.
     have Hsi : αi i ((f i)^(r i)) * (s i) = αi i (t i),
       rw ←Hfiri i,
       exact ((Hlocα' i).has_denom (s i)).2,
-    
     -- Multiply the sum by fi^(ri + N) / fi^(ri + N).
     rcases (Hlocα' i).inverts ⟨(f i)^(r i + N), ⟨r i + N, rfl⟩⟩ with ⟨w, Hw⟩,
     dsimp only [subtype.coe_mk] at Hw,
-    rw ←mul_one (αi i _ ),
-    rw ←Hw,
-    rw ←mul_assoc,
-    rw ←is_ring_hom.map_mul (αi i),
-    rw finset.sum_mul,
-
+    rw [←mul_one (αi i _ ), ←Hw, ←mul_assoc, ←is_ring_hom.map_mul (αi i), finset.sum_mul],
     -- Key part : Σ ax tx' fi' = Σ ax fx' ti'.
     have Hsum : (λ x, a x * t x * f x ^ N * f i ^ (r i + N)) = 
                 (λ x, a x * f x ^ (r x + N) * (t i * f i ^ N)),
@@ -367,25 +361,12 @@ begin
       rw (HN i j),
       symmetry,
       rw mul_comm (_ * _),
-    
     -- Rewrite sum and use the fact that it is one.
-    rw Hsum,
-    rw ←finset.sum_mul,
-    rw is_ring_hom.map_mul (αi i),
-    rw ←Ha,
-    rw is_ring_hom.map_one (αi i),
-    rw one_mul,
-    rw ←mul_one (s i),
-
-    -- Kill it.
-    rw ←Hw,
-    rw pow_add,
-    rw is_ring_hom.map_mul (αi i),
-    rw is_ring_hom.map_mul (αi i),
-    rw ←mul_assoc,
-    rw ←mul_assoc,
-    rw mul_comm (s i),
-    rw Hsi, },
+    rw [Hsum, ←finset.sum_mul, is_ring_hom.map_mul (αi i)],
+    rw [←Ha, is_ring_hom.map_one (αi i), one_mul, ←mul_one (s i)],
+    -- Finishing.
+    rw [←Hw, pow_add, is_ring_hom.map_mul (αi i), is_ring_hom.map_mul (αi i)],
+    rw [←mul_assoc, ←mul_assoc, mul_comm (s i), Hsi], },
   { rintros ⟨r, Hr⟩,
     rw ←Hr,
     erw sub_eq_zero,

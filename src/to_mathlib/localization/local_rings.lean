@@ -19,7 +19,7 @@ variables (Hloc : is_localization_data (-P : set α) f)
 
 include Hloc
 
-lemma is_local_ring.of_is_localization_data_at_prime : is_local_ring β :=
+lemma local_ring.of_is_localization_data_at_prime : local_ring β :=
 begin
   apply local_of_nonunits_ideal,
   { -- 0 ≠ 1.
@@ -39,7 +39,7 @@ begin
       exact Hone, },
     { change v ∉ P at HvnP,
       exact (HvnP Hv), }, },
-  { -- x and y units then x + y is a unit.
+  { -- x and y nonunits then x + y is not a unit.
     intros x y Hx Hy HC,
     change ¬is_unit x at Hx,
     change ¬is_unit y at Hy,

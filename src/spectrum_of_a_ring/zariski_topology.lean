@@ -24,12 +24,12 @@ parameters (α : Type u) [comm_ring α]
 
 -- Proof.
 
-lemma Spec.H1 : ∅ ∈ Spec.closed α := 
+lemma Spec.H1 : ∅ ∈ Spec.closeds α := 
 ⟨{(1:α)}, set.ext $ λ ⟨I, PI⟩, ⟨
   λ HI, false.elim $ ((ideal.ne_top_iff_one I).1 PI.1) $ by simpa [Spec.V] using HI,
   λ HI, by cases HI⟩⟩
 
-lemma Spec.H2 : ∀ A ⊆ Spec.closed α, ⋂₀ A ∈ Spec.closed α := 
+lemma Spec.H2 : ∀ A ⊆ Spec.closeds α, ⋂₀ A ∈ Spec.closeds α := 
 λ A HA, ⟨(⋃₀ {E | ∃ S ∈ A, Spec.V E = S}), set.ext $ λ ⟨I, PI⟩, ⟨ 
   λ HI T HT, 
     begin
@@ -47,7 +47,7 @@ lemma Spec.H2 : ∀ A ⊆ Spec.closed α, ⋂₀ A ∈ Spec.closed α :=
       exact (HIS HxE)
     end⟩⟩
 
-lemma Spec.H3 : ∀ A B ∈ Spec.closed α, A ∪ B ∈ Spec.closed α :=
+lemma Spec.H3 : ∀ A B ∈ Spec.closeds α, A ∪ B ∈ Spec.closeds α :=
 λ A B ⟨EA, HEA⟩ ⟨EB, HEB⟩, 
 ⟨(ideal.span EA ∩ ideal.span EB), set.ext $ λ ⟨I, PI⟩, ⟨
 begin 
@@ -87,7 +87,7 @@ end⟩⟩
 parameter (α)
 
 instance zariski_topology : topological_space (Spec α) :=
-topological_space.of_closed (Spec.closed α) Spec.H1 Spec.H2 Spec.H3
+topological_space.of_closed (Spec.closeds α) Spec.H1 Spec.H2 Spec.H3
 
 -- Useful.
 

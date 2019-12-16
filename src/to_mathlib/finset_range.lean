@@ -89,8 +89,9 @@ lemma add_pow_sum
 begin
   intros a b n m,
   rw add_pow,
-  use [sum (range n) (λ i, a ^ i * b ^ (n - i) * (choose (n + m) i))],
-  use [sum (range (nat.succ m)) (λ i, a ^ i * b ^ (m - i) * (choose (n + m) (i + n)))],
+  let cnmi : ℕ → α := λ i, ((nat.choose (n+m) i):α), 
+  use [finset.sum (range n) (λ i, a ^ i * b ^ (n - i) * (nat.choose (n + m) i))],
+  use [sum (range (nat.succ m)) (λ i, a ^ i * b ^ (m - i) * (nat.choose (n + m) (i + n)))],
   rw add_comm (_ * _),
   repeat { rw finset.sum_mul, },
   repeat { rw finset.range_succ, },

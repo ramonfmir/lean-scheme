@@ -70,8 +70,6 @@ begin
     have Hdenx := Hden x,
     rcases Hdenx with ⟨⟨fn, r⟩, Hhr⟩,
     simp at Hhr,
-    have Hinvfn := Hinv fn,
-    rcases Hinvfn with ⟨s, Hfn⟩,
     have H := @ideal.mul_mem_left _ _ I (h fn) _ Hx,
     rw Hhr at H,
     replace H : r ∈ ideal.comap h I := H,
@@ -248,7 +246,6 @@ begin
   { intros z Hz,
     replace Hz : z ∈ ideal.comap h (ideal.map h I) := Hz,
     rw ideal.mem_comap at Hz,
-    -- TODO : Factor this out! Exactly the same as before.
     rw (localisation_map_ideal.eq HL I) at Hz,
     rcases Hz with ⟨w, ⟨a, ⟨HaI, Hwa⟩⟩, ⟨t, Ht⟩⟩,
     rw ←Hwa at Ht,
@@ -401,7 +398,7 @@ begin
     exact Hinv, }
 end
 
--- Finally we show that φ(Spec(Rf)) = D(f). In particular this shows that, there is
+-- Finally we show that φ(Spec(Rf)) = D(f). In particular this shows that there is
 -- a homeomorphism between Spec(Rf) and D(f).
 
 lemma phi_image_Df : φ '' Spec.univ Rf = Spec.D'(f) :=

@@ -41,9 +41,7 @@ begin
   let Hfi : ∀ i, OC.Uis i = Spec.DO R (fi i) := λ i, classical.some_spec (OC.BUis i),
   let fi' : OC.γ → Rf := λ i, localization.of (fi i),
   let F : set Rf := set.range fi',
-
   -- Lemma: ⋃ D(gᵢ') = Spec Rf.
-
   have Hcov : ⋃₀ (Spec.D' '' F) = set.univ,
   { let φ : Spec Rf → Spec R := Zariski.induced localization.of,
     dsimp [F],
@@ -71,11 +69,9 @@ begin
       { rw [←Zariski.induced.preimage_D localization.of _], },
     use [Hin],
     exact HPUiS, },
-
   -- We deduce: 1 ∈ <fi>
-  
   have Hone : (1 : Rf) ∈ ideal.span F,
-    rw [←ideal.eq_top_iff_one, ←Spec.V.empty_iff_ideal_top, ←Spec.V.set_eq_span],
+    erw [←ideal.eq_top_iff_one, ←Spec.V.empty_iff_ideal_top, ←Spec.V.set_eq_span],
     rw [Spec.D'.union F, ←set.compl_compl set.univ, set.compl_univ] at Hcov,
     apply set.ext,
     intros x,
@@ -84,18 +80,14 @@ begin
     iterate 2 { rw set.mem_compl_iff at Hcov, },
     rw not_iff_not at Hcov,
     exact Hcov,
-  
   -- α is injective.
-
   let αi := λ i, structure_presheaf_on_basis.res BU (OC.BUis i) (subset_covering i),
   let Rfi := λ i, localization R (S (OC.Uis i)),
   let α' := @α Rf _ _ Hγ Rfi _ αi _,
   have Hlocα : Π i, is_localization_data (powers (fi' i)) (αi i) 
     := λ i, structure_presheaf.res.localization BU (OC.BUis i) (subset_covering i),
   have Hsc₁ := @standard_covering₁ Rf _ _ Hγ fi' Rfi _ αi _ Hlocα Hone,
-
   -- ker β = im α.
-
   let Rfij := λ i j, localization R (S ((OC.Uis i) ∩ (OC.Uis j))),
   let βij 
     := λ i j, structure_presheaf_on_basis.res_to_inter BU (OC.BUis i) (OC.BUis j) (subset_covering i),
@@ -103,7 +95,6 @@ begin
     := λ i j, structure_presheaf.res_to_inter.localization BU (OC.BUis i) (OC.BUis j) (subset_covering i),
   let β' := @β Rf _ _ Hγ fi' Rfi _ αi _ Hlocα Rfij _ βij _ Hlocβ,
   have Hsc₂ := @standard_covering₂ Rf _ _ Hγ fi' Rfi _ αi _ Hlocα Rfij _ βij _ Hlocβ Hone,
-
   constructor,
   { -- Locality. 
     intros s t Hst,
@@ -151,7 +142,6 @@ begin
       rw Huniqueβ2,
       -- Now we have it in the desired form.
       exact Hsjk.symm,
-
     -- Use global section found.
     rcases ((Hsc₂ s).1 Hβ) with ⟨S, HS⟩,
     use S,
@@ -175,7 +165,7 @@ end
 -- Structure sheaf.
 
 def structure_sheaf.presheaf (R : Type u) [comm_ring R] := 
-presheaf_of_rings_on_basis_to_presheaf_of_rings 
+presheaf_of_rings_extension
   (D_fs_standard_basis R) 
   (structure_presheaf_on_basis R)
 

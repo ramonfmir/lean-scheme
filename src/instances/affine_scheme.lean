@@ -8,6 +8,8 @@ import scheme
 
 universe u 
 
+noncomputable theory
+
 open topological_space
 
 variables (R : Type u) [comm_ring R]
@@ -16,13 +18,14 @@ variables (R : Type u) [comm_ring R]
 
 def affine_scheme : scheme (Spec R) :=
 { carrier := Spec.locally_ringed_space R,
-  cov := 
-    { γ := punit,
-      Uis := λ x, opens.univ,
-      Hcov := opens.ext $ set.ext $ λ x, 
-        ⟨λ Hx, trivial, λ Hx, ⟨set.univ, ⟨⟨opens.univ, ⟨⟨punit.star, rfl⟩, rfl⟩⟩, Hx⟩⟩⟩ },
   Haffinecov := 
     begin
+      existsi ({ 
+        γ := punit,
+        Uis := λ x, opens.univ,
+        Hcov := opens.ext $ set.ext $ λ x, 
+        ⟨λ Hx, trivial, λ Hx, ⟨set.univ, ⟨⟨opens.univ, ⟨⟨punit.star, rfl⟩, rfl⟩⟩, Hx⟩⟩⟩ }
+        : covering.univ (Spec R)),
       intros i,
       use [R, by apply_instance], 
       use [presheaf_of_rings.pullback_id (structure_sheaf.presheaf R)],

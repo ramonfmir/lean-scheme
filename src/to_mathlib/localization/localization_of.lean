@@ -12,8 +12,10 @@ open localization_alt
 variables {α : Type u} [comm_ring α]
 variables (S : set α) [is_submonoid S]
 
+open localization
+
 noncomputable lemma localization.of.is_localization_data 
-: @is_localization_data α (localization α S) _ _ S _ (localization.of) _ :=
+: is_localization_data S (of : α → localization α S) :=
 begin
   refine ⟨_, _, _⟩,
   { intros s,
