@@ -156,9 +156,7 @@ variable [has_equalizers.{v} C]
 --def is_sheaf (F : presheaf X C) :=
 --locality F ∧ gluing F
 
--- this is data
-def is_sheaf_def (ℱ : sheaf X C) {U : opens X} (OC : covering U) :
-  is_iso (ℱ.map_to_equalizer OC : ℱ.to_presheaf U ⟶ _) :=
-{ inv := (ℱ.is_limit OC).lift _,
-  hom_inv_id' := begin sorry end,
-  inv_hom_id' := sorry }
+def is_sheaf' (ℱ : sheaf X C) {U : opens X} (OC : covering U) :
+  ℱ.to_presheaf.to_fork OC ≅
+    (limit.cone (parallel_pair (ℱ.to_presheaf.res_left OC) (ℱ.to_presheaf.res_right OC))) :=
+is_limit.unique_up_to_iso (ℱ.is_limit OC) (limit.is_limit _)
