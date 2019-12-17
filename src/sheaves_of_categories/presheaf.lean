@@ -65,7 +65,7 @@ instance : has_coe_to_fun (topological_space.presheaf X C) :=
   coe := topological_space.presheaf.val}
 
 -- simp lemma to get ℱ.val U back into ℱ U form
-@[simp, refl] lemma val_eq_coe {ℱ : presheaf X C} {U : opens X} : ℱ.val U = ℱ U := rfl
+@[simp] lemma val_eq_coe {ℱ : presheaf X C} {U : opens X} : ℱ.val U = ℱ U := rfl
 
 -- Simplification lemmas for Hid and Hcomp.
 @[simp] lemma Hcomp' (ℱ : presheaf X C) :
