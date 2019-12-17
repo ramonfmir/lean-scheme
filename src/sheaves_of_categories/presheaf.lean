@@ -15,23 +15,6 @@ library.
 import category_theory.limits.limits -- random import
 import topology.opens
 import topology.sheaves.presheaf
-/-
-Top.presheaf : Π (C : Type u_2) [𝒞 : category_theory.category C], Top → Type (max u_1 u_2)
--/
-
-/- from mathlib
-
-/-- A topology on `α`. -/
-structure topological_space (α : Type u) :=
-(is_open       : set α → Prop)
-(is_open_univ   : is_open univ)
-(is_open_inter  : ∀s t, is_open s → is_open t → is_open (s ∩ t))
-(is_open_sUnion : ∀s, (∀t∈s, is_open t) → is_open (⋃₀ s))
-
--/
-
--- definition below incompatible with
--- import topology.sheaves.presheaf
 
 open category_theory
 open topological_space
@@ -39,6 +22,7 @@ open topological_space
 universes v u -- Homs in C and the top space will be in the same universe v ("sets").
 
 -- when I hover over 𝟙 I don't get the keyboard shortcut
+/-- Definition of a presheaf -/
 structure topological_space.presheaf (X : Type v) [topological_space X]
   (C : Type u) [𝒞 : category.{v} C] :=
 (val : Π (U : opens X), C) -- ℱ
@@ -47,7 +31,6 @@ structure topological_space.presheaf (X : Type v) [topological_space X]
 (Hcomp : ∀ (U V W) (HWV : W ⊆ V) (HVU : V ⊆ U),
   res U W (set.subset.trans HWV HVU) = res U V HVU ≫ res V W HWV)
 
--- Definition of a presheaf.
 
 open topological_space lattice
 
@@ -133,8 +116,8 @@ instance category_struct : category_struct (presheaf X C) :=
       apply category.assoc,
     end}
 }
-
-instance : category (presheaf X C) :=
+#where
+instance category : category (presheaf X C) :=
 {
   id_comp' := begin
   -- what is the tactic?
