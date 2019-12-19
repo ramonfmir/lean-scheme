@@ -13,8 +13,6 @@ import spectrum_of_a_ring.structure_presheaf_res
 
 universe u
 
-noncomputable theory
-
 variables {R : Type u} [comm_ring R]
 variables (P : Spec R)
 
@@ -30,7 +28,7 @@ def F := structure_presheaf_on_basis R
 def FP := stalk_of_rings_on_standard_basis Bstd F P
 
 -- This is essentially the map from x to x/1.
-def φ : R → FP P := λ x, 
+def φ : R → FP P := λ x,
 ⟦{ U := opens.univ,
    BU := (D_fs_standard_basis R).1,
    Hx := set.mem_univ P,
@@ -45,7 +43,7 @@ instance prime.is_submonoid : is_submonoid (-P.1 : set R) :=
 
 instance φP.is_ring_hom : is_ring_hom (φ P) :=
 { map_one := rfl,
-  map_mul := λ x y, 
+  map_mul := λ x y,
     begin
       apply quotient.sound,
       use [opens.univ, (D_fs_standard_basis R).1, set.mem_univ P],
@@ -72,9 +70,9 @@ lemma stalk_local.inverts_data : inverts_data (-P.1 : set R) (φ P) :=
 begin
   rintros ⟨s, Hs⟩,
   change s ∉ P.val at Hs,
-  let BDs := D_fs.mem R s, 
+  let BDs := D_fs.mem R s,
   have HsS : s ∈ S (Spec.DO R s) := S.f_mem s,
-  let sinv : FP P := 
+  let sinv : FP P :=
     ⟦{ U := Spec.DO R s,
        BU := BDs,
        Hx := Hs,
@@ -99,7 +97,7 @@ begin
   intros x,
   apply quotient.induction_on x,
   rintros ⟨U, BU, HPU, s⟩,
-  -- s ∈ R[1/S(U)]. 
+  -- s ∈ R[1/S(U)].
   apply quotient.induction_on s,
   rintros ⟨p, ⟨q, Hq⟩⟩,
   change U ⊆ Spec.DO R q at Hq,
@@ -119,7 +117,7 @@ begin
   simp,
 end
 
-lemma stalk_local.has_denom_data : has_denom_data (-P.1 : set R) (φ P) :=
+noncomputable def stalk_local.has_denom_data : has_denom_data (-P.1 : set R) (φ P) :=
 has_denom_some (-P.1 : set R) (φ P) (stalk_local.has_denom P)
 
 lemma stalk_local.ker_le : ker (φ P) ≤ submonoid_ann (-P.1 : set R) :=
@@ -139,12 +137,12 @@ begin
   use ⟨⟨x, ⟨t, HtnP⟩⟩, Ht⟩,
 end
 
-lemma stalk_local.localization : is_localization_data (-P.1 : set R) (φ P) :=
-{ inverts := stalk_local.inverts_data P, 
-  has_denom := stalk_local.has_denom_data P, 
+noncomputable def stalk_local.localization : is_localization_data (-P.1 : set R) (φ P) :=
+{ inverts := stalk_local.inverts_data P,
+  has_denom := stalk_local.has_denom_data P,
   ker_le := stalk_local.ker_le P, }
 
-lemma stalk_local : local_ring (FP P) :=
+lemma stalk_local : is_local_ring (FP P) :=
 local_ring.of_is_localization_data_at_prime P.2 (stalk_local.localization P)
 
 end strucutre_presheaf_stalks

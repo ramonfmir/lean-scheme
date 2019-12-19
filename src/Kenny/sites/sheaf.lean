@@ -12,13 +12,13 @@ namespace presheaf
 variables {C : Type u} [category.{v} C] (F : presheaf.{v w} C)
 
 def eval (U : C) : Type w :=
-F.1 (op U)
+F.1 (opposite.op U)
 
 def res {U V : C} (f : U ⟶ V) : F.eval V → F.eval U :=
 F.2 (has_hom.hom.op f)
 
 @[simp] lemma res_id (U : C) (s : F.eval U) : F.res (𝟙 U) s = s :=
-congr_fun (F.map_id (op U)) s
+congr_fun (F.map_id (opposite.op U)) s
 
 @[simp] lemma res_res (U V W : C) (f : W ⟶ V) (g : V ⟶ U) (s : F.eval U) :
   F.res f (F.res g s) = F.res (f ≫ g) s :=

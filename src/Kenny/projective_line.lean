@@ -4,6 +4,10 @@ universes u v w
 
 open topological_space
 
+theorem ring_equiv.bijective {α : Type u} {β : Type v} [ring α] [ring β] (e : α ≃+* β) :
+  function.bijective e :=
+e.to_equiv.bijective
+
 namespace localization
 
 variables {R : Type u} [comm_ring R]
@@ -349,7 +353,7 @@ def stalk_on_basis_of_localization (p : Spec R) (x : localization.at_prime p.1) 
   stalk_of_rings_on_standard_basis.stalk_of_rings_on_standard_basis
     (D_fs_standard_basis R) (structure_presheaf_on_basis R) p :=
 localization.lift' (stalk_on_basis_of p)
-  (λ r : -(p.1 : set R), units.map (to_stalk_on_basis _ (Spec.DO R r.1) ⟨r.1, rfl⟩ r.2) $
+  (λ r : -(p.1 : set R), (units.map' (to_stalk_on_basis (structure_presheaf_on_basis R) (Spec.DO R r.1) ⟨r.1, rfl⟩ r.2)).1 $
     localization.to_units ⟨r.1, set.subset.refl _⟩)
   (λ r, quotient.sound ⟨Spec.DO R r.1, ⟨r.1, rfl⟩, r.2, set.subset.refl _, set.subset_univ _, rfl⟩)
   x
@@ -388,7 +392,7 @@ begin
     rintros ⟨y, hxy⟩, rcases (stalk_on_basis_of_localization.bijective p).2 y with ⟨y, rfl⟩,
     rw [← is_ring_hom.map_mul (stalk_on_basis_of_localization p), ← is_ring_hom.map_one (stalk_on_basis_of_localization p)] at hxy,
     exact ⟨y, (stalk_on_basis_of_localization.bijective p).1 hxy⟩ },
-  { exact is_unit.map _ }
+  { exact λ hx, is_unit.map' _ hx }
 end
 
 def Zariski.induced.stalk_on_basis.algebraic (p : Spec B)
@@ -440,7 +444,7 @@ def Zariski.induced.locally_ringed_space {A : Type u} [comm_ring A] {B : Type v}
   { map_one := subtype.eq $ by funext p hp; apply Zariski.induced.stalk_on_basis.map_one,
     map_mul := λ x y, subtype.eq $ by funext p hp; simp only [Fext_mul.eq]; apply Zariski.induced.stalk_on_basis.map_mul,
     map_add := λ x y, subtype.eq $ by funext p hp; simp only [Fext_add.eq]; apply Zariski.induced.stalk_on_basis.map_add },
-  hlocal := begin
+  Hstalks := begin
     rintros p s, refine quotient.induction_on s (λ g hg, _), cases g with U hfpU σ,
     change is_unit (to_stalk (Spec.locally_ringed_space B).O.F p (opens.comap (Zariski.induced.continuous f) U) hfpU _) at hg,
     change is_unit (to_stalk (Spec.locally_ringed_space A).O.F (Zariski.induced f p) U hfpU σ),
@@ -499,12 +503,12 @@ calc  F.res (OC.Uis j).map_subtype_val ((OC.Uis j).map_subtype_val ⊓ (OC.Uis k
 ... = F.res (OC.Uis k).map_subtype_val ((OC.Uis j).map_subtype_val ⊓ (OC.Uis k).map_subtype_val) _ (s k) : by rw ← presheaf.Hcomp'; refl
 
 def sheaf.res_open (O : sheaf X) (U : opens X) : sheaf U :=
-{ F := O.F.res_open U,
-  locality := λ V, O.locality.res_open U,
-  gluing := λ V, O.gluing.res_open U, }
+{ locality := λ V, O.locality.res_open U,
+  gluing := λ V, O.gluing.res_open U,
+  .. O.to_presheaf.res_open U }
 
 def sheaf_of_rings.to_sheaf (O : sheaf_of_rings X) : sheaf X :=
-{ F := O.F.to_presheaf, .. O }
+{ .. O, .. O.F }
 
 def sheaf_of_rings.res_open (O : sheaf_of_rings X) (U : opens X) : sheaf_of_rings U :=
 { F := O.F.res_open U, .. O.to_sheaf.res_open U }
@@ -564,34 +568,34 @@ theorem to_stalk_of_rings_res_open_to_stalk (F : presheaf_of_rings X) (U : opens
 rfl
 
 def presheaf_of_rings.res_open.stalk_of_rings (F : presheaf_of_rings X) (U : opens X) (x : U) :
-  stalk_of_rings (F.res_open U) x ≃r stalk_of_rings F x.1 :=
+  stalk_of_rings (F.res_open U) x ≃+* stalk_of_rings F x.1 :=
+ring_equiv.of'
 { to_fun := of_stalk_of_rings_res_open F U x,
   inv_fun := to_stalk_of_rings_res_open F U x,
   left_inv := λ s, stalk_of_rings.induction_on s $ λ V HV s,
     by rw [of_stalk_of_rings_res_open_to_stalk, to_stalk_of_rings_res_open_to_stalk]; apply to_stalk_res;
       show subtype.val ⁻¹' (subtype.val '' V.1) ⊆ V.1; rw [set.preimage_image_eq _ subtype.val_injective],
   right_inv := λ s, stalk_of_rings.induction_on s $ λ V HV s,
-    by rw [to_stalk_of_rings_res_open_to_stalk, of_stalk_of_rings_res_open_to_stalk]; apply to_stalk_res,
-  hom := of_stalk_of_rings_res_open.is_ring_hom F U x }
+    by rw [to_stalk_of_rings_res_open_to_stalk, of_stalk_of_rings_res_open_to_stalk]; apply to_stalk_res }
 
-theorem is_local_ring_iff : is_local_ring R ↔ ((0:R) ≠ 1 ∧ ∀ x y : R, is_unit (x + y) → is_unit x ∨ is_unit y) :=
-⟨λ hr, ⟨hr.zero_ne_one, λ x y hxy, classical.or_iff_not_imp_left.2 $ λ hnx, classical.by_contradiction $ λ hny,
-  absurd hxy $ (nonunits_ideal hr).add_mem hnx hny⟩,
-λ hr, local_of_nonunits_ideal hr.1 $ λ x y hx hy hxy, or.cases_on (hr.2 x y hxy) hx hy⟩
+/- theorem is_local_ring_iff : is_local_ring R ↔ ((0:R) ≠ 1 ∧ ∀ x y : R, is_unit (x + y) → is_unit x ∨ is_unit y) :=
+⟨λ hr, ⟨hr.1, λ x y hxy, classical.or_iff_not_imp_left.2 $ λ hnx, classical.by_contradiction $ λ hny,
+  absurd hxy $ (@local_ring.nonunits_ideal R (local_of_is_local_ring hr)).add_mem hnx hny⟩,
+λ hr, is_local_of_nonunits_ideal hr.1 $ λ x y hx hy hxy, or.cases_on (hr.2 x y hxy) hx hy⟩ -/
 
-theorem is_unit_congr {A : Type u} [comm_ring A] {B : Type v} [comm_ring B] (e : A ≃r B) (x : A) :
-  is_unit (e.to_equiv x) ↔ is_unit x :=
-⟨λ hx, e.left_inv x ▸ @@is_unit.map _ _ e.symm.to_equiv _ hx, is_unit.map _⟩
+theorem is_unit_congr {A : Type u} [comm_ring A] {B : Type v} [comm_ring B] (e : A ≃+* B) (x : A) :
+  is_unit (e x) ↔ is_unit x :=
+⟨λ hx, e.left_inv x ▸ @@is_unit.map' _ _ e.symm hx _, λ hx, @@is_unit.map' _ _ e hx _⟩
 
-theorem is_local_ring_congr {A : Type u} [comm_ring A] {B : Type v} [comm_ring B] (e : A ≃r B) :
+theorem is_local_ring_congr {A : Type u} [comm_ring A] {B : Type v} [comm_ring B] (e : A ≃+* B) :
   is_local_ring A ↔ is_local_ring B :=
-by rw [is_local_ring_iff, is_local_ring_iff]; exact
-⟨λ ⟨h1, h2⟩, ⟨is_ring_hom.map_zero e.to_equiv ▸ is_ring_hom.map_one e.to_equiv ▸ λ h3, h1 (e.to_equiv.bijective.1 h3), λ x y,
-  let ⟨r, hr⟩ := e.to_equiv.bijective.2 x, ⟨s, hs⟩ := e.to_equiv.bijective.2 y in
-  by rw [← hr, ← hs, ← is_ring_hom.map_add e.to_equiv, is_unit_congr, is_unit_congr, is_unit_congr]; apply h2⟩,
-λ ⟨h1, h2⟩, ⟨is_ring_hom.map_zero e.symm.to_equiv ▸ is_ring_hom.map_one e.symm.to_equiv ▸ λ h3, h1 (e.symm.to_equiv.bijective.1 h3), λ x y,
-  let ⟨r, hr⟩ := e.symm.to_equiv.bijective.2 x, ⟨s, hs⟩ := e.symm.to_equiv.bijective.2 y in
-  by rw [← hr, ← hs, ← is_ring_hom.map_add e.symm.to_equiv, is_unit_congr, is_unit_congr, is_unit_congr]; apply h2⟩⟩
+by unfold is_local_ring; exact
+⟨λ ⟨h1, h2⟩, ⟨is_ring_hom.map_zero e ▸ is_ring_hom.map_one e ▸ λ h3, h1 (e.to_equiv.bijective.1 h3), λ x,
+  let ⟨r, hr⟩ := e.bijective.2 x in
+  by rw [← hr, ← is_ring_hom.map_one e, ← is_ring_hom.map_sub e, is_unit_congr, is_unit_congr]; apply h2⟩,
+λ ⟨h1, h2⟩, ⟨is_ring_hom.map_zero e.symm ▸ is_ring_hom.map_one e.symm ▸ λ h3, h1 (e.symm.bijective.1 h3), λ x,
+  let ⟨r, hr⟩ := e.symm.bijective.2 x in
+  by rw [← hr, ← is_ring_hom.map_one e.symm, ← is_ring_hom.map_sub e.symm, is_unit_congr, is_unit_congr]; apply h2⟩⟩
 
 def locally_ringed_space.res_open (OX : locally_ringed_space X) (U : opens X) : locally_ringed_space U :=
 { O := OX.O.res_open U,
@@ -620,7 +624,7 @@ set.ext $ λ p, ⟨λ ⟨q, hqU, hqp⟩,
   from subtype.eq $ by dsimp only; rw ← hqp; dsimp only [Zariski.induced]; erw localization.map_comap,
   show (⟨p.1.1.map localization.of, localization.prime_map_away x p.1.1 p.1.2 p.2⟩ : Spec (localization.away x)) ∈ U,
   from this ▸ hqU,
-λ hp, ⟨_, hp, subtype.eq $ by dsimp only [Zariski.coinduced]; rw localization.comap_map_away x p.1.1 p.1.2 p.2⟩⟩⟩
+λ hp, ⟨_, hp, subtype.eq $ by dsimp only [Zariski.induced, Zariski.coinduced]; rw localization.comap_map_away x p.1.1 p.1.2 p.2⟩⟩⟩
 
 theorem of_mem_map_subtype_val {x : R} {U : opens (Spec.DO R x)} {p : Spec R}
   (hp : p ∈ U.map_subtype_val) : x ∉ p.1 :=
@@ -749,7 +753,7 @@ def res_D_fs (x : R) : locally_ringed_space.morphism
         λ q hq1, funext $ λ hq2, by rw hσ; sorry⟩⟩,
     commutes := sorry },
   hom := sorry,
-  hlocal := sorry }
+  Hstalks := sorry }
 
 #exit
 namespace projective_line

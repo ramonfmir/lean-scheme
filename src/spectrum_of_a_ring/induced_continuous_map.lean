@@ -18,12 +18,12 @@ variables (f : α → β) [is_ring_hom f]
 -- Given φ : A → B, we have Spec(φ) : Spec(B) → Spec(A), 𝔭′⟼φ⁻¹(𝔭′).
 
 def Zariski.induced : Spec β → Spec α :=
-λ ⟨P, HP⟩, ⟨ideal.comap f P, @ideal.is_prime.comap _ _ _ _ f _ P HP⟩
+λ x, ⟨ideal.comap f x.1, @ideal.is_prime.comap _ _ _ _ f _ x.1 x.2⟩
 
 -- This induced map is continuous.
 
 lemma Zariski.induced.continuous : continuous (Zariski.induced f) :=
-begin 
+begin
   rintros U ⟨E, HE⟩,
   use [f '' E],
   apply set.ext,
@@ -33,14 +33,14 @@ begin
     suffices HfI : Zariski.induced f ⟨I, PI⟩ ∈ Spec.V E,
       rw HE at HfI,
       apply HfI,
-      exact HC, 
+      exact HC,
     intros x Hx,
     simp [Zariski.induced] at *,
     have HfE : f '' E ⊆ I := HI,
     have Hfx : f x ∈ f '' E := set.mem_image_of_mem f Hx,
     exact (HfE Hfx), },
   { rintros HI x ⟨y, ⟨Hy, Hfy⟩⟩,
-    suffices HfI : Zariski.induced f ⟨I, PI⟩ ∈ Spec.V E, 
+    suffices HfI : Zariski.induced f ⟨I, PI⟩ ∈ Spec.V E,
       rw ←Hfy,
       exact (HfI Hy),
     intros z Hz,
@@ -48,9 +48,9 @@ begin
     replace HI : _ ∈ -U := HI,
     rw ←HE at HI,
     exact (HI Hz), }
-end 
+end
 
-theorem Zariski.induced.preimage_D (x : α) 
+theorem Zariski.induced.preimage_D (x : α)
 : Zariski.induced f ⁻¹' (Spec.D' x) = Spec.D' (f x) :=
-set.ext $ λ ⟨P, HP⟩, 
+set.ext $ λ ⟨P, HP⟩,
 by simp [Spec.D', Spec.V', Zariski.induced]

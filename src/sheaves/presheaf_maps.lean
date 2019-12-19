@@ -14,7 +14,7 @@ open topological_space
 
 variables {α : Type u} [topological_space α]
 variables {β : Type v} [topological_space β]
-variables {f : α → β} (Hf : continuous f) 
+variables {f : α → β} (Hf : continuous f)
 
 -- f induces a functor PSh(α) ⟶ PSh(β).
 
@@ -26,14 +26,14 @@ def pushforward (F : presheaf α) : presheaf β :=
 { F := λ U, F (opens.comap Hf U),
   res := λ U V HVU, F.res (opens.comap Hf U) (opens.comap Hf V) (opens.comap_mono Hf V U HVU),
   Hid := λ U, F.Hid (opens.comap Hf U),
-  Hcomp := λ U V W HWV HVU, 
-    F.Hcomp (opens.comap Hf U) (opens.comap Hf V) (opens.comap Hf W) 
+  Hcomp := λ U V W HWV HVU,
+    F.Hcomp (opens.comap Hf U) (opens.comap Hf V) (opens.comap Hf W)
             (opens.comap_mono Hf W V HWV) (opens.comap_mono Hf V U HVU), }
 
-def pushforward.morphism (F G : presheaf α) (φ : F ⟶ G) 
+def pushforward.morphism (F G : presheaf α) (φ : F ⟶ G)
 : pushforward Hf F ⟶ pushforward Hf G :=
-{ map := λ U, φ.map (opens.comap Hf U), 
-  commutes := λ U V HVU, 
+{ map := λ U, φ.map (opens.comap Hf U),
+  commutes := λ U V HVU,
     φ.commutes (opens.comap Hf U) (opens.comap Hf V) (opens.comap_mono Hf V U HVU), }
 
 end pushforward
@@ -48,13 +48,13 @@ def pullback (F : presheaf β) : presheaf α :=
 { F := λ U, F (opens.map Hf' U),
   res := λ U V HVU, F.res (opens.map Hf' U) (opens.map Hf' V) (opens.map_mono Hf' V U HVU),
   Hid := λ U, F.Hid (opens.map Hf' U),
-  Hcomp := λ U V W HWV HVU, 
-    F.Hcomp (opens.map Hf' U) (opens.map Hf' V) (opens.map Hf' W) 
+  Hcomp := λ U V W HWV HVU,
+    F.Hcomp (opens.map Hf' U) (opens.map Hf' V) (opens.map Hf' W)
             (opens.map_mono Hf' W V HWV) (opens.map_mono Hf' V U HVU), }
 
 def pullback.morphism (F G : presheaf β) (φ : F ⟶ G) : pullback Hf' F ⟶ pullback Hf' G :=
-{ map := λ U, φ.map (opens.map Hf' U), 
-  commutes := λ U V HVU, 
+{ map := λ U, φ.map (opens.map Hf' U),
+  commutes := λ U V HVU,
     φ.commutes (opens.map Hf' U) (opens.map Hf' V) (opens.map_mono Hf' V U HVU), }
 
 end pullback
@@ -74,10 +74,10 @@ variables {g : β → γ} {Hg : continuous g}
 
 variable {Hf}
 
-def comp {F : presheaf α} {G : presheaf β} {H : presheaf γ} 
+def comp {F : presheaf α} {G : presheaf β} {H : presheaf γ}
 (f_ : fmap Hf F G) (g_ : fmap Hg G H) : fmap (continuous.comp Hg Hf) F H :=
 { map := λ U, (f_.map (opens.comap Hg U)) ∘ (g_.map U),
-  commutes := 
+  commutes :=
     begin
       intros U V HVU,
       rw function.comp.assoc _ _ (H.res _ _ _),
@@ -88,30 +88,15 @@ def comp {F : presheaf α} {G : presheaf β} {H : presheaf γ}
     end, }
 
 def id (F : presheaf α) : fmap continuous_id F F :=
-{ map := λ U,
-    begin
-      have HUU : opens.comap continuous_id U ⊆ U,
-        intros x Hx,
-        dsimp [opens.comap] at Hx,
-        exact Hx,
-      exact (F.res U (opens.comap continuous_id U) HUU),
-    end,
-  commutes := 
-    begin
-      intros U V HUV,
-      iterate 2 { rw ←F.Hcomp, },
-    end, }
+{ map := λ U, F.res _ _ $ λ x Hx, Hx,
+  commutes := λ U V HUV, by rw [← F.Hcomp, ← F.Hcomp] }
 
 -- Induced map on stalks.
 
-def induced
-(F : presheaf α) (G : presheaf β) (f' : fmap Hf F G) (x : α) 
-: stalk G (f x) → stalk F x :=
+def induced (F : presheaf α) (G : presheaf β) (f' : fmap Hf F G) (x : α)
+  (Us : stalk G (f x)) : stalk F x :=
+quotient.lift_on Us (λ Us, (⟦⟨opens.comap Hf Us.U, Us.HxU, f'.map Us.U Us.s⟩⟧ : stalk F x)) $
 begin
-  intros Us,
-  let g : stalk.elem G (f x) → stalk F x :=
-    λ Us, (⟦⟨opens.comap Hf Us.U, Us.HxU, f'.map Us.U Us.s⟩⟧),
-  apply quotient.lift_on Us g,
   rintros a b ⟨V, HxV, HVaU, HVbU, Hres⟩,
   apply quotient.sound,
   use [opens.comap Hf V, HxV],

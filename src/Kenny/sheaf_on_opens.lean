@@ -20,7 +20,7 @@ theorem inter_val (U V : opens X) : (U ∩ V).1 = U.1 ∩ V.1 := rfl
 theorem inf_val (U V : opens X) : (U ⊓ V).1 = U.1 ∩ V.1 := rfl
 
 theorem inf_Sup (U : opens X) (s : set (opens X)) : U ⊓ Sup s = Sup ((⊓) U '' s) :=
-opens.ext $ by rw [inf_val, opens.Sup_s, opens.Sup_s, set.sUnion_eq_Union, set.inter_Union_left, ← set.image_comp]; exact
+opens.ext $ by rw [inf_val, opens.Sup_s, opens.Sup_s, set.sUnion_eq_Union, set.inter_Union, ← set.image_comp]; exact
 set.subset.antisymm
   (set.Union_subset $ λ ⟨t, i, his, hit⟩, set.subset_sUnion_of_mem ⟨i, his, congr_arg ((∩) U.1) hit⟩)
   (set.sUnion_subset $ λ t ⟨i, his, hit⟩, set.subset_sUnion_of_mem ⟨⟨i.1, i, his, rfl⟩, hit⟩)
@@ -54,7 +54,7 @@ namespace sheaf_on_opens
 variables {X : Type u} [topological_space X] {U : opens X}
 
 def eval (F : sheaf_on_opens X U) (V : opens X) (HVU : V ≤ U) : Type v :=
-presheaf.F (sheaf.F F) V
+presheaf.F F.to_presheaf V
 
 def res (F : sheaf_on_opens X U) (V : opens X) (HVU : V ≤ U) (W : opens X) (HWU : W ≤ U) (HWV : W ≤ V) : F.eval V HVU → F.eval W HWU :=
 presheaf.res _ _ _ HWV
@@ -113,7 +113,7 @@ quotient.sound ⟨W, hxW, set.subset.refl W.1, HWV, by dsimp only [res]; rw ← 
   (H : ∀ V : opens X, ∀ hxV : x ∈ V, ∀ HVU : V ≤ U, ∀ s : F.eval V HVU, C (F.to_stalk x hx V hxV HVU s)) :
   C g :=
 quotient.induction_on g $ λ e,
-have (⟦e⟧ : F.stalk x hx) = ⟦⟨e.1 ⊓ U, ⟨e.2, hx⟩, F.F.res _ _ (set.inter_subset_left _ _) e.3⟩⟧,
+have (⟦e⟧ : F.stalk x hx) = ⟦⟨e.1 ⊓ U, ⟨e.2, hx⟩, F.to_presheaf.res _ _ (set.inter_subset_left _ _) e.3⟩⟧,
 from quotient.sound ⟨e.1 ⊓ U, ⟨e.2, hx⟩, set.inter_subset_left _ _, set.subset.refl _, by dsimp only; rw ← presheaf.Hcomp'; refl⟩,
 this.symm ▸ H (e.1 ⊓ U) ⟨e.2, hx⟩ inf_le_right _
 
@@ -138,7 +138,7 @@ def comp {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} {H : sheaf_on
   (η.comp ξ).1 V HV s = η.1 V HV (ξ.1 V HV s) :=
 rfl
 
-@[extensionality] lemma ext {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U}
+@[ext] lemma ext {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U}
   {η ξ : F.morphism G} (H : ∀ V HV x, η.map V HV x = ξ.map V HV x) : η = ξ :=
 by cases η; cases ξ; congr; ext; apply H
 
@@ -178,9 +178,9 @@ def stalk {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} (η : F.morp
 quotient.lift_on s (λ g, ⟦(⟨g.1 ⊓ U, (⟨g.2, hx⟩ : x ∈ g.1 ⊓ U),
   η.map _ inf_le_right (presheaf.res F.1 _ _ (set.inter_subset_left _ _) g.3)⟩ : stalk.elem _ _)⟧) $
 λ g₁ g₂ ⟨V, hxV, HV1, HV2, hg⟩, quotient.sound ⟨V ⊓ U, ⟨hxV, hx⟩, set.inter_subset_inter_left _ HV1, set.inter_subset_inter_left _ HV2,
-calc  G.res _ _ (V ⊓ U) inf_le_right (inf_le_inf HV1 (le_refl _)) (η.map (g₁.U ⊓ U) inf_le_right ((F.F).res (g₁.U) (g₁.U ⊓ U) (set.inter_subset_left _ _) (g₁.s)))
-    = η.map (V ⊓ U) inf_le_right ((F.F).res V (V ⊓ U) (set.inter_subset_left _ _) ((F.F).res (g₁.U) V HV1 (g₁.s))) : by rw [← η.2, res, ← presheaf.Hcomp', ← presheaf.Hcomp']
-... = G.res _ _ (V ⊓ U) _ _ (η.map (g₂.U ⊓ U) inf_le_right ((F.F).res (g₂.U) (g₂.U ⊓ U) _ (g₂.s))) : by rw [hg, ← η.2, res, ← presheaf.Hcomp', ← presheaf.Hcomp']⟩
+calc  G.res _ _ (V ⊓ U) inf_le_right (inf_le_inf HV1 (le_refl _)) (η.map (g₁.U ⊓ U) inf_le_right (F.to_presheaf.res (g₁.U) (g₁.U ⊓ U) (set.inter_subset_left _ _) (g₁.s)))
+    = η.map (V ⊓ U) inf_le_right (F.to_presheaf.res V (V ⊓ U) (set.inter_subset_left _ _) (F.to_presheaf.res (g₁.U) V HV1 (g₁.s))) : by rw [← η.2, res, ← presheaf.Hcomp', ← presheaf.Hcomp']
+... = G.res _ _ (V ⊓ U) _ _ (η.map (g₂.U ⊓ U) inf_le_right (F.to_presheaf.res (g₂.U) (g₂.U ⊓ U) _ (g₂.s))) : by rw [hg, ← η.2, res, ← presheaf.Hcomp', ← presheaf.Hcomp']⟩
 
 @[simp] lemma stalk_to_stalk {F : sheaf_on_opens.{v} X U} {G : sheaf_on_opens.{w} X U} (η : F.morphism G) (x : X) (hx : x ∈ U)
   (V : opens X) (HVU : V ≤ U) (hxV : x ∈ V) (s : F.eval V HVU) : η.stalk x hx (F.to_stalk x hx V hxV HVU s) = G.to_stalk x hx V hxV HVU (η.map V HVU s) :=
@@ -361,11 +361,10 @@ end sheaf_glue
 def sheaf_glue {I : Type u} (S : I → opens X) (F : Π (i : I), sheaf_on_opens.{v} X (S i))
   (φ : Π i j, equiv ((F i).res_subset ((S i) ⊓ (S j)) inf_le_left) ((F j).res_subset ((S i) ⊓ (S j)) inf_le_right)) :
   sheaf_on_opens.{max u v} X (⋃S) :=
-{ F :=
-  { F := sheaf_glue.compat S F φ,
-    res := sheaf_glue.res S F φ,
-    Hid := λ U, funext $ λ f, subtype.eq $ funext $ λ i, by dsimp only [sheaf_glue.res, id]; rw res_self,
-    Hcomp := λ U V W HWV HVU, funext $ λ f, subtype.eq $ funext $ λ i, by symmetry; apply res_res; exact inf_le_left },
+{ F := sheaf_glue.compat S F φ,
+  res := sheaf_glue.res S F φ,
+  Hid := λ U, funext $ λ f, subtype.eq $ funext $ λ i, by dsimp only [sheaf_glue.res, id]; rw res_self,
+  Hcomp := λ U V W HWV HVU, funext $ λ f, subtype.eq $ funext $ λ i, by symmetry; apply res_res; exact inf_le_left,
   locality := sheaf_glue.locality S F φ,
   gluing := sheaf_glue.gluing S F φ }
 

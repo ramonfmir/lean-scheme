@@ -12,9 +12,9 @@ namespace sheaf_of_rings_on_opens
 variables {X : Type u} [topological_space X] {U : opens X}
 
 def to_sheaf_on_opens (F : sheaf_of_rings_on_opens X U) : sheaf_on_opens X U :=
-{ F := F.1.1,
-  locality := F.2,
-  gluing := F.3 }
+{ locality := F.2,
+  gluing := F.3,
+  .. F.F }
 
 -- def eval (F : sheaf_of_rings_on_opens X U) : Π (V : opens X), V ≤ U → Type v :=
 -- F.to_sheaf_on_opens.eval
@@ -163,7 +163,7 @@ def comp {F : sheaf_of_rings_on_opens.{v} X U} {G : sheaf_of_rings_on_opens.{w} 
   (η.comp ξ).1.1 V HV s = η.1.1 V HV (ξ.1.1 V HV s) :=
 rfl
 
-@[extensionality] lemma ext {F : sheaf_of_rings_on_opens.{v} X U} {G : sheaf_of_rings_on_opens.{w} X U}
+@[ext] lemma ext {F : sheaf_of_rings_on_opens.{v} X U} {G : sheaf_of_rings_on_opens.{w} X U}
   {η ξ : F.morphism G} (H : ∀ V HV x, η.1.map V HV x = ξ.1.map V HV x) : η = ξ :=
 by cases η; cases ξ; congr; ext; apply H
 
@@ -254,6 +254,10 @@ def to_sheaf_on_opens {F : sheaf_of_rings_on_opens.{v} X U} {G : sheaf_of_rings_
   F.to_sheaf_on_opens.equiv G.to_sheaf_on_opens :=
 { to_fun := e.1.1, .. e }
 
+def to_ring_equiv {F : sheaf_of_rings_on_opens.{v} X U} {G : sheaf_of_rings_on_opens.{v} X U} (e : equiv F G) (V HVU) :
+  F.to_sheaf_on_opens.eval V HVU ≃+* G.to_sheaf_on_opens.eval V HVU :=
+ring_equiv.of' { to_fun := e.1.1.1 V HVU, inv_fun := e.2.1 V HVU, left_inv := e.3 V HVU, right_inv := e.4 V HVU }
+
 def refl (F : sheaf_of_rings_on_opens.{v} X U) : equiv F F :=
 ⟨morphism.id F, sheaf_on_opens.morphism.id F.to_sheaf_on_opens, λ _ _ _, rfl, λ _ _ _, rfl⟩
 
@@ -262,7 +266,7 @@ def refl (F : sheaf_of_rings_on_opens.{v} X U) : equiv F F :=
 
 def symm {F : sheaf_of_rings_on_opens.{v} X U} {G : sheaf_of_rings_on_opens.{v} X U} (e : equiv F G) : equiv G F :=
 ⟨{ η := e.2,
-   hom := λ V HVU, (ring_equiv.symm { to_fun := e.1.1.1 V HVU, inv_fun := e.2.1 V HVU, left_inv := e.3 V HVU, right_inv := e.4 V HVU, hom := e.1.2 V HVU }).hom },
+   hom := λ V HVU, (ring_equiv.symm (e.to_ring_equiv V HVU)).hom },
 e.1.1, e.4, e.3⟩
 
 def trans {F : sheaf_of_rings_on_opens.{v} X U} {G : sheaf_of_rings_on_opens.{v} X U} {H : sheaf_of_rings_on_opens.{u₁} X U}
@@ -319,7 +323,7 @@ def sheaf_glue {I : Type u} (S : I → opens X) (F : Π (i : I), sheaf_of_rings_
       { map_one := subtype.eq $ funext $ λ i, res_one _ _ _ _ _ _,
         map_mul := λ f g, subtype.eq $ funext $ λ i, res_mul _ _ _ _ _ _ _ _,
         map_add := λ f g, subtype.eq $ funext $ λ i, res_add _ _ _ _ _ _ _ _ },
-    .. (sheaf_on_opens.sheaf_glue S (λ i, (F i).to_sheaf_on_opens) (λ i j, (φ i j).to_sheaf_on_opens)).F }
+    .. sheaf_on_opens.sheaf_glue S (λ i, (F i).to_sheaf_on_opens) (λ i j, (φ i j).to_sheaf_on_opens) }
   .. sheaf_on_opens.sheaf_glue S (λ i, (F i).to_sheaf_on_opens) (λ i j, (φ i j).to_sheaf_on_opens) }
 
 @[simp] lemma sheaf_glue_res_val {I : Type u} (S : I → opens X) (F : Π (i : I), sheaf_of_rings_on_opens.{v} X (S i))

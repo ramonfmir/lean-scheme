@@ -5,7 +5,7 @@ universes u v
 namespace category_theory
 
 instance has_pullback_Type : has_pullback (Type u) :=
-λ F, by apply_instance
+⟨λ F, by apply_instance⟩
 
 instance has_site_Type : has_site (Type u) :=
 { cov := λ α, { S | ∀ x : α, ∃ (f : Σ β, β ⟶ α), ∃ hf : f ∈ S, x ∈ set.range f.2},

@@ -16,7 +16,7 @@ instance (F : presheaf.{u v} X) : has_coe_to_fun (subpresheaf F) :=
 ⟨_, to_set⟩
 
 instance (F : presheaf.{u v} X) : partial_order (subpresheaf F) :=
-partial_order.lift to_set $ λ ⟨x, hx⟩ ⟨y, hy⟩, mk.inj_eq.mpr
+partial_order.lift to_set (λ ⟨x, hx⟩ ⟨y, hy⟩, mk.inj_eq.mpr) infer_instance
 
 def to_subsheaf {F : presheaf.{u v} X} (S : subpresheaf F) : subpresheaf F :=
 { to_set := λ U, { x | ∃ OC : covering.{u} U, ∀ i : OC.γ, F.res U (OC.Uis i) (subset_covering i) x ∈ S (OC.Uis i) },
@@ -34,7 +34,7 @@ def to_presheaf {F : presheaf.{u v} X} (S : subpresheaf F) : presheaf X :=
   Hid := λ U, funext $ λ x, subtype.eq $ F.Hid' U x.1,
   Hcomp := λ U V W HWV HVU, funext $ λ x, subtype.eq $ F.Hcomp' U V W HWV HVU x.1 }
 
-theorem locality {O : sheaf.{u v} X} (S : subpresheaf O.F) : locality S.to_presheaf :=
+theorem locality {O : sheaf.{u v} X} (S : subpresheaf O.to_presheaf) : locality S.to_presheaf :=
 λ U OC s t H, subtype.eq $ O.locality OC s.1 t.1 $ λ i, have _ := congr_arg subtype.val (H i), this
 
 end subpresheaf
@@ -56,7 +56,7 @@ theorem is_subsheaf_to_subsheaf {F : presheaf.{u v} X} (S : subpresheaf F) : is_
 ⟨λ U x OC H, ⟨OC.glue $ λ i, classical.some (H i),
 λ P, have _ := classical.some_spec (H P.1) P.2, by rw ← F.Hcomp' at this; convert this⟩⟩
 
-theorem is_subsheaf.is_sheaf_to_presheaf {O : sheaf.{u v} X} (S : subpresheaf O.F) [is_subsheaf S] : is_sheaf S.to_presheaf :=
+theorem is_subsheaf.is_sheaf_to_presheaf {O : sheaf.{u v} X} (S : subpresheaf O.to_presheaf) [is_subsheaf S] : is_sheaf S.to_presheaf :=
 { left := λ U, S.locality,
   right := λ U OC s H, let ⟨f, hf⟩ := O.gluing OC (λ i, (s i).1) (λ j k, congr_arg subtype.val (H j k)) in
     ⟨⟨f, is_subsheaf.mem_of_res_mem OC $ λ i, (hf i).symm ▸ (s i).2⟩, λ i, subtype.eq $ hf i⟩ }

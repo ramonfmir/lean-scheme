@@ -3,6 +3,9 @@ import instances.affine_scheme
 
 universes u v w
 
+instance ring_equiv.hom {α : Type u} {β : Type v} [ring α] [ring β] (e : α ≃+* β) : is_ring_hom e :=
+ring_hom.is_ring_hom e.to_ring_hom
+
 def opens.indefinite_description {α : Type u} [topological_space α] (p : topological_space.opens α → Prop) (hp : ∃ U, p U) : {U // p U} :=
 ⟨⟨↑(classical.some hp), subtype.property _⟩, by rw subtype.coe_eta; exact classical.some_spec hp⟩
 
@@ -44,13 +47,9 @@ variables (x y : F.F HUB)
 
 end presheaf_of_rings_on_basis
 
-theorem is_unit.map {α : Type u} [monoid α] {β : Type v} [monoid β]
-  (f : α → β) [is_monoid_hom f] {x : α} (hx : is_unit x) : is_unit (f x) :=
-let ⟨y, hxy⟩ := hx in ⟨y.map f, by rw [units.coe_map, hxy]⟩
-
-theorem is_unit.map' {α : Type u} [monoid α] {β : Type v} [monoid β] {y : β}
+theorem is_unit.map'' {α : Type u} [monoid α] {β : Type v} [monoid β] {y : β}
   (f : α → β) [is_monoid_hom f] (x : α) (hx : is_unit x) (hxy : f x = y) : is_unit y :=
-hxy ▸ hx.map f
+hxy ▸ hx.map' f
 
 section opens_comap
 
@@ -58,12 +57,12 @@ open topological_space lattice lattice.lattice
 
 variables {α : Type u} [topological_space α]
 variables {β : Type v} [topological_space β]
-variables {f : α → β} (Hf : continuous f) 
+variables {f : α → β} (Hf : continuous f)
 
-@[mono] theorem opens.comap_mono' (U V : opens β) (HUV : U ≤ V) : opens.comap Hf U ≤ opens.comap Hf V := 
+@[mono] theorem opens.comap_mono' (U V : opens β) (HUV : U ≤ V) : opens.comap Hf U ≤ opens.comap Hf V :=
 set.preimage_mono HUV
 
-@[simp] lemma opens.comap_top : opens.comap Hf ⊤ = ⊤ := 
+@[simp] lemma opens.comap_top : opens.comap Hf ⊤ = ⊤ :=
 opens.ext set.preimage_univ
 
 end opens_comap
@@ -125,22 +124,21 @@ end topological_space
 instance presheaf_of_rings.comm_ring {α : Type u} [topological_space α]
   (f : presheaf_of_rings α) (U : topological_space.opens α) : comm_ring (f U) := f.Fring U
 
+instance sheaf_of_rings.has_coe_to_fun {α : Type u} [topological_space α] :
+  has_coe_to_fun (sheaf_of_rings.{u v} α) :=
+⟨λ _, topological_space.opens α → Type v, λ F, F.F⟩
+
 instance sheaf_of_rings.comm_ring {α : Type u} [topological_space α]
   (f : sheaf_of_rings α) (U : topological_space.opens α) : comm_ring (f U) := f.F.Fring U
 
 attribute [instance] to_stalk.is_ring_hom
-attribute [instance] locally_ringed_space.Hstalks
 attribute [irreducible] sheaf_on_standard_basis.is_sheaf_on_standard_basis
 
 def to_Spec_top (R : Type v) [comm_ring R] : R → (Spec.locally_ringed_space R).O ⊤ :=
 to_presheaf_of_rings_extension (D_fs_standard_basis R) (structure_presheaf_on_basis R) (D_fs_standard_basis R).1 ∘ localization.of
 
 instance (R : Type v) [comm_ring R] : is_ring_hom (to_Spec_top R) :=
-@@is_ring_hom.comp _ _ _ _ _ _ $ to_presheaf_of_rings_extension.is_ring_hom _ _ structure_presheaf_on_basis_is_sheaf_on_basis _
-
-instance is_maximal_nonunits_ideal {R : Type v} [comm_ring R] (h : is_local_ring R) : (nonunits_ideal h).is_maximal :=
-ideal.is_maximal_iff.2 ⟨one_not_mem_nonunits, λ J x hJ hx hxJ, J.eq_top_iff_one.1 $ J.eq_top_of_is_unit_mem hxJ $
-  classical.by_contradiction $ hx ∘ mem_nonunits_iff.2⟩
+@@is_ring_hom.comp _ _ _ _ _ _ $ to_presheaf_of_rings_extension.is_ring_hom _ _ _
 
 namespace locally_ringed_space
 
@@ -404,15 +402,15 @@ instance is_ring_hom_to_extension (U : opens X) : is_ring_hom (to_extension HB B
     by iterate 3 { rw res_add }; iterate 6 { rw ← presheaf.Hcomp' }⟩ }
 
 noncomputable def ring_equiv_extension (U : opens X) :
-  O U ≃r ((presheaf_of_rings_to_presheaf_of_rings_on_basis Bstd O.F)ᵣₑₓₜ Bstd) U :=
+  O U ≃+* ((presheaf_of_rings_to_presheaf_of_rings_on_basis Bstd O.F)ᵣₑₓₜ Bstd) U :=
+ring_equiv.of
 { to_fun := to_extension HB Bstd O U,
   inv_fun := of_extension HB Bstd O U,
   left_inv := of_to_extension HB Bstd O U,
-  right_inv := to_of_extension HB Bstd O U,
-  hom := sheaf_of_rings.is_ring_hom_to_extension HB Bstd O U }
+  right_inv := to_of_extension HB Bstd O U }
 
 instance is_ring_hom_of_extension (U : opens X) : is_ring_hom (of_extension HB Bstd O U) :=
-(ring_equiv_extension HB Bstd O U).symm.hom
+ring_equiv.hom (ring_equiv_extension _ _ _ _).symm
 
 def stalk_on_basis_to_stalk (F : presheaf_of_rings X) (U : opens X) (p : X) (hpU : p ∈ U)
   (σ : stalk_on_basis (presheaf_of_rings_to_presheaf_of_rings_on_basis Bstd F : presheaf_of_rings_on_basis X HB).to_presheaf_on_basis p) :
@@ -453,7 +451,7 @@ namespace sheaf_of_rings
 variables {α : Type u} [topological_space α]
 variables {β : Type u} [topological_space β]
 
-variables {f : α → β} (Hf : continuous f) 
+variables {f : α → β} (Hf : continuous f)
 
 def pushforward (O : sheaf_of_rings α) : sheaf_of_rings β :=
 { F := O.F.pushforward Hf,
@@ -518,7 +516,6 @@ namespace locally_ringed_space
 structure morphism {X : Type u} [topological_space X] (OX : locally_ringed_space X)
   {Y : Type v} [topological_space Y] (OY : locally_ringed_space Y) extends morphism OX OY :=
 (hom : ∀ U, is_ring_hom (fO.map U))
-(hlocal : ∀ x s, is_unit (presheaf.fmap.stalk_of_rings fO x s) → is_unit s)
 attribute [instance] morphism.hom
 
 end locally_ringed_space
@@ -539,9 +536,15 @@ by unfold mor_to_hom; apply_instance
 
 variables (f : (Spec.locally_ringed_space R).O ⊤ → OX.O ⊤) [is_ring_hom f]
 
+-- variables (R : Type u) [comm_ring R]
+
+def Spec.locally_ringed_space' : locally_ringed_space (Spec R) :=
+{ O := structure_sheaf R,
+  Hstalks := λ P, structure_sheaf.stalk_local P, }
+
 def induced (x : X) : Spec R :=
-⟨ideal.comap (to_stalk OX.O.F x ⊤ trivial ∘ f ∘ to_Spec_top R) (nonunits_ideal $ OX.Hstalks x),
-@ideal.is_prime.comap _ _ _ _ _ _ _ $ (is_maximal_nonunits_ideal _).is_prime⟩
+⟨ideal.comap (to_stalk OX.O.F x ⊤ trivial ∘ f ∘ to_Spec_top R) (local_ring.nonunits_ideal _),
+@ideal.is_prime.comap _ _ _ _ _ _ _ $ (local_ring.nonunits_ideal.is_maximal _).is_prime⟩
 
 @[simp] lemma Spec.DO.val (g : R) : (Spec.DO R g).val = Spec.D' g :=
 congr_fun (Spec.DO.val_eq_D' R) g
@@ -562,7 +565,7 @@ topological_space.opens.ext $ induced_preimage_D' OX R f g
 noncomputable def induced_basis (U : topological_space.opens $ Spec R) (HUB : U ∈ D_fs R) :
   (structure_presheaf_on_basis R).F HUB → OX.O (opens.comap (induced_continuous OX R f) U) :=
 localization.lift (OX.O.F.res ⊤ _ (set.subset_univ _) ∘ f ∘ to_Spec_top R) $ λ r hrSU,
-is_unit.map'
+is_unit.map''
   (OX.O.F.res
     (opens.comap (induced_continuous OX R f) (Spec.DO R r))
     (opens.comap (induced_continuous OX R f) U)
@@ -631,7 +634,7 @@ quotient.lift (λ s, ⟦induced_stalk_elem OX R f p s⟧) $ begin
   change _ = OX.O.F.res ⊤ (opens.comap (induced_continuous OX R f) U) (set.subset_univ _) 0 at ht,
   rw [is_ring_hom.map_zero (OX.O.F.res ⊤ (opens.comap (induced_continuous OX R f) U) (set.subset_univ _))] at ht,
   have := OX.is_unit_res_D (f (to_Spec_top R t)), rw ← comap_induced_DO at this,
-  replace this := this.map (OX.O.F.res
+  replace this := this.map' (OX.O.F.res
     (opens.comap (induced_continuous OX R f) (Spec.DO R t))
     (opens.comap (induced_continuous OX R f) U)
     (opens.comap_mono _ _ _ htSU)),
@@ -736,7 +739,7 @@ theorem is_unit_to_stalk {X : Type u} [topological_space X] (F : presheaf_of_rin
 let ⟨W, hxW, HWUV, HWtop, HW⟩ := quotient.exact H in ⟨W, hxW, set.subset.trans HWUV (set.inter_subset_left _ _),
 is_unit_iff_exists_inv.2 ⟨F.res V W (set.subset.trans HWUV (set.inter_subset_right _ _)) τ,
 by dsimp only at HW; rw [res_mul, ← presheaf.Hcomp', ← presheaf.Hcomp'] at HW; exact HW.trans (res_one _ _ _ _)⟩⟩) ht,
-λ ⟨V, hxV, HVU, hv⟩, hv.map' (to_stalk F x V hxV) _ (to_stalk_res _ _ _ _ _ _ _ _)⟩
+λ ⟨V, hxV, HVU, hv⟩, hv.map'' (to_stalk F x V hxV) _ (to_stalk_res _ _ _ _ _ _ _ _)⟩
 
 section presheaf_of_rings_extension
 
@@ -745,7 +748,7 @@ instance to_presheaf_of_rings_extension.is_ring_hom' {α : Type u} [topological_
   (F : presheaf_of_rings_on_basis α HB)
   {U : topological_space.opens α} (BU : U ∈ B)
 : is_ring_hom (to_presheaf_of_rings_extension Bstd F BU) :=
-{ map_one := 
+{ map_one :=
     begin
       apply subtype.eq,
       funext x Hx,
@@ -753,25 +756,25 @@ instance to_presheaf_of_rings_extension.is_ring_hom' {α : Type u} [topological_
       use [U, BU, Hx, set.subset.refl _, set.subset_univ _],
       iterate 2 { erw (F.res_is_ring_hom _ _ _).map_one, },
     end,
-  map_mul := 
+  map_mul :=
     begin
       intros x y,
       apply subtype.eq,
       funext z Hz,
       apply quotient.sound,
-      use [U, BU, Hz], 
+      use [U, BU, Hz],
       use [set.subset.refl _, set.subset_inter (set.subset.refl _) (set.subset.refl _)],
       erw ←(F.res_is_ring_hom _ _ _).map_mul,
       erw ←presheaf_on_basis.Hcomp',
       refl
     end,
-  map_add := 
+  map_add :=
     begin
       intros x y,
       apply subtype.eq,
       funext z Hz,
       apply quotient.sound,
-      use [U, BU, Hz], 
+      use [U, BU, Hz],
       use [set.subset.refl _, set.subset_inter (set.subset.refl _) (set.subset.refl _)],
       erw ←(F.res_is_ring_hom _ _ _).map_add,
       erw ←presheaf_on_basis.Hcomp',
@@ -785,47 +788,37 @@ theorem res_to_presheaf_of_rings_extension {α : Type u} [topological_space α]
   to_presheaf_of_rings_extension Bstd F HVB (F.res HUB HVB HVU σ) :=
 subtype.eq $ funext $ λ x, funext $ λ hxV, quotient.sound ⟨V, HVB, hxV, HVU, set.subset.refl V, presheaf_on_basis.Hcomp' _ _ _ _ _ _ _⟩
 
-noncomputable def to_presheaf_of_rings_extension.ring_equiv {α : Type u} [topological_space α]
-  {B : set (topological_space.opens α)} (HB : topological_space.opens.is_basis B) (Bstd)
-  (F : presheaf_of_rings_on_basis α HB) 
-  (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
-  {U : topological_space.opens α} (HUB : U ∈ B) :
-  F.F HUB ≃r (F ᵣₑₓₜ Bstd).F U :=
-ring_equiv.mk
-  (equiv.of_bijective (to_presheaf_of_rings_extension.bijective Bstd F HF HUB))
-  (to_presheaf_of_rings_extension.is_ring_hom Bstd F HF HUB)
-
 noncomputable def of_presheaf_of_rings_extension {α : Type u} [topological_space α]
   {B : set (topological_space.opens α)} (HB : topological_space.opens.is_basis B) (Bstd)
-  (F : presheaf_of_rings_on_basis α HB) 
-  (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+  (F : presheaf_of_rings_on_basis α HB)
+  (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis)
   {U : topological_space.opens α} (HUB : U ∈ B) :
   (F ᵣₑₓₜ Bstd).F U → F.F HUB :=
-(to_presheaf_of_rings_extension.ring_equiv HB Bstd F HF HUB).symm.to_fun
+(to_presheaf_of_rings_extension.ring_equiv Bstd F HF HUB).symm.to_fun
 
 instance of_presheaf_of_rings_extension.is_ring_hom {α : Type u} [topological_space α]
   {B : set (topological_space.opens α)} (HB : topological_space.opens.is_basis B) (Bstd)
-  (F : presheaf_of_rings_on_basis α HB) 
-  (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+  (F : presheaf_of_rings_on_basis α HB)
+  (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis)
   {U : topological_space.opens α} (HUB : U ∈ B) :
   is_ring_hom (of_presheaf_of_rings_extension HB Bstd F HF HUB) :=
-(to_presheaf_of_rings_extension.ring_equiv HB Bstd F HF HUB).symm.hom
+(to_presheaf_of_rings_extension.ring_equiv Bstd F HF HUB).symm.hom
 
 theorem of_to_presheaf_of_rings_extension {α : Type u} [topological_space α]
   {B : set (topological_space.opens α)} (HB : topological_space.opens.is_basis B) (Bstd)
-  (F : presheaf_of_rings_on_basis α HB) 
-  (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+  (F : presheaf_of_rings_on_basis α HB)
+  (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis)
   {U : topological_space.opens α} (HUB : U ∈ B) (σ : F.F HUB) :
   of_presheaf_of_rings_extension HB Bstd F HF HUB (to_presheaf_of_rings_extension Bstd F HUB σ) = σ :=
-equiv.symm_apply_apply _ _
+(to_presheaf_of_rings_extension.ring_equiv Bstd F HF HUB).symm_apply_apply σ
 
 theorem to_of_presheaf_of_rings_extension {α : Type u} [topological_space α]
   {B : set (topological_space.opens α)} (HB : topological_space.opens.is_basis B) (Bstd)
-  (F : presheaf_of_rings_on_basis α HB) 
-  (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis) 
+  (F : presheaf_of_rings_on_basis α HB)
+  (HF : sheaf_on_standard_basis.is_sheaf_on_standard_basis Bstd F.to_presheaf_on_basis)
   {U : topological_space.opens α} (HUB : U ∈ B) (σ : (F ᵣₑₓₜ Bstd) U) :
   to_presheaf_of_rings_extension Bstd F HUB (of_presheaf_of_rings_extension HB Bstd F HF HUB σ) = σ :=
-equiv.apply_symm_apply (to_presheaf_of_rings_extension.ring_equiv HB Bstd F HF HUB).to_equiv σ
+(to_presheaf_of_rings_extension.ring_equiv Bstd F HF HUB).apply_symm_apply σ
 
 end presheaf_of_rings_extension
 
@@ -851,10 +844,10 @@ begin
   rw is_unit_to_stalk, split,
   { rintros ⟨V, hpV, HVU, hv⟩,
     rcases topological_space.opens.is_basis_iff_nbhd.1 (D_fs_basis R) hpV with ⟨W, HWB, hpW, HWV⟩,
-    have := hv.map (presheaf.res _ V W HWV), rw ← presheaf.Hcomp' at this,
+    have := hv.map' (presheaf.res _ V W HWV), rw ← presheaf.Hcomp' at this,
     dsimp only [Spec.locally_ringed_space, structure_sheaf, structure_sheaf.presheaf] at this,
     rw [res_to_presheaf_of_rings_extension _ _ _ _ _ HUB HWB] at this,
-    replace this := this.map (of_presheaf_of_rings_extension (D_fs_basis R) (D_fs_standard_basis R)
+    replace this := this.map' (of_presheaf_of_rings_extension (D_fs_basis R) (D_fs_standard_basis R)
       (structure_presheaf_on_basis R) structure_presheaf_on_basis_is_sheaf_on_basis HWB),
     rw of_to_presheaf_of_rings_extension at this, revert this, refine localization.induction_on σ (λ r s this, _),
     change is_unit (localization.mk r ⟨s.1, _⟩) at this, rw is_unit_localization_mk at this, cases this with t hrt,
@@ -863,7 +856,7 @@ begin
   { rintros ⟨r, s, hrp, rfl⟩, refine ⟨U ∩ Spec.DO R r, ⟨hpU, hrp⟩, set.inter_subset_left _ _, _⟩,
     dsimp only [Spec.locally_ringed_space, structure_sheaf, structure_sheaf.presheaf],
     rw res_to_presheaf_of_rings_extension _ _ _ _ _ _ ((D_fs_standard_basis R).2 HUB (D_fs.mem R r)),
-    refine is_unit.map _ _, rw is_unit_iff_exists_inv, refine ⟨localization.mk s.1 ⟨r, set.inter_subset_right _ _⟩, _⟩,
+    refine is_unit.map' _ _, rw is_unit_iff_exists_inv, refine ⟨localization.mk s.1 ⟨r, set.inter_subset_right _ _⟩, _⟩,
     change localization.mk r ⟨s.1, _⟩ * localization.mk s.1 ⟨r, _⟩ = _,
     rw [localization.mk_mul_mk, mul_comm], exact localization.mk_self }
 end
@@ -961,11 +954,10 @@ noncomputable def hom_to_mor {X : Type u} [topological_space X] (OX : locally_ri
       rw ← sheaf_of_rings.of_extension_res, refl
     end },
   hom := λ U, @is_ring_hom.comp _ _ _ _ _ (is_ring_hom_induced_sheafification OX R f U) _ _ _ _,
-  hlocal := λ p s, quotient.induction_on s $ λ e he, begin
+  Hstalks := λ p s, quotient.induction_on s $ λ e he, begin
     cases e with U hpU σ, generalize hσ : σ.1 (induced OX R f p) hpU = t,
     revert hσ, refine quotient.induction_on t (λ τ, _), cases τ with V HVB hpV τ,
     refine localization.induction_on τ (λ r s hu, _),
-    rw presheafasdf at he,
     change is_unit (of_pushforward_stalk (induced_continuous OX R f) OX.O.F p
       (to_stalk (OX.O.pushforward (induced_continuous OX R f)).F (induced OX R f p) U hpU
         (sheaf_of_rings.of_extension _ _ (OX.O.pushforward (induced_continuous OX R f)) U (induced_sheafification OX R f U σ) :
@@ -1002,15 +994,15 @@ noncomputable def hom_to_mor {X : Type u} [topological_space X] (OX : locally_ri
 theorem cast_eq_of_heq : ∀ {α β : Sort u} {a : α} {b : β} (H : a == b), cast (type_eq_of_heq H) a = b
 | α _ a _ heq.rfl := rfl
 
-@[extensionality] theorem locally_ringed_space.morphism.ext {X : Type u} [topological_space X] {OX : locally_ringed_space X}
+@[ext] theorem locally_ringed_space.morphism.ext {X : Type u} [topological_space X] {OX : locally_ringed_space X}
   {Y : Type v} [topological_space Y] {OY : locally_ringed_space Y}
   {m₁ m₂ : OX.morphism OY} (H1 : ∀ x, m₁.f x = m₂.f x)
   (H2 : ∀ U σ, OX.O.F.res (opens.comap m₁.Hf U) (opens.comap m₂.Hf U)
     (show m₂.f⁻¹' U ⊆ m₁.f⁻¹' U, from (funext H1 : m₁.f = m₂.f) ▸ set.subset.refl _)
     (m₁.fO.map U σ) = m₂.fO.map U σ) : m₁ = m₂ :=
 begin
-  rcases m₁ with ⟨⟨f, hf, ⟨mf, hmf⟩⟩, hf1, hf2⟩,
-  rcases m₂ with ⟨⟨g, hg, ⟨mg, hmg⟩⟩, hg1, hg2⟩,
+  rcases m₁ with ⟨⟨f, hf, ⟨mf, hmf⟩, hf2⟩, hf1⟩,
+  rcases m₂ with ⟨⟨g, hg, ⟨mg, hmg⟩, hg2⟩, hg1⟩,
   have : f = g := funext H1, subst this, congr' 3,
   funext U σ, exact (presheaf.Hid' _ _ _).symm.trans (H2 U σ)
 end
@@ -1027,9 +1019,9 @@ begin
     { rintros hu, classical, by_contradiction hfxs, apply hu,
       change is_unit (presheaf.fmap.stalk_of_rings f.fO x (to_stalk _ _ ⊤ trivial (to_Spec_top R s))),
       haveI := is_ring_hom_stalk_of_rings f.fO,
-      refine is_unit.map _ _, refine (is_unit_to_stalk_affine _ _ _ _ _ _).2 ⟨s, 1, hfxs, rfl⟩ },
+      refine is_unit.map' _ _, refine (is_unit_to_stalk_affine _ _ _ _ _ _).2 ⟨s, 1, hfxs, rfl⟩ },
     { exact λ hsfx HV, (is_unit_to_stalk_affine' _ _ _ _ _ _).1
-        (f.hlocal x (to_stalk _ _ ⊤ trivial (to_Spec_top R s)) HV) _ _ rfl hsfx } },
+        (f.Hstalks x (to_stalk _ _ ⊤ trivial (to_Spec_top R s)) HV) _ _ rfl hsfx } },
   fapply locally_ringed_space.morphism.ext, { intros, rw this },
   intros U σ,
   refine @sheaf_of_rings.ext (Spec R) _ _ (D_fs_basis R) (OX.O.pushforward f.Hf) U _ _ (λ p hpU, _),

@@ -61,17 +61,21 @@ section has_pullback
 variables {C : Type u} [𝒞 : category.{v} C] [P : has_pullback.{v} C]
 include 𝒞 P
 
+def pullback.limit {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) :
+  limits.has_limit (pullback_diagram.to_category f g) :=
+@@limits.has_limits_of_shape.has_limit _ _ P (pullback_diagram.to_category f g)
+
 def pullback {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : C :=
-(P (pullback_diagram.to_category f g)).cone.X
+(pullback.limit f g).cone.X
 
 def pullback.fst {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : pullback f g ⟶ X :=
-(P (pullback_diagram.to_category f g)).cone.π.app pullback_diagram.base_left
+(pullback.limit f g).cone.π.app pullback_diagram.base_left
 
 def pullback.snd {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) : pullback f g ⟶ Y :=
-(P (pullback_diagram.to_category f g)).cone.π.app pullback_diagram.base_right
+(pullback.limit f g).cone.π.app pullback_diagram.base_right
 
 def pullback.corec {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) (W : C) (f' : W ⟶ X) (g' : W ⟶ Y) (h : f' ≫ f = g' ≫ g) : W ⟶ pullback f g :=
-(P (pullback_diagram.to_category f g)).is_limit.lift (pullback_diagram.to_category_cone f g W f' g' h)
+(pullback.limit f g).is_limit.lift (pullback_diagram.to_category_cone f g W f' g' h)
 
 end has_pullback
 

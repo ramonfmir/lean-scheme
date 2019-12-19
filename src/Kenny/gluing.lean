@@ -47,7 +47,7 @@ protected def ulift (U : open_subspace X) : open_subspace X :=
 { U := ulift U,
   inc := λ x, U.inc x.down,
   inj := function.injective_comp U.inj $ function.injective_of_left_inverse $ ulift.up_down,
-  cont := continuous_down.comp U.cont,
+  cont := U.cont.comp continuous_down,
   op := λ V HV, by rw [set.image_comp, set.image_eq_preimage_of_inverse ulift.up_down ulift.down_up];
     exact U.op (continuous_up _ HV) }
 

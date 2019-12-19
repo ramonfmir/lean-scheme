@@ -1,4 +1,4 @@
-import Kenny.sites.basic order.complete_lattice
+import Kenny.sites.basic order.complete_boolean_algebra
 
 universes u v
 
@@ -61,7 +61,7 @@ instance is_univalent_partial_order [partial_order X] : is_univalent X :=
 ⟨λ x y e, le_antisymm e.1.1.1 e.2.1.1⟩
 
 instance semilattice_inf.has_pullback [semilattice_inf X] : has_pullback X :=
-λ F,
+⟨λ F,
 { cone :=
   { X := F.obj pullback_diagram.base_left ⊓ F.obj pullback_diagram.base_right,
     π :=
@@ -71,7 +71,7 @@ instance semilattice_inf.has_pullback [semilattice_inf X] : has_pullback X :=
   is_limit :=
   { lift := λ c, ⟨⟨le_inf (c.π.app pullback_diagram.base_left).down.down (c.π.app pullback_diagram.base_right).down.down⟩⟩,
     fac' := by intros; ext,
-    uniq' := by intros; ext } }
+    uniq' := by intros; ext } }⟩
 
 instance Sup_lattice.has_site [Sup_distrib_lattice X] : has_site X :=
 { cov := λ U, { c | U ≤ Sup (sigma.fst '' c) },
