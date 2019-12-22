@@ -116,7 +116,6 @@ instance category_struct : category_struct (presheaf X C) :=
       apply category.assoc,
     end}
 }
-#where
 instance category : category (presheaf X C) :=
 {
   id_comp' := begin

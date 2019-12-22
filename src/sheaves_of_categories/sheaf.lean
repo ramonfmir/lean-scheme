@@ -84,7 +84,6 @@ equalizer.lift
 (ℱ.prod_res OC)
 (ℱ.res_commutes OC)
 
-
 -- Sheaf condition.
 
 section sheaf_condition
@@ -114,7 +113,7 @@ end sheaf_condition
 
 end topological_space.presheaf
 
--- Definition of a sheaf of types.
+-- Definition of a sheaf of objects in a category.
 
 open category_theory.limits
 
@@ -142,6 +141,14 @@ namespace sheaf
 
 def map_to_equalizer (ℱ : sheaf X C) {U : opens X} (OC : covering U) :=
   (ℱ.to_presheaf).map_to_equalizer OC
+
+instance : category (sheaf X C) :=
+{ hom := λ ℱ 𝒢, ℱ.to_presheaf ⟶ 𝒢.to_presheaf,
+  id := λ ℱ, 𝟙 (ℱ.to_presheaf),
+  comp := λ ℱ 𝒢 ℋ f g, f ≫ g,
+  id_comp' := by simp,
+  comp_id' := by simp,
+  assoc' := by intros;simp }
 
 end sheaf
 
