@@ -57,7 +57,9 @@ def to_aux_functor (ℱ : presheaf X C) (Y : set X)
         map_id' := λ _, ℱ.Hid _,
         map_comp' := λ _ _ _ _ _, ℱ.Hcomp _ _ _ _ _}
 
+-- I should only need filtered colimits
 variable [limits.has_colimits.{v} C]
+
 def aux_cocone (ℱ : presheaf X C) (Y : set X) : limits.cocone (ℱ.to_aux_functor Y) :=
 limits.colimit.cocone (ℱ.to_aux_functor Y)
 
@@ -69,37 +71,91 @@ def res_functor {Y₁ Y₂ : set X} (hY : Y₂ ⊆ Y₁) :
 { obj := λ V, ⟨V.1, set.subset.trans hY V.2⟩,
   map := λ _ _, id}
 
+lemma res_res {Y₁ Y₂ Y₃ : set X} (h21 : Y₂ ⊆ Y₁) (h32 : Y₃ ⊆ Y₂) :
+  res_functor h21 ⋙ res_functor h32 = res_functor (set.subset.trans h32 h21) := rfl
+
 example (ℱ : presheaf X C) {Y₁ Y₂ : set X} (hY : Y₂ ⊆ Y₁) :
   res_functor hY ⋙ ℱ.to_aux_functor Y₂ = ℱ.to_aux_functor Y₁ := rfl -- :-)
 
-#print prefix category_theory.functor
-#check category_theory.functor.mk.inj_eq
-
-example (ℱ : presheaf X C) {Y : set X} :
-  res_functor (show Y ⊆ Y, by refl) = 𝟭 _ := -- rfl fails :-()
+example (Y : set X) : res_functor (set.subset.refl Y) ≅ 𝟭 _ :=
 begin
-  unfold res_functor,
-  unfold category_theory.functor.id,
-  rw category_theory.functor.mk.inj_eq, -- is there an ext lemma missing?
-  split,
-    ext, apply subtype.eq, refl,
-  apply heq_of_eq,
-  ext,
+  /- `tidy` says -/
+  fsplit,
+    { fsplit,
+      { intros X_1, cases X_1, cases X_1_val, dsimp at *, fsplit, dsimp at *, fsplit, intros a a_1, assumption },
+      { intros X_1 Y_1 f, refl}},
+    { fsplit,
+      { intros X_1, cases X_1, cases X_1_val, dsimp at *, fsplit, dsimp at *, fsplit, intros a a_1, assumption },
+      { intros X_1 Y_1 f, refl }},
+      { apply_auto_param },
+      { apply_auto_param }
 end
 
+example (Y : set X) : res_functor (set.subset.refl Y) = 𝟭 _ := begin
+  unfold res_functor,
+  unfold category_theory.functor.id,
+  simp, refl,
+end
 
--- I should only need filtered colimits
+example (C D E : Type*) [𝒞 : category C] [𝒟 : category D] [ℰ : category E] (F G : C ⥤ D) (H : D ⥤ E)
+  (h : F ≅ G) : (F ⋙ H) ≅ (G ⋙ H) := iso_whisker_right h H
+
+#check limits.colimit.pre
+/-
+category_theory.limits.colimit.pre : Π {J K : Type v} [_inst_1 : small_category J]
+[_inst_2 : small_category K] {C : Type u} [𝒞 : category_theory.category C] (F : J ⥤ C)
+[_inst_3 : limits.has_colimit F] (E : K ⥤ J) [_inst_4 : limits.has_colimit (E ⋙ F)],
+limits.colimit (E ⋙ F) ⟶ limits.colimit F
+-/
+
+--example {J K : Type v} [_inst_1 : small_category J]
+--[small_category K] {C : Type u} [𝒞 : category_theory.category C] (F : J ⥤ C)
+--[limits.has_colimit F] (E₁ E₂ : K ⥤ J) [limits.has_colimit (E₁ ⋙ F)] [limits.has_colimit (E₂ ⋙ F)]
+--(h : E₁ = E₂) : limits.colimit.pre F E₁ = limits.colimit.pre F E₂ := sorry
+
+lemma res_aux (ℱ : presheaf X C) {Y₁ Y₂ : set X} (hY : Y₂ ⊆ Y₁) :
+  res_functor hY ⋙ ℱ.to_aux_functor Y₂ = ℱ.to_aux_functor Y₁ := rfl -- :-)
+#check limits.colimit.desc
+--set_option pp.proofs true
+--set_option trace.simplify.rewrite true
 def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
 { obj := λ ℱ,
   { val := λ U, ℱ.aux_colimit (f '' U),
     res := λ U₁ U₂ hU,
       limits.colimit.pre (ℱ.to_aux_functor _) (res_functor $ set.image_subset _ hU),
     Hid := λ U, begin
-      show limits.colimit.pre (to_aux_functor ℱ (f '' U.val)) (res_functor _) = 𝟙 (aux_colimit ℱ (f '' ↑U)),
-    ext, tidy,  sorry end,
-    Hcomp := begin intros, ext, tidy, sorry end },
+    /-
+    ⊢ limits.colimit.pre (to_aux_functor ℱ (f '' U.val)) (res_functor (set.image_subset f (set.subset.refl ↑U))) =
+    𝟙 (aux_colimit ℱ (f '' ↑U))-/
+      ext,
+      rw limits.colimit.ι_pre,
+      erw category.comp_id,
+      tidy,
+    end,
+    Hcomp := begin
+      intros,
+      ext,
+      erw limits.colimit.ι_pre,
+      --tidy,
+      let XYZ := (res_aux ℱ (show (f '' W.val) ⊆ (f '' V.val), from set.image_subset _ HWV)),
+      conv begin
+        to_rhs,
+        congr, skip,
+        congr,
+        change limits.colimit.pre (res_functor (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV) ⋙ to_aux_functor ℱ (f '' W.val)) (res_functor (set.image_subset f HVU)),
+      end,
+      rw limits.colimit.pre_pre,
+      conv begin
+        to_rhs,
+        congr, skip,
+        change limits.colimit.pre (to_aux_functor ℱ (f '' W.val))
+    (res_functor (show f '' W.val ⊆ f '' U.val, from set.subset.trans (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV) (show f '' V.val ⊆ f '' U.val,
+                                                              from set.image_subset f HVU))),
+      end,
+      rw limits.colimit.ι_pre,
+    end },
   map := λ ℱ 𝒢 φ,
-  { map := λ U, sorry,
+  { map := λ U, begin sorry end,
     commutes := sorry },
   map_id' := sorry,
   map_comp' := sorry }
