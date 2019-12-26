@@ -20,21 +20,17 @@ include 𝒞
 instance XYZ: has_coe_to_fun (presheaf X C) :=
 {F := λ (ℱ : presheaf X C), opens X → C, coe := presheaf.val}
 
--- Restriction map from U to U ∩ V.
-
---set_option pp.universes true
-
 namespace topological_space.presheaf
 
 def res_to_inter_left (ℱ : presheaf X C) (U V : opens X)
 : ((ℱ : opens X → C) U) ⟶ ((ℱ : opens X → C) (U ∩ V)) :=
-ℱ.res' (set.inter_subset_left U V)
+ℱ.res (set.inter_subset_left U V)
 
 -- Restriction map from V to U ∩ V.
 
 def res_to_inter_right (ℱ : presheaf X C) (U V : opens X)
 : ((ℱ : opens X → C) V) ⟶ ((ℱ : opens X → C) (U ∩ V)) :=
-ℱ.res' (set.inter_subset_right U V)
+ℱ.res (set.inter_subset_right U V)
 
 open category_theory.limits
 
@@ -42,7 +38,7 @@ variable [has_products.{v} C]
 
 def prod_res (ℱ : presheaf X C) {U : opens X} (OC : covering U) :
   ℱ U ⟶ ∏ (λ i, ℱ.val (OC.Uis i)) :=
-pi.lift (λ i, ℱ.res' $ subset_covering i)
+pi.lift (λ i, ℱ.res $ subset_covering i)
 
 def res_left (ℱ : presheaf X C) {U : opens X} (OC : covering U) :
   ∏ (λ i, ℱ.val (OC.Uis i)) ⟶ ∏ (λ jk : OC.γ × OC.γ, ℱ.val (OC.Uis jk.1 ∩ OC.Uis jk.2)) :=
@@ -54,7 +50,6 @@ def res_right (ℱ : presheaf X C) {U : opens X} (OC : covering U) :
 (pi.lift (λ jk : OC.γ × OC.γ, ((pi.π (λ i, ℱ.val (OC.Uis i)) jk.2) ≫
 (ℱ.res_to_inter_right _ _))))
 
-
 variable [has_equalizers.{v} C]
 
 lemma res_commutes (ℱ : presheaf X C) {U : opens X} (OC : covering U) :
@@ -65,14 +60,14 @@ begin
   unfold prod_res,
   ext jk,
   -- carefully avoiding non-terminal simp
-  suffices : presheaf.res'.{v u} ℱ (subset_covering.{v} (jk.fst)) ≫
-      topological_space.presheaf.res_to_inter_left.{v u} ℱ (OC.Uis (jk.fst)) (OC.Uis (jk.snd)) =
-    presheaf.res'.{v u} ℱ (subset_covering.{v} (jk.snd)) ≫
-      topological_space.presheaf.res_to_inter_right.{v u} ℱ (OC.Uis (jk.fst)) (OC.Uis (jk.snd)),
+  suffices : ℱ.res.{v u} (subset_covering.{v} (jk.fst)) ≫
+      ℱ.res_to_inter_left.{v u} (OC.Uis (jk.fst)) (OC.Uis (jk.snd)) =
+    ℱ.res.{v u} (subset_covering.{v} (jk.snd)) ≫
+      ℱ.res_to_inter_right.{v u} (OC.Uis (jk.fst)) (OC.Uis (jk.snd)),
     dsimp, simpa using this, -- non-terminal dsimp
-  convert (rfl : ℱ.res' (show OC.Uis jk.1 ∩ OC.Uis jk.2 ⊆ U, from _) = ℱ.res' _),
-    exact (ℱ.Hcomp' _ _ _ _ _).symm,
-  exact (ℱ.Hcomp' _ _ _ _ _).symm,
+  convert (rfl : ℱ.res (show OC.Uis jk.1 ∩ OC.Uis jk.2 ⊆ U, from _) = ℱ.res _),
+    exact (ℱ.Hcomp _ _).symm,
+  exact (ℱ.Hcomp _ _).symm,
 end
 
 -- the canonical map from ℱ U to the equalizer of Π ℱ (U_i) → Π ℱ (U_j ∩ U_k)
