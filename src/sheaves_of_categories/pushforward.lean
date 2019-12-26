@@ -29,8 +29,9 @@ local attribute [instance, priority 200] small_category
 --instance : category (presheaf X C) := topological_space.presheaf.category
 --instance foo : category (presheaf Y C) := topological_space.presheaf.category
 
---set_option trace.class_instances true
-def map (f : X → Y) (hf : continuous f) : presheaf X C ⥤ presheaf Y C :=
+namespace presheaf
+
+def map {f : X → Y} (hf : continuous f) : presheaf X C ⥤ presheaf Y C :=
 { obj := λ ℱ, {
     val := λ _, ℱ (hf.comap _),
     res := λ _ _ hV, ℱ.res' (λ _ hv, hV hv),
@@ -41,6 +42,20 @@ def map (f : X → Y) (hf : continuous f) : presheaf X C ⥤ presheaf Y C :=
     commutes := λ _ _ _, φ.commutes _ _ _},
   map_id' := by intros; split,
   map_comp' := by intros; split }
+
+def map.id : map (@continuous_id X _) ≅ 𝟭 (presheaf X C):=
+{ hom :=
+  { app := λ ℱ,
+    { map := λ U, presheaf.res' ℱ (by refl),
+      commutes := λ U V HVU, begin dsimp, rw presheaf.Hid', end },
+    naturality' := _ },
+  inv := _,
+  hom_inv_id' := _,
+  inv_hom_id' := _ }
+
+end presheaf
+
+
 
 -- todo: pushforward of a sheaf should be a sheaf
 

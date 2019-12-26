@@ -31,7 +31,6 @@ structure topological_space.presheaf (X : Type v) [topological_space X]
 (Hcomp : ∀ (U V W) (HWV : W ⊆ V) (HVU : V ⊆ U),
   res U W (set.subset.trans HWV HVU) = res U V HVU ≫ res V W HWV)
 
-
 open topological_space lattice
 
 namespace topological_space.presheaf
@@ -43,26 +42,19 @@ include 𝒞
 -- I don't know why they used (U V), this changes it to {U V}
 def res' : ∀ (ℱ : presheaf X C) {U V : opens X} (HVU : V ⊆ U), ℱ.val U ⟶ ℱ.val V := res
 
+-- Simplification lemmas for Hid and Hcomp.
+@[simp] theorem Hid' (ℱ : presheaf X C) (U : opens X) : ℱ.res' (set.subset.refl U) = 𝟙 (ℱ.val U) :=
+ℱ.Hid U
+
+@[simp] theorem Hcomp' (ℱ : presheaf X C) {U V W : opens X} (HWV : W ⊆ V) (HVU : V ⊆ U) :
+  ℱ.res' (set.subset.trans HWV HVU) = ℱ.res' HVU ≫ ℱ.res' HWV := ℱ.Hcomp U V W HWV HVU
+
 instance : has_coe_to_fun (topological_space.presheaf X C) :=
 { F := λ ℱ, opens X → C,
   coe := topological_space.presheaf.val}
 
 -- simp lemma to get ℱ.val U back into ℱ U form
 @[simp] lemma val_eq_coe {ℱ : presheaf X C} {U : opens X} : ℱ.val U = ℱ U := rfl
-
--- Simplification lemmas for Hid and Hcomp.
-@[simp] lemma Hcomp' (ℱ : presheaf X C) :
-∀ (U V W : opens X) (HWV : W ⊆ V) (HVU : V ⊆ U),
-  (ℱ.res _ _ (set.subset.trans HWV HVU)) =
-  (ℱ.res _ _ HVU) ≫ (ℱ.res _ _ HWV)  :=
-λ U V W HWV HVU, by rw ℱ.Hcomp _ _ _ HWV HVU; simp
-
-@[simp] lemma Hid' (ℱ : presheaf X C) :
-∀ (U : opens X),
-  (ℱ.res _ _ (set.subset.refl U)) = 𝟙 (ℱ U) :=
-λ U, begin rw ℱ.Hid U, dunfold coe_fn has_coe_to_fun.coe,
--- why refl no work?
-simp, end
 
 -- presheaves are a category.
 structure morphism (ℱ 𝒢 : presheaf X C) :=
