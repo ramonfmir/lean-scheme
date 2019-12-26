@@ -26,10 +26,10 @@ universes v u -- Homs in C and the top space will be in the same universe v ("se
 structure topological_space.presheaf (X : Type v) [topological_space X]
   (C : Type u) [𝒞 : category.{v} C] :=
 (val : Π (U : opens X), C) -- ℱ
-(res   : ∀ (U V) (HVU : V ⊆ U), val U ⟶ val V)
-(Hid   : ∀ (U), res U U (set.subset.refl U) = 𝟙 (val U))
-(Hcomp : ∀ (U V W) (HWV : W ⊆ V) (HVU : V ⊆ U),
-  res U W (set.subset.trans HWV HVU) = res U V HVU ≫ res V W HWV)
+(res'   : ∀ (U V) (HVU : V ⊆ U), val U ⟶ val V)
+(Hid'   : ∀ (U), res' U U (set.subset.refl U) = 𝟙 (val U))
+(Hcomp' : ∀ (U V W) (HWV : W ⊆ V) (HVU : V ⊆ U),
+  res' U W (set.subset.trans HWV HVU) = res' U V HVU ≫ res' V W HWV)
 
 open topological_space lattice
 
@@ -40,14 +40,14 @@ variables {X : Type v} [topological_space X]
 include 𝒞
 
 -- I don't know why they used (U V), this changes it to {U V}
-def res' : ∀ (ℱ : presheaf X C) {U V : opens X} (HVU : V ⊆ U), ℱ.val U ⟶ ℱ.val V := res
+def res : ∀ (ℱ : presheaf X C) {U V : opens X} (HVU : V ⊆ U), ℱ.val U ⟶ ℱ.val V := res'
 
 -- Simplification lemmas for Hid and Hcomp.
-@[simp] theorem Hid' (ℱ : presheaf X C) (U : opens X) : ℱ.res' (set.subset.refl U) = 𝟙 (ℱ.val U) :=
-ℱ.Hid U
+@[simp] theorem Hid : ∀ (ℱ : presheaf X C) (U : opens X), ℱ.res (set.subset.refl U) = 𝟙 (ℱ.val U) :=
+Hid'
 
-@[simp] theorem Hcomp' (ℱ : presheaf X C) {U V W : opens X} (HWV : W ⊆ V) (HVU : V ⊆ U) :
-  ℱ.res' (set.subset.trans HWV HVU) = ℱ.res' HVU ≫ ℱ.res' HWV := ℱ.Hcomp U V W HWV HVU
+@[simp] theorem Hcomp : ∀ (ℱ : presheaf X C) {U V W : opens X} (HWV : W ⊆ V) (HVU : V ⊆ U),
+  ℱ.res (set.subset.trans HWV HVU) = ℱ.res HVU ≫ ℱ.res HWV := Hcomp'
 
 instance : has_coe_to_fun (topological_space.presheaf X C) :=
 { F := λ ℱ, opens X → C,
@@ -59,8 +59,8 @@ instance : has_coe_to_fun (topological_space.presheaf X C) :=
 -- presheaves are a category.
 structure morphism (ℱ 𝒢 : presheaf X C) :=
 (map      : ∀ (U), ℱ U ⟶ 𝒢 U)
-(commutes : ∀ (U V) (HVU : V ⊆ U),
-  (map U) ≫ (𝒢.res U V HVU) = (ℱ.res U V HVU) ≫ (map V))
+(commutes' : ∀ (U V) (HVU : V ⊆ U),
+  (map U) ≫ (𝒢.res HVU) = (ℱ.res HVU) ≫ (map V))
 
 variables {ℱ 𝒢 : presheaf X C}
 
@@ -73,38 +73,37 @@ instance : has_coe_to_fun (morphism ℱ 𝒢) :=
 { F := λ φ, Π (U : opens X), ℱ U ⟶ 𝒢 U,
   coe := λ φ, φ.map}
 
-def commutes' (φ : ℱ ⟶ 𝒢): ∀ {U V : opens X} (HVU : V ⊆ U),
-  φ U ≫ 𝒢.res' HVU = ℱ.res' HVU ≫ φ V := φ.commutes
+@[simp] lemma commutes (φ : ℱ ⟶ 𝒢): ∀ {U V : opens X} (HVU : V ⊆ U),
+  φ U ≫ 𝒢.res HVU = ℱ.res HVU ≫ φ V := φ.commutes'
 
 @[ext] def ext (φ ψ : ℱ ⟶ 𝒢) : (φ : ∀ (U : opens X), ℱ U ⟶ 𝒢 U) = ψ → φ = ψ :=
 begin
   intro h,
-  -- how am I supposed to be doing this? This is too CS for me :-/
   cases φ, cases ψ, unfold_coes at h, dsimp at h, simp [h],
 end
 
-
 end morphism
-
---#check morphism.commutes'
 
 -- Morphism of presheaves.
 instance category_struct : category_struct (presheaf X C) :=
 { hom := morphism,--∀ ℱ 𝒢 (U), ℱ U ⟶ 𝒢 U),
-  id := λ ℱ, { map := λ U, 𝟙 (ℱ U), commutes := begin
-  intros U V HVU, cases V, cases U, dsimp at *, simp at *, end
-  }, -- is there a better tactic?
-  comp := λ ℱ 𝒢 ℋ φ ψ,{ map := λ U, (φ U) ≫ (ψ U),--begin sorry end,--λ U, φ U ≫ ψ U,
-    commutes := begin intros,
+  id := λ ℱ, {
+    map := λ U, 𝟙 (ℱ U),
+    commutes' := begin
+      intros U V HVU, cases V, cases U, dsimp at *, simp at *,
+    end}, -- is there a better tactic?
+  comp := λ ℱ 𝒢 ℋ φ ψ, {
+    map := λ U, (φ U) ≫ (ψ U),--begin sorry end,--λ U, φ U ≫ ψ U,
+    commutes' := begin intros,
     -- I surely want automation to do this.
-      show (φ U ≫ ψ U) ≫ ℋ.res' HVU = ℱ.res' HVU ≫ φ V ≫ ψ V,
+      show (φ U ≫ ψ U) ≫ ℋ.res HVU = ℱ.res HVU ≫ φ V ≫ ψ V,
       rw category.assoc,
-      have X1 := φ.commutes', have Xφ := X1 HVU,
-      have X2 := ψ.commutes', have Xψ := X2 HVU,
-      rw ψ.commutes',
+      have X1 := φ.commutes, have Xφ := X1 HVU,
+      have X2 := ψ.commutes, have Xψ := X2 HVU,
+      rw ψ.commutes,
       rw ←category.assoc,
       -- tidy just makes everything explode at this point
-      rw φ.commutes',
+      rw φ.commutes,
       apply category.assoc,
     end}
 }
