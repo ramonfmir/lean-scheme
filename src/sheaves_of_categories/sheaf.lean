@@ -52,11 +52,11 @@ def res_right (ℱ : presheaf X C) {U : opens X} (OC : covering U) :
 
 variable [has_equalizers.{v} C]
 
-lemma res_commutes (ℱ : presheaf X C) {U : opens X} (OC : covering U) :
+def res_commutes (ℱ : presheaf X C) {U : opens X} (OC : covering U) :
   prod_res ℱ OC ≫ res_left ℱ OC = prod_res ℱ OC ≫ res_right ℱ OC :=
 begin
-  unfold res_left, -- why?
-  unfold res_right, -- why?
+  unfold res_left,
+    unfold res_right, -- why?
   unfold prod_res,
   ext jk,
   -- carefully avoiding non-terminal simp

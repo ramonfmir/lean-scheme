@@ -73,7 +73,15 @@ instance : has_coe_to_fun (morphism ℱ 𝒢) :=
 { F := λ φ, Π (U : opens X), ℱ U ⟶ 𝒢 U,
   coe := λ φ, φ.map}
 
-@[simp] lemma commutes (φ : ℱ ⟶ 𝒢): ∀ {U V : opens X} (HVU : V ⊆ U),
+/- TODO: would
+
+@[simp] lemma commutes : ∀ {{U V : opens X}} (φ : ℱ → 𝒢) (HVU : V ⊆ U),
+...
+
+be better?
+-/
+
+@[simp] lemma commutes (φ : ℱ ⟶ 𝒢): ∀ {{U V : opens X}} (HVU : V ⊆ U),
   φ U ≫ 𝒢.res HVU = ℱ.res HVU ≫ φ V := φ.commutes'
 
 @[ext] def ext (φ ψ : ℱ ⟶ 𝒢) : (φ : ∀ (U : opens X), ℱ U ⟶ 𝒢 U) = ψ → φ = ψ :=

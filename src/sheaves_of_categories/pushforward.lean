@@ -31,17 +31,20 @@ local attribute [instance, priority 200] small_category
 
 namespace presheaf
 
+--#check @topological_space.presheaf.morphism.commutes
+
 def map {f : X → Y} (hf : continuous f) : presheaf X C ⥤ presheaf Y C :=
 { obj := λ ℱ, {
     val := λ _, ℱ (hf.comap _),
-    res := λ _ _ hV, ℱ.res' (λ _ hv, hV hv),
-    Hid := λ _, ℱ.Hid _,
-    Hcomp := λ _ _ _ _ _, ℱ.Hcomp _ _ _ _ _},
-  map := λ ℱ 𝒢 φ,{
+    res' := λ _ _ hV, ℱ.res (λ _ hv, hV hv),
+    Hid' := λ _, ℱ.Hid _,
+    Hcomp' := λ _ _ _ _ _, ℱ.Hcomp _ _},
+  map := λ ℱ 𝒢 φ, {
     map := λ V, φ (continuous.comap hf V),
-    commutes := λ _ _ _, φ.commutes _ _ _},
-  map_id' := by intros; split,
-  map_comp' := by intros; split }
+    commutes' := λ U V HVU, φ.commutes HVU,
+    map_id' := by intros; split,
+    map_comp' := by intros; split }
+}
 
 def map.id : map (@continuous_id X _) ≅ 𝟭 (presheaf X C):=
 { hom :=
