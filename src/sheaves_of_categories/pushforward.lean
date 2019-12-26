@@ -100,8 +100,9 @@ end
 example (C D E : Type*) [𝒞 : category C] [𝒟 : category D] [ℰ : category E] (F G : C ⥤ D) (H : D ⥤ E)
   (h : F ≅ G) : (F ⋙ H) ≅ (G ⋙ H) := iso_whisker_right h H
 
-#check limits.colimit.pre
 /-
+#check limits.colimit.pre
+
 category_theory.limits.colimit.pre : Π {J K : Type v} [_inst_1 : small_category J]
 [_inst_2 : small_category K] {C : Type u} [𝒞 : category_theory.category C] (F : J ⥤ C)
 [_inst_3 : limits.has_colimit F] (E : K ⥤ J) [_inst_4 : limits.has_colimit (E ⋙ F)],
@@ -115,47 +116,54 @@ limits.colimit (E ⋙ F) ⟶ limits.colimit F
 
 lemma res_aux (ℱ : presheaf X C) {Y₁ Y₂ : set X} (hY : Y₂ ⊆ Y₁) :
   res_functor hY ⋙ ℱ.to_aux_functor Y₂ = ℱ.to_aux_functor Y₁ := rfl -- :-)
-#check limits.colimit.desc
+
 --set_option pp.proofs true
 --set_option trace.simplify.rewrite true
+--set_option profiler true
 def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
 { obj := λ ℱ,
   { val := λ U, ℱ.aux_colimit (f '' U),
     res := λ U₁ U₂ hU,
       limits.colimit.pre (ℱ.to_aux_functor _) (res_functor $ set.image_subset _ hU),
     Hid := λ U, begin
-    /-
-    ⊢ limits.colimit.pre (to_aux_functor ℱ (f '' U.val)) (res_functor (set.image_subset f (set.subset.refl ↑U))) =
-    𝟙 (aux_colimit ℱ (f '' ↑U))-/
       ext,
       rw limits.colimit.ι_pre,
       erw category.comp_id,
-      tidy,
+      cases j, cases U, refl,
     end,
     Hcomp := begin
       intros,
       ext,
       erw limits.colimit.ι_pre,
-      --tidy,
-      let XYZ := (res_aux ℱ (show (f '' W.val) ⊆ (f '' V.val), from set.image_subset _ HWV)),
       conv begin
         to_rhs,
         congr, skip,
         congr,
-        change limits.colimit.pre (res_functor (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV) ⋙ to_aux_functor ℱ (f '' W.val)) (res_functor (set.image_subset f HVU)),
+        change limits.colimit.pre (res_functor
+          (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV) ⋙
+          to_aux_functor ℱ (f '' W.val)) (res_functor (set.image_subset f HVU)),
       end,
       rw limits.colimit.pre_pre,
       conv begin
         to_rhs,
         congr, skip,
         change limits.colimit.pre (to_aux_functor ℱ (f '' W.val))
-    (res_functor (show f '' W.val ⊆ f '' U.val, from set.subset.trans (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV) (show f '' V.val ⊆ f '' U.val,
-                                                              from set.image_subset f HVU))),
+          (res_functor (show f '' W.val ⊆ f '' U.val, from set.subset.trans
+          (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV)
+          (show f '' V.val ⊆ f '' U.val, from set.image_subset f HVU))),
       end,
       rw limits.colimit.ι_pre,
     end },
   map := λ ℱ 𝒢 φ,
-  { map := λ U, begin sorry end,
+  { map := λ U, show aux_colimit ℱ (f '' ↑U) ⟶ aux_colimit 𝒢 (f '' ↑U), begin
+      unfold aux_colimit,
+      unfold aux_cocone,
+      show (limits.colimit (to_aux_functor ℱ (f '' ↑U))) ⟶
+        (limits.colimit (to_aux_functor 𝒢 (f '' ↑U))),
+      convert limits.colimit.desc _ _ using 1, -- now need a cocone for ℱ whose vertex is f^*𝒢(U)
+      -- it's ℱ(V) -> 𝒢(V) -> colim_V 𝒢(V)
+      sorry
+    end,
     commutes := sorry },
   map_id' := sorry,
   map_comp' := sorry }
