@@ -353,7 +353,9 @@ def stalk_on_basis_of_localization (p : Spec R) (x : localization.at_prime p.1) 
   stalk_of_rings_on_standard_basis.stalk_of_rings_on_standard_basis
     (D_fs_standard_basis R) (structure_presheaf_on_basis R) p :=
 localization.lift' (stalk_on_basis_of p)
-  (λ r : -(p.1 : set R), (units.map' (to_stalk_on_basis (structure_presheaf_on_basis R) (Spec.DO R r.1) ⟨r.1, rfl⟩ r.2)).1 $
+  (λ r : -(p.1 : set R), (units.map' (to_stalk_on_basis (structure_presheaf_on_basis R) (Spec.DO R r.1) ⟨r.1, rfl⟩ r.2):
+        units (((structure_presheaf_on_basis R).to_presheaf_on_basis) ⟨r.1, rfl⟩) →*
+        units (stalk_of_rings_on_standard_basis.stalk_of_rings_on_standard_basis (D_fs_standard_basis R) (structure_presheaf_on_basis R) p)) $
     localization.to_units ⟨r.1, set.subset.refl _⟩)
   (λ r, quotient.sound ⟨Spec.DO R r.1, ⟨r.1, rfl⟩, r.2, set.subset.refl _, set.subset_univ _, rfl⟩)
   x
@@ -617,6 +619,15 @@ end res_open
 def Zariski.coinduced (x : R) (p : Spec.DO R x) : Spec (localization.away x) :=
 ⟨p.1.1.map localization.of, localization.prime_map_away x p.1.1 p.1.2 p.2⟩
 
+theorem coinduced_induced (x : R) (p : Spec (localization.away x))
+  (hp : Zariski.induced localization.of p ∈ Spec.DO R x) :
+  Zariski.coinduced x ⟨Zariski.induced localization.of p, hp⟩ = p :=
+subtype.eq $ localization.map_comap R p.1
+
+theorem induced_coinduced (x : R) (p : Spec R) (hp : p ∈ Spec.DO R x) :
+  Zariski.induced localization.of (Zariski.coinduced x ⟨p, hp⟩) = p :=
+subtype.eq $ localization.comap_map_away x p.1 p.2 hp
+
 theorem Zariski.coinduced.continuous (x : R) : continuous (Zariski.coinduced x) :=
 λ U HU, ⟨Zariski.induced localization.of '' U, open_Zariski_induced_localization_of x U HU,
 set.ext $ λ p, ⟨λ ⟨q, hqU, hqp⟩,
@@ -705,6 +716,33 @@ localization.induction_on t (λ rt dt hrdts hrdt, begin
   rw [← ht1, sub_mul, sub_mul], simp only [mul_assoc, mul_left_comm]
 end) hts ht) hs4) hs2
 
+theorem Zariski.coinduced.presheaf_on_basis_def {x : R}
+  (U : opens (Spec (localization.away x))) (HUB : U ∈ D_fs (localization.away x)) (p q r s h) :
+  Zariski.coinduced.presheaf_on_basis U HUB ⟦(⟦(p, q)⟧, ⟨⟦(r, s)⟧, h⟩)⟧ =
+  ⟦(p * s.1, ⟨q.1 * r, is_submonoid.mul_mem (powers_subset_S_map_away q.2) (mem_S_map_away_of_mem_S h)⟩)⟧ :=
+rfl
+
+instance Zariski.coinduced.presheaf_on_basis_hom {x : R}
+  (U : opens (Spec (localization.away x))) (HUB : U ∈ D_fs (localization.away x)) :
+  is_ring_hom (Zariski.coinduced.presheaf_on_basis U HUB) :=
+{ map_one := quotient.sound ⟨1, is_submonoid.one_mem _,
+    show (((1 * 1) * 1 - 1 * (1 * 1)) * 1 : R) = 0, by simp only [mul_one, sub_self]⟩,
+  map_mul := λ s t, quotient.induction_on₂ s t $ λ ⟨p1, p2, p3⟩ ⟨q1, q2, q3⟩,
+    quotient.induction_on₂ p1 q1 $ λ ⟨x1, x2, x3⟩ ⟨y1, y2, y3⟩,
+    quotient.induction_on₂ p2 q2 (λ ⟨x4, x5, x6⟩ ⟨y4, y5, y6⟩ p3 q3,
+    quotient.sound $ ⟨1, is_submonoid.one_mem _,
+    show (((x2 * y2) * (x4 * y4)) * ((x1 * x5) * (y1 * y5)) -
+         ((x2 * x4) * (y2 * y4)) * ((x1 * y1) * (x5 * y5))) * 1 = 0,
+    by rw [mul_one, mul_comm4 x2 y2 x4 y4, mul_comm4 x1 x5 y1 y5, sub_self]⟩) p3 q3,
+  map_add := λ s t, quotient.induction_on₂ s t $ λ ⟨p1, p2, p3⟩ ⟨q1, q2, q3⟩,
+    quotient.induction_on₂ p1 q1 $ λ ⟨x1, x2, x3⟩ ⟨y1, y2, y3⟩,
+    quotient.induction_on₂ p2 q2 (λ ⟨x4, x5, x6⟩ ⟨y4, y5, y6⟩ p3 q3,
+    quotient.sound $ ⟨1, is_submonoid.one_mem _,
+    show (((x5 * y2) * (y5 * x2)) * (x4 * y4) * ((x2 * x4) * (y1 * y5) + (y2 * y4) * (x1 * x5)) -
+         ((x2 * x4) * (y2 * y4)) * (((x5 * y2) * (y4 * x1) + (y5 * x2) * (x4 * y1)) * (x5 * y5))) * 1 = 0,
+    by rw [mul_one, sub_eq_zero]; simp only [mul_add, add_mul]; rw add_comm;
+      simp only [mul_comm, mul_left_comm, mul_assoc]⟩) p3 q3 }
+
 theorem Zariski.coinduced.presheaf_on_basis_res {x : R}
   (U : opens (Spec (localization.away x))) (HUB : U ∈ D_fs (localization.away x))
   (V : opens (Spec (localization.away x))) (HVB : V ∈ D_fs (localization.away x)) (HVU : V ⊆ U)
@@ -738,32 +776,317 @@ set.image_subset _ HV1, set.image_subset _ HV2,
 by dsimp only [Zariski.coinduced.stalk_on_basis.elem] at HV ⊢;
 erw [← Zariski.coinduced.presheaf_on_basis_res _ _ _ _ HV1, ← Zariski.coinduced.presheaf_on_basis_res _ _ _ _ HV2, HV]⟩
 
+instance stalk_on_basis.comm_ring (p : Spec R) :
+  comm_ring (stalk_on_basis ((structure_presheaf_on_basis R).to_presheaf_on_basis) p) :=
+stalk_of_rings_on_standard_basis.comm_ring (D_fs_standard_basis _) _ _
+
+theorem map_away_univ (x : R) : Zariski.map_away (opens.univ : opens (Spec (localization.away x))) = Spec.DO R x :=
+by erw [show (opens.univ : opens (Spec (localization.away x))) = Spec.DO _ 1, from (Spec.DO_one).symm, localization.map_DO, one_mul]
+
+theorem mem_map_away_of_coinduced_mem {x : R} {p : Spec R} {hpx : p ∈ Spec.DO R x} {U : opens (Spec (localization.away x))}
+  (hp : Zariski.coinduced x ⟨p, hpx⟩ ∈ U) : p ∈ Zariski.map_away U :=
+⟨Zariski.coinduced x ⟨p, hpx⟩, hp, induced_coinduced _ _ _⟩
+
+theorem induced_mem_DO {x : R} {p : Spec (localization.away x)} :
+  Zariski.induced localization.of p ∈ Spec.DO R x :=
+have h1 : _ := Zariski.induced.preimage_D (localization.of : R → localization.away x) x,
+((set.ext_iff _ _).1 h1 _).2 $ λ hxp, p.2.1 $ ideal.eq_top_of_is_unit_mem _ hxp $
+localization.coe_is_unit' _ _ _ ⟨1, pow_one x⟩
+
+theorem injective_induced (x : R) : function.injective (Zariski.induced (localization.of : R → localization.away x)) :=
+λ p q hpq, by rw [← coinduced_induced x p induced_mem_DO, ← coinduced_induced x q induced_mem_DO]; congr' 2; exact hpq
+
+theorem map_away_inter {x : R} (U V : opens (Spec (localization.away x))) :
+  Zariski.map_away (U ∩ V) = Zariski.map_away U ∩ Zariski.map_away V :=
+subtype.eq $ eq.symm $ set.image_inter $ injective_induced x
+
+instance Zariski.coinduced.stalk_on_basis.hom {x : R} (p : Spec R) (U : opens (Spec (localization.away x)))
+  (hp : p ∈ (opens.comap (Zariski.coinduced.continuous x) U).map_subtype_val) :
+  is_ring_hom (Zariski.coinduced.stalk_on_basis p U hp) :=
+{ map_one := quotient.sound ⟨Spec.DO R x, D_fs.mem R x, of_mem_map_subtype_val hp,
+    show Spec.DO R x ⊆ Zariski.map_away opens.univ, by rw map_away_univ; exact set.subset.refl _,
+    set.subset_univ _, quotient.sound $ ⟨1, is_submonoid.one_mem _,
+      show (((1 * 1) * 1 - 1 * (1 * 1)) * 1 : R) = 0, by simp only [mul_one, sub_self]⟩⟩,
+  map_mul := λ s t, quotient.induction_on₂ s t $ λ σ τ, quotient.sound
+    ⟨Zariski.map_away σ.U ∩ Zariski.map_away τ.U,
+    (D_fs_standard_basis _).2  (localization.map_away_mem_D_fs σ.2) (localization.map_away_mem_D_fs τ.2),
+    ⟨mem_map_away_of_coinduced_mem σ.3, mem_map_away_of_coinduced_mem τ.3⟩,
+    by rw ← map_away_inter; refl,
+    set.subset.refl _,
+    by dsimp only [Zariski.coinduced.stalk_on_basis.elem];
+    rw [is_ring_hom.map_mul (((structure_presheaf_on_basis R).to_presheaf_on_basis).res _ _ _),
+        is_ring_hom.map_mul (Zariski.coinduced.presheaf_on_basis (σ.U ∩ τ.U) _),
+        is_ring_hom.map_mul (((structure_presheaf_on_basis R).to_presheaf_on_basis).res _ _ _),
+        Zariski.coinduced.presheaf_on_basis_res, Zariski.coinduced.presheaf_on_basis_res,
+        ← presheaf_on_basis.Hcomp', ← presheaf_on_basis.Hcomp', ← presheaf_on_basis.Hcomp', ← presheaf_on_basis.Hcomp'];
+    apply_instance⟩,
+  map_add := λ s t, quotient.induction_on₂ s t $ λ σ τ, quotient.sound
+    ⟨Zariski.map_away σ.U ∩ Zariski.map_away τ.U,
+    (D_fs_standard_basis _).2  (localization.map_away_mem_D_fs σ.2) (localization.map_away_mem_D_fs τ.2),
+    ⟨mem_map_away_of_coinduced_mem σ.3, mem_map_away_of_coinduced_mem τ.3⟩,
+    by rw ← map_away_inter; refl,
+    set.subset.refl _,
+    by dsimp only [Zariski.coinduced.stalk_on_basis.elem];
+    rw [is_ring_hom.map_add (((structure_presheaf_on_basis R).to_presheaf_on_basis).res _ _ _),
+        is_ring_hom.map_add (Zariski.coinduced.presheaf_on_basis (σ.U ∩ τ.U) _),
+        is_ring_hom.map_add (((structure_presheaf_on_basis R).to_presheaf_on_basis).res _ _ _),
+        Zariski.coinduced.presheaf_on_basis_res, Zariski.coinduced.presheaf_on_basis_res,
+        ← presheaf_on_basis.Hcomp', ← presheaf_on_basis.Hcomp', ← presheaf_on_basis.Hcomp', ← presheaf_on_basis.Hcomp'];
+    apply_instance⟩ }
+
+theorem powers_subset {x : R} {p : Spec R} (hxp : x ∉ p.1) : powers x ⊆ -p.1 :=
+by rintros _ ⟨n, rfl⟩; exact mt (p.2.mem_of_pow_mem n) hxp
+
+set_option class.instance_max_depth 50
+def Zariski.coinduced.stalk_on_basis.algebraic
+  {x : R} (p : Spec R) (U : opens (Spec (localization.away x)))
+  (hp : p ∈ (opens.comap (Zariski.coinduced.continuous x) U).map_subtype_val)
+  (s : localization.at_prime ((Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩).val)) :
+  localization.at_prime p.val :=
+begin
+  refine quotient.lift_on s (λ r, _) _,
+  { refine quotient.hrec_on₂ r.1 r.2.1 (λ s t h, _) _ r.2.2,
+    { refine ⟦(s.1 * t.2.1, ⟨s.2.1 * t.1, is_submonoid.mul_mem (powers_subset (of_mem_map_subtype_val hp) s.2.2) (λ htp, h _)⟩)⟧,
+      cases t with t1 t2, change localization.mk t1 t2 ∈ (Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩).val,
+      rw localization.mk_mem_iff, exact ideal.subset_span ⟨t1, htp, rfl⟩ },
+    { rintros s1 s2 t1 t2 h1 h2,
+      refine function.hfunext _ _,
+      { exact congr_arg _ (quotient.sound h2) },
+      { intros h3 h4 h5, refine heq_of_eq (quotient.sound _),
+        rcases h1 with ⟨s3, s4, h6⟩, rcases h2 with ⟨t3, t4, h7⟩,
+        refine ⟨s3 * t3, powers_subset (of_mem_map_subtype_val hp) (powers.mul_mem s4 t4), _⟩,
+        change (((s1.2 * s2.1) * (t1.1 * t2.2) - (t1.2 * t2.1) * (s1.1 * s2.2)) * (s3 * t3) : R) = 0,
+        rw [sub_mul, sub_eq_zero] at h6 h7 ⊢,
+        calc  ((s1.2 * s2.1) * (t1.1 * t2.2) * (s3 * t3) : R)
+            = ((s1.2 * t1.1 * s3) * (t2.2 * s2.1 * t3) : R) : by simp only [mul_assoc, mul_left_comm]
+        ... = ((t1.2 * s1.1 * s3) * (s2.2 * t2.1 * t3) : R) : by rw [h6, ← h7]
+        ... = ((t1.2 * t2.1) * (s1.1 * s2.2) * (s3 * t3)) : by simp only [mul_assoc, mul_left_comm] } } },
+  { rintros ⟨s1, s2, h1⟩ ⟨t1, t2, h2⟩ ⟨x1, hx1, hx2⟩,
+    refine quotient.induction_on₂ s1 s2 (λ s3 s4 h5 hx3, _) h1 hx2,
+    refine quotient.induction_on₂ t1 t2 (λ t3 t4 h6 hx4, _) h2 hx3,
+    refine quotient.induction_on x1 (λ x2 hx5 hx6, _) hx1 hx4,
+    rcases quotient.exact hx6 with ⟨x3, hx7, hx8⟩,
+    change ((((s4.2 * t3.2) * (t4.2 * s3.2) * x2.2) * 0 -
+      1 * (((s4.2 * t3.2) * -(t4.1 * s3.1) + (t4.2 * s3.2) * (s4.1 * t3.1)) * x2.1)) * x3 : R) = 0 at hx8,
+    rw [mul_zero, one_mul, zero_sub, mul_neg_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm, neg_eq_zero, neg_add_eq_sub, sub_mul, sub_mul, sub_eq_zero] at hx8,
+    refine quotient.sound ⟨x2.1 * x3, is_submonoid.mul_mem (λ H, hx5 _) (powers_subset (of_mem_map_subtype_val hp) hx7), _⟩,
+    { cases x2 with x21 x22, change localization.mk x21 x22 ∈ (Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩).val,
+      rw localization.mk_mem_iff, exact ideal.subset_span ⟨x21, H, rfl⟩ },
+    change (((s3.2 * s4.1) * (t3.1 * t4.2) - (t3.2 * t4.1) * (s3.1 * s4.2)) * (x2.1 * x3) : R) = 0,
+    rw [sub_mul, sub_eq_zero],
+    simpa only [mul_assoc, mul_left_comm] using hx8 }
+end
+
+instance Zariski.coinduced.stalk_on_basis.algebraic.hom
+  {x : R} (p : Spec R) (U : opens (Spec (localization.away x)))
+  (hp : p ∈ (opens.comap (Zariski.coinduced.continuous x) U).map_subtype_val) :
+  is_ring_hom (Zariski.coinduced.stalk_on_basis.algebraic p U hp) :=
+{ map_one := quotient.sound ⟨1, is_submonoid.one_mem _, show (((1 * 1) * 1 - 1 * (1 * 1)) * 1 : R) = 0,
+    by simp only [mul_one]; rw sub_self⟩,
+  map_mul := λ x y, by rcases x with ⟨⟨x1, x2, h1⟩, ⟨x3, x4, h2⟩, h3⟩;
+    rcases y with ⟨⟨y1, y2, h4⟩, ⟨y3, y4, h5⟩, h6⟩;
+    exact quotient.sound ⟨1, is_submonoid.one_mem _,
+    show (((x2 * y2) * (x3 * y3)) * ((x1 * x4) * (y1 * y4)) -
+          ((x2 * x3) * (y2 * y3)) * ((x1 * y1) * (x4 * y4))) * 1 = 0,
+    by rw [mul_one, mul_comm4 x2 y2, mul_comm4 x1 x4, sub_self]⟩,
+  map_add := λ x y, by rcases x with ⟨⟨x1, x2, h1⟩, ⟨x3, x4, h2⟩, h3⟩;
+    rcases y with ⟨⟨y1, y2, h4⟩, ⟨y3, y4, h5⟩, h6⟩;
+    exact quotient.sound ⟨1, is_submonoid.one_mem _,
+    show ((((x4 * y2) * (y4 * x2)) * (x3 * y3)) *
+           ((x2 * x3) * (y1 * y4) + (y2 * y3) * (x1 * x4)) -
+         ((x2 * x3) * (y2 * y3)) *
+           (((x4 * y2) * (y3 * x1) + (y4 * x2) * (x3 * y1)) *
+              (x4 * y4))) * 1 = 0,
+    by rw [mul_one, sub_eq_zero]; simp only [add_mul, mul_add]; rw add_comm;
+      congr' 1; simp only [mul_assoc, mul_left_comm, mul_comm]⟩ }
+
+def localization.to_superset {α : Type u} [comm_ring α] {S T : set α} [is_submonoid S] [is_submonoid T]
+  (H : S ⊆ T) (x : localization α S) : localization α T :=
+quotient.lift_on x (λ r, localization.mk r.1 ⟨r.2.1, H r.2.2⟩) $ λ s t ⟨x1, h1, h2⟩, quotient.sound ⟨x1, H h1, h2⟩
+
+instance localization.to_superset.hom {α : Type u} [comm_ring α] {S T : set α} [is_submonoid S] [is_submonoid T]
+  (H : S ⊆ T) : is_ring_hom (localization.to_superset H) :=
+{ map_one := rfl,
+  map_mul := λ x y, localization.induction_on x $ λ r1 s1, localization.induction_on y $ λ r2 s2, rfl,
+  map_add := λ x y, localization.induction_on x $ λ r1 s1, localization.induction_on y $ λ r2 s2, rfl }
+
+theorem localization.to_superset.of {α : Type u} [comm_ring α] {S T : set α} [is_submonoid S] [is_submonoid T]
+  (H : S ⊆ T) (r : α) : localization.to_superset H (localization.of r) = localization.of r :=
+rfl
+
+theorem localization.to_superset.coe {α : Type u} [comm_ring α] {S T : set α} [is_submonoid S] [is_submonoid T]
+  (H : S ⊆ T) (r : α) : localization.to_superset H r = r :=
+rfl
+
+def compl_coinduced_to_units {x : R} (p : Spec R) (hxp : x ∉ p.1)
+  (s : (-↑(Zariski.coinduced x ⟨p, hxp⟩).1 : set (localization.away x))) :
+  units (localization.at_prime p.1) :=
+⟨localization.to_superset (powers_subset hxp) s.1,
+quotient.hrec_on s.1
+  (λ r : R × powers x, λ hr, localization.mk r.2.1 ⟨r.1, λ h1, hr $ by cases r with r1 r2;
+    change localization.mk r1 r2 ∈ (Zariski.coinduced x ⟨p, hxp⟩).1;
+    rw localization.mk_mem_iff; exact ideal.subset_span ⟨r1, h1, rfl⟩⟩)
+  (λ r1 r2 h, function.hfunext (congr_arg _ $ quotient.sound h) $ λ h1 h2 h3,
+    heq_of_eq $ by rcases h with ⟨r3, h4, h5⟩; refine quotient.sound ⟨r3, powers_subset hxp h4, _⟩;
+    rwa [← neg_sub, neg_mul_eq_neg_mul_symm, neg_eq_zero, mul_comm (r2.2 : R), mul_comm (r1.2 : R)] at h5)
+  s.2,
+localization.induction_on s.1 (λ r s h, quotient.sound ⟨1, is_submonoid.one_mem _,
+  show ((s.1 * r) * 1 - 1 * (r * s.1)) * 1 = 0, by rw [mul_one, mul_one, one_mul, mul_comm, sub_self]⟩) s.2,
+localization.induction_on s.1 (λ r s h, quotient.sound ⟨1, is_submonoid.one_mem _,
+  show ((r * s.1) * 1 - 1 * (s.1 * r)) * 1 = 0, by rw [mul_one, mul_one, one_mul, mul_comm, sub_self]⟩) s.2⟩
+
+@[simp] lemma compl_coinduced_to_units_coe {x : R} (p : Spec R) (hxp : x ∉ p.1)
+  (s : (-↑(Zariski.coinduced x ⟨p, hxp⟩).1 : set (localization.away x))) :
+  ↑(compl_coinduced_to_units p hxp s) = localization.to_superset (powers_subset hxp) s.1 :=
+rfl
+
+instance compl_coinduced_to_units.hom {x : R} (p : Spec R) (hxp : x ∉ p.1) :
+  is_monoid_hom (compl_coinduced_to_units p hxp) :=
+{ map_one := units.ext $ by erw [compl_coinduced_to_units_coe, is_ring_hom.map_one (localization.to_superset (powers_subset hxp))],
+  map_mul := λ s t, units.ext $ by rw units.coe_mul;
+    iterate 3 { rw compl_coinduced_to_units_coe };
+    erw is_ring_hom.map_mul (localization.to_superset (powers_subset hxp)) }
+
+theorem Zariski.coinduced.stalk_on_basis.algebraic.def
+  {x : R} (p : Spec R) (U : opens (Spec (localization.away x)))
+  (hp : p ∈ (opens.comap (Zariski.coinduced.continuous x) U).map_subtype_val) (r s) :
+  Zariski.coinduced.stalk_on_basis.algebraic p U hp (localization.mk r s) =
+  (localization.to_superset (powers_subset (of_mem_map_subtype_val hp)) r) *
+  ((compl_coinduced_to_units p (of_mem_map_subtype_val hp) s)⁻¹ : units (localization.at_prime p.1)) :=
+by cases s with s hs; refine localization.induction_on r (λ r1 r2, _);
+refine localization.induction_on s (λ r2 s2 h, _) hs; refl
+
+theorem Zariski.coinduced.stalk_on_basis.algebraic.of
+  {x : R} (p : Spec R) (U : opens (Spec (localization.away x)))
+  (hp : p ∈ (opens.comap (Zariski.coinduced.continuous x) U).map_subtype_val) (r) :
+  Zariski.coinduced.stalk_on_basis.algebraic p U hp (localization.of r) =
+  (localization.to_superset (powers_subset (of_mem_map_subtype_val hp)) r) :=
+(Zariski.coinduced.stalk_on_basis.algebraic.def p U hp r 1).trans $
+by rw [is_monoid_hom.map_one (compl_coinduced_to_units p (of_mem_map_subtype_val hp))];
+rw [one_inv, units.coe_one, mul_one]
+
+theorem Zariski.coinduced.stalk_on_basis.algebraic.hlocal
+  {x : R} (p : Spec R) (U : opens (Spec (localization.away x)))
+  (hp : p ∈ (opens.comap (Zariski.coinduced.continuous x) U).map_subtype_val) (s)
+  (hs : is_unit (Zariski.coinduced.stalk_on_basis.algebraic p U hp s)) : is_unit s :=
+begin
+  refine localization.induction_on s (λ r s, _) hs,
+  rw is_unit_localization_mk,
+  refine localization.induction_on r (λ x1 x2, _),
+  cases s with s h1,
+  refine localization.induction_on s (λ x3 x4 h1, _) h1,
+  change is_unit (localization.mk (x1 * x4) ⟨x2 * x3, _⟩) → _,
+  rw is_unit_localization_mk,
+  rintros ⟨t, ht⟩, refine ⟨localization.mk (x4 * t) 1, _⟩,
+  change _ ∉ (Zariski.coinduced x ⟨p, _⟩).1,
+  rw [localization.mk_mul_mk, localization.mk_mem_iff],
+  change _ ∉ (Zariski.induced localization.of (Zariski.coinduced x ⟨p, _⟩)).1,
+  rw [induced_coinduced, ← mul_assoc], exact ht
+end
+
+theorem Zariski.coinduced.stalk_on_basis.stalk_on_basis_of
+  {x : R} (p : Spec R) (U : opens (Spec (localization.away x)))
+  (hp : p ∈ (opens.comap (Zariski.coinduced.continuous x) U).map_subtype_val) (r : R) :
+  Zariski.coinduced.stalk_on_basis p U hp (stalk_on_basis_of (Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩) r) =
+  stalk_on_basis_of p r :=
+quotient.sound ⟨Zariski.map_away (opens.univ : opens (Spec (localization.away x))),
+localization.map_away_mem_D_fs (D_fs_standard_basis _).1,
+mem_map_away_of_coinduced_mem (by trivial : Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩ ∈ opens.univ),
+set.subset.refl _,
+set.subset_univ _,
+quotient.sound ⟨1, is_submonoid.one_mem _, show ((1 * 1) * r - 1 * (r * 1)) * 1 = 0,
+by rw [mul_one, one_mul, one_mul, one_mul, mul_one, sub_self]⟩⟩
+
+theorem Zariski.coinduced.stalk_on_basis.stalk_on_basis_of_localization
+  {x : R} (p : Spec R) (U : opens (Spec (localization.away x)))
+  (hp : p ∈ (opens.comap (Zariski.coinduced.continuous x) U).map_subtype_val)
+  (s : localization.at_prime ((Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩).val)) :
+  Zariski.coinduced.stalk_on_basis p U hp (stalk_on_basis_of_localization (Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩) s) =
+  stalk_on_basis_of_localization p (Zariski.coinduced.stalk_on_basis.algebraic p U hp s) :=
+begin
+  refine congr_fun _ s,
+  refine @@localization.funext _ _ _ _ _
+    (is_ring_hom.comp _ _)
+    (is_ring_hom.comp _ _)
+    (λ s, _),
+  change (Zariski.coinduced.stalk_on_basis p U hp ∘ stalk_on_basis_of_localization (Zariski.coinduced x ⟨p, _⟩) ∘ localization.of) s =
+    (stalk_on_basis_of_localization p ∘ Zariski.coinduced.stalk_on_basis.algebraic p U hp ∘ localization.of) s,
+  refine congr_fun _ s,
+  refine @@localization.funext _ _ _ _ _
+    (@@is_ring_hom.comp _ _ _ (is_ring_hom.comp _ _) _ _ _)
+    (@@is_ring_hom.comp _ _ _ (is_ring_hom.comp _ _) _ _ _)
+    (λ s, _),
+  change Zariski.coinduced.stalk_on_basis p U hp (stalk_on_basis_of_localization (Zariski.coinduced x ⟨p, _⟩) (localization.of (localization.of s))) =
+    stalk_on_basis_of_localization p (Zariski.coinduced.stalk_on_basis.algebraic p U hp (localization.of (localization.of s))),
+  rw [Zariski.coinduced.stalk_on_basis.algebraic.of, localization.to_superset.of],
+  unfold stalk_on_basis_of_localization,
+  rw [localization.lift'_of, localization.lift'_of],
+  exact Zariski.coinduced.stalk_on_basis.stalk_on_basis_of p U hp s
+end
+
+theorem Zariski.coinduced.stalk_on_basis.hlocal {x : R} (p : Spec R) (U : opens (Spec (localization.away x)))
+  (hp : p ∈ (opens.comap (Zariski.coinduced.continuous x) U).map_subtype_val) (s)
+  (hs : is_unit (Zariski.coinduced.stalk_on_basis p U hp s)) : is_unit s :=
+by rcases (stalk_on_basis_of_localization.bijective _).2 s with ⟨σ, rfl⟩;
+rw Zariski.coinduced.stalk_on_basis.stalk_on_basis_of_localization at hs;
+rw stalk_on_basis_of_localization.unit at hs ⊢;
+exact Zariski.coinduced.stalk_on_basis.algebraic.hlocal p U hp σ hs
+
+def Zariski.coinduced.Fext {x : R} (U : opens (Spec (localization.away x)))
+  (s : ((((Spec.locally_ringed_space (localization.away x)).O).F).to_presheaf : presheaf (Spec (localization.away x))) U) :
+  ((((locally_ringed_space.res_open (Spec.locally_ringed_space R) (Spec.DO R x)).O).F).to_presheaf)
+    (opens.comap (Zariski.coinduced.continuous x) U) :=
+⟨λ p hp, Zariski.coinduced.stalk_on_basis p U hp $
+s.1 (Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩) (mem_of_mem_map_subtype_val hp),
+λ p hp, let ⟨V, HVB, hxV, σ, hσ⟩ := s.2 (Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩) (mem_of_mem_map_subtype_val hp) in
+⟨Zariski.map_away V, localization.map_away_mem_D_fs HVB,
+  ⟨_, hxV, subtype.eq $ localization.comap_map_away _ _ p.2 (of_mem_map_subtype_val hp)⟩,
+  Zariski.coinduced.presheaf_on_basis V HVB σ,
+  λ q hq1, funext $ λ hq2, by rcases hq1.2 with ⟨r, hrV, rfl⟩;
+    rw hσ (Zariski.coinduced x ⟨Zariski.induced localization.of r, of_mem_map_subtype_val hq2⟩)
+        ⟨mem_of_mem_map_subtype_val hq1.1, by rw coinduced_induced; exact hrV⟩;
+    refl⟩⟩
+
+instance Zariski.coinduced.Fext.hom {x : R} (U : opens (Spec (localization.away x))) :
+  is_ring_hom (Zariski.coinduced.Fext U) :=
+{ map_one := subtype.eq $ by ext p hp;
+    exact is_ring_hom.map_one (Zariski.coinduced.stalk_on_basis p U hp),
+  map_mul := by rintros ⟨q, hq⟩ ⟨r, hr⟩; apply subtype.eq; ext p hp;
+    exact is_ring_hom.map_mul (Zariski.coinduced.stalk_on_basis p U hp),
+  map_add := by rintros ⟨q, hq⟩ ⟨r, hr⟩; apply subtype.eq; ext p hp;
+    exact is_ring_hom.map_add (Zariski.coinduced.stalk_on_basis p U hp) }
+
 def res_D_fs (x : R) : locally_ringed_space.morphism
   ((Spec.locally_ringed_space R).res_open (Spec.DO R x))
   (Spec.locally_ringed_space (localization.away x)) :=
 { f := Zariski.coinduced x,
   Hf := Zariski.coinduced.continuous x,
   fO :=
-  { map := λ U s, ⟨λ p hp, Zariski.coinduced.stalk_on_basis p U hp $
-      s.1 (Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩) (mem_of_mem_map_subtype_val hp),
-      λ p hp, let ⟨V, HVB, hxV, σ, hσ⟩ := s.2 (Zariski.coinduced x ⟨p, of_mem_map_subtype_val hp⟩) (mem_of_mem_map_subtype_val hp) in
-      ⟨Zariski.map_away V, localization.map_away_mem_D_fs HVB,
-        ⟨_, hxV, subtype.eq $ localization.comap_map_away _ _ p.2 (of_mem_map_subtype_val hp)⟩,
-        Zariski.coinduced.presheaf_on_basis V HVB σ,
-        λ q hq1, funext $ λ hq2, by rw hσ; sorry⟩⟩,
-    commutes := sorry },
-  hom := sorry,
-  Hstalks := sorry }
+  { map := λ U s, Zariski.coinduced.Fext U s,
+    commutes := λ U V HVU, funext $ λ s, subtype.eq $ funext $ λ p, funext $ λ hp, rfl },
+  hom := λ U, Zariski.coinduced.Fext.hom U,
+  Hstalks := λ p s, begin
+    refine quotient.induction_on s (λ g, _),
+    cases g with U hp σ, intro h,
+    change is_unit (to_stalk (presheaf_of_rings.res_open _ _) _ _ _ _) at h,
+    replace h := is_unit.map' (of_stalk_of_rings_res_open _ _ _) h,
+    erw [of_stalk_of_rings_res_open_to_stalk, is_unit_to_stalk_on_basis] at h,
+    change is_unit (to_stalk _ _ _ _ _), erw is_unit_to_stalk_on_basis,
+    cases p with p hp1,
+    have := Zariski.coinduced.stalk_on_basis.hlocal _ _ _ _ h,
+    change is_unit (σ.val (Zariski.coinduced x ⟨p, hp1⟩) hp) at this,
+    exact this
+  end }
 
 #exit
 namespace projective_line
 
-variables (R) [decidable_eq R]
+variables (R)
 
 def inr_aux : polynomial R → localization.away (polynomial.X : polynomial R) :=
 polynomial.eval₂ (localization.of ∘ polynomial.C) (localization.away.inv_self (polynomial.X))
 
-set_option class.instance_max_depth 52 -- not one lower
+-- set_option class.instance_max_depth 52 -- not one lower
 instance is_ring_hom_inr_aux : is_ring_hom (inr_aux R) :=
 polynomial.eval₂.is_ring_hom _
 
