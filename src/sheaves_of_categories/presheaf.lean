@@ -101,7 +101,7 @@ instance category_struct : category_struct (presheaf X C) :=
       intros U V HVU, cases V, cases U, dsimp at *, simp at *,
     end}, -- is there a better tactic?
   comp := λ ℱ 𝒢 ℋ φ ψ, {
-    map := λ U, (φ U) ≫ (ψ U),--begin sorry end,--λ U, φ U ≫ ψ U,
+    map := λ U, (φ U) ≫ (ψ U),
     commutes' := begin intros,
     -- I surely want automation to do this.
       show (φ U ≫ ψ U) ≫ ℋ.res HVU = ℱ.res HVU ≫ φ V ≫ ψ V,

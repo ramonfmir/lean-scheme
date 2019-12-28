@@ -31,7 +31,7 @@ local attribute [instance, priority 200] small_category
 
 namespace presheaf
 
---#check @topological_space.presheaf.morphism.commutes
+#check @topological_space.presheaf.morphism.commutes
 
 def map {f : X → Y} (hf : continuous f) : presheaf X C ⥤ presheaf Y C :=
 { obj := λ ℱ, {
@@ -41,19 +41,29 @@ def map {f : X → Y} (hf : continuous f) : presheaf X C ⥤ presheaf Y C :=
     Hcomp' := λ _ _ _ _ _, ℱ.Hcomp _ _},
   map := λ ℱ 𝒢 φ, {
     map := λ V, φ (continuous.comap hf V),
-    commutes' := λ U V HVU, φ.commutes HVU,
-    map_id' := by intros; split,
-    map_comp' := by intros; split }
-}
+    commutes' := λ U V HVU, presheaf.morphism.commutes _ _},
+  map_id' := by intros; split,
+  map_comp' := by intros; split }
 
+--set_option pp.all true
+--set_option pp.proofs true
+--set_option pp.implicit true
+--#check functor.id
+#print notation ≫
+#check category_theory.category_struct.comp
+--set_option pp.notation false
 def map.id : map (@continuous_id X _) ≅ 𝟭 (presheaf X C):=
 { hom :=
   { app := λ ℱ,
-    { map := λ U, presheaf.res' ℱ (by refl),
-      commutes := λ U V HVU, begin dsimp, rw presheaf.Hid', end },
-    naturality' := _ },
-  inv := _,
-  hom_inv_id' := _,
+    { map := λ U, ℱ.res (set.subset.refl U),
+      commutes' := λ U V HVU, by erw [←ℱ.Hcomp, ←ℱ.Hcomp] },
+    naturality' := λ ℱ 𝒢 φ, by ext; apply presheaf.morphism.commutes φ },
+  inv := {
+    app := λ ℱ, {
+      map := λ U, ℱ.res (λ _, id),
+      commutes' := λ U V HVU, by erw [←ℱ.Hcomp, ←ℱ.Hcomp] },
+    naturality' := λ ℱ 𝒢 φ, by ext; apply presheaf.morphism.commutes φ },
+  hom_inv_id' := begin ext ℱ U, dsimp, unfold_coes, rw ←ℱ.Hcomp, end,
   inv_hom_id' := _ }
 
 end presheaf
