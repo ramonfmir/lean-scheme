@@ -208,7 +208,7 @@ def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
         (limits.colimit (to_aux_functor 𝒢 (f '' ↑U))),
       convert limits.colimit.desc _ _ using 1, -- now need a cocone for ℱ whose vertex is f^*𝒢(U)
       -- it's ℱ(V) -> 𝒢(V) -> colim_V 𝒢(V)
-      sorry
+      sorry, sorry
     end,
     commutes' := sorry },
   map_id' := sorry,
