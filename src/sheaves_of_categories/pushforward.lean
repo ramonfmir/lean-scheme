@@ -48,10 +48,10 @@ def map {f : X → Y} (hf : continuous f) : presheaf X C ⥤ presheaf Y C :=
 --set_option pp.all true
 --set_option pp.proofs true
 --set_option pp.implicit true
+--set_option pp.notation false
 --#check functor.id
 #print notation ≫
 #check category_theory.category_struct.comp
---set_option pp.notation false
 def map.id : map (@continuous_id X _) ≅ 𝟭 (presheaf X C):=
 { hom :=
   { app := λ ℱ,
@@ -63,8 +63,26 @@ def map.id : map (@continuous_id X _) ≅ 𝟭 (presheaf X C):=
       map := λ U, ℱ.res (λ _, id),
       commutes' := λ U V HVU, by erw [←ℱ.Hcomp, ←ℱ.Hcomp] },
     naturality' := λ ℱ 𝒢 φ, by ext; apply presheaf.morphism.commutes φ },
-  hom_inv_id' := begin ext ℱ U, dsimp, unfold_coes, rw ←ℱ.Hcomp, end,
-  inv_hom_id' := _ }
+  hom_inv_id' := begin
+    ext ℱ U,
+    dsimp,
+    unfold_coes,
+    unfold category_struct.comp, dsimp,
+    unfold_coes,
+    dsimp,
+    rw ←ℱ.Hcomp,
+    exact ℱ.Hid _,
+  end,
+  inv_hom_id' := begin
+    ext ℱ U,
+    unfold_coes,
+    dsimp,
+    unfold category_struct.comp, dsimp,
+    unfold_coes,
+    dsimp,
+    rw ←ℱ.Hcomp,
+    exact ℱ.Hid _,
+  end }
 
 end presheaf
 
@@ -81,9 +99,9 @@ namespace topological_space.presheaf
 def to_aux_functor (ℱ : presheaf X C) (Y : set X)
   : {V : opens X // Y ⊆ V} ⥤ C :=
 { obj := λ V, ℱ V,
-        map := λ V₁ V₂ j, ℱ.res' j.1.1,
+        map := λ V₁ V₂ j, ℱ.res j.1.1,
         map_id' := λ _, ℱ.Hid _,
-        map_comp' := λ _ _ _ _ _, ℱ.Hcomp _ _ _ _ _}
+        map_comp' := λ _ _ _ _ _, ℱ.Hcomp _ _}
 
 -- I should only need filtered colimits
 variable [limits.has_colimits.{v} C]
@@ -151,15 +169,15 @@ lemma res_aux (ℱ : presheaf X C) {Y₁ Y₂ : set X} (hY : Y₂ ⊆ Y₁) :
 def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
 { obj := λ ℱ,
   { val := λ U, ℱ.aux_colimit (f '' U),
-    res := λ U₁ U₂ hU,
+    res' := λ U₁ U₂ hU,
       limits.colimit.pre (ℱ.to_aux_functor _) (res_functor $ set.image_subset _ hU),
-    Hid := λ U, begin
+    Hid' := λ U, begin
       ext,
       rw limits.colimit.ι_pre,
       erw category.comp_id,
       cases j, cases U, refl,
     end,
-    Hcomp := begin
+    Hcomp' := begin
       intros,
       ext,
       erw limits.colimit.ι_pre,
@@ -192,7 +210,7 @@ def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
       -- it's ℱ(V) -> 𝒢(V) -> colim_V 𝒢(V)
       sorry
     end,
-    commutes := sorry },
+    commutes' := sorry },
   map_id' := sorry,
   map_comp' := sorry }
 
