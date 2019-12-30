@@ -58,7 +58,8 @@ def map.id : map (@continuous_id X _) ≅ 𝟭 (presheaf X C):=
     ext ℱ U,
     dsimp,
     unfold_coes,
-    unfold category_struct.comp, dsimp,
+    unfold category_struct.comp,
+    dsimp,
     unfold_coes,
     dsimp,
     rw ←ℱ.Hcomp,
@@ -68,7 +69,8 @@ def map.id : map (@continuous_id X _) ≅ 𝟭 (presheaf X C):=
     ext ℱ U,
     unfold_coes,
     dsimp,
-    unfold category_struct.comp, dsimp,
+    unfold category_struct.comp,
+    dsimp,
     unfold_coes,
     dsimp,
     rw ←ℱ.Hcomp,
@@ -81,34 +83,20 @@ namespace topological_space.sheaf
 
 variables [limits.has_products.{v} C] [limits.has_equalizers.{v} C]
 
-/-
-sheaf.is_limit :
-  Π (ℱ : sheaf X C) {U : opens X} (OC : covering U),
-    limits.is_limit (presheaf.to_fork (ℱ.to_presheaf) OC)
-
-presheaf.to_fork :
-  Π (ℱ : presheaf X C) {U : opens X} (OC : covering U),
-    limits.fork (presheaf.res_left ℱ OC) (presheaf.res_right ℱ OC)
--/
-
-#check covering
-
 def map {f : X → Y} (hf : continuous f) : sheaf X C ⥤ sheaf Y C :=
-{ obj := λ ℱ, {
-    val := λ _, ℱ (hf.comap _),
+{ obj := λ ℱ,
+  { val := λ _, ℱ (hf.comap _),
     res' := λ _ _ hV, ℱ.res (λ _ hv, hV hv),
     Hid' := λ _, ℱ.Hid _,
     Hcomp' := λ _ _ _ _ _, ℱ.Hcomp _ _,
-    is_limit := λ U OC, begin
-      sorry
-    end},
-  map := λ ℱ 𝒢 φ, {
-    map := λ V, φ (continuous.comap hf V),
-    commutes' := λ U V HVU, presheaf.morphism.commutes _ _},
---  map_id' := by intros; split,
---  map_comp' := by intros; split
+    is_limit := λ U OC, by convert ℱ.is_limit (OC.comap hf)
+  },
+  map := λ ℱ 𝒢 φ,
+  { map := λ V, φ (continuous.comap hf V),
+    commutes' := λ U V HVU, presheaf.morphism.commutes _ _
+  },
+  map_id' := by intros; split,
+  map_comp' := by intros; split
 }
-
--- todo: pushforward of a sheaf should be a sheaf
 
 end topological_space.sheaf
