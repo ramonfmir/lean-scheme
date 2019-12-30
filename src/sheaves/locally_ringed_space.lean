@@ -22,7 +22,12 @@ section locally_ringed_spaces
 
 structure locally_ringed_space (X : Type u) [topological_space X] :=
 (O       : sheaf_of_rings X)
-(Hstalks : ∀ x, local_ring (stalk_of_rings O.F x))
+(Hstalks : ∀ x, is_local_ring (stalk_of_rings O.F x))
+
+instance locally_ringed_space.local_ring (X : Type u) [topological_space X]
+  (OX : locally_ringed_space X) (x : X) :
+  local_ring (stalk_of_rings OX.O.F x) :=
+local_of_is_local_ring $ OX.Hstalks x
 
 -- Morphism of locally ringed spaces.
 
@@ -31,16 +36,16 @@ structure morphism {X : Type u} {Y : Type v} [topological_space X] [topological_
 (f       : X → Y)
 (Hf      : continuous f)
 (fO      : presheaf_of_rings.fmap Hf OX.O.F OY.O.F)
-(Hstalks : ∀ x s, 
+(Hstalks : ∀ x s,
     is_unit (presheaf_of_rings.fmap.induced OX.O.F OY.O.F fO x s) → is_unit s)
 
-infix `⟶`:80 := morphism 
+infix `⟶`:80 := morphism
 
 section morphism
 
 variables {A : Type u} [topological_space A]
-variables {B : Type v} [topological_space B] 
-variables {C : Type w} [topological_space C] 
+variables {B : Type v} [topological_space B]
+variables {C : Type w} [topological_space C]
 variable {OA : locally_ringed_space A}
 variable {OB : locally_ringed_space B}
 variable {OC : locally_ringed_space C}
@@ -69,10 +74,10 @@ def comp (F : morphism OA OB) (G : morphism OB OC) : morphism OA OC :=
 infixl `⊚`:80 := comp
 
 def locally_ringed_space.id (OX : locally_ringed_space A) : morphism OX OX :=
-{ f := id, 
+{ f := id,
   Hf := continuous_id,
   fO := presheaf.fmap.id OX.O.F.to_presheaf,
-  Hstalks := 
+  Hstalks :=
     begin
       intros x a,
       unfold presheaf.fmap.id,

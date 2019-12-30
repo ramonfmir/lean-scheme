@@ -8,20 +8,30 @@ import to_mathlib.localization.localization_alt
 
 universes u v
 
-local attribute [instance] classical.prop_decidable 
+lemma is_local_of_nonunits_ideal {α : Type u} [comm_ring α] (hnze : (0:α) ≠ 1)
+  (h : ∀ x y ∈ nonunits α, x + y ∈ nonunits α) : is_local_ring α :=
+⟨hnze,
+λ x, classical.or_iff_not_imp_left.mpr $ λ hx,
+begin
+  classical, by_contra H,
+  apply h _ _ hx H,
+  simp [-sub_eq_add_neg, add_sub_cancel'_right]
+end⟩
+
+local attribute [instance] classical.prop_decidable
 
 open localization_alt
 
 variables {α : Type u} {β : Type v} [comm_ring α] [comm_ring β]
 variables {f : α → β} [is_ring_hom f]
-variables {P : ideal α} (HP : ideal.is_prime P) 
+variables {P : ideal α} (HP : ideal.is_prime P)
 variables (Hloc : is_localization_data (-P : set α) f)
 
 include Hloc
 
-lemma local_ring.of_is_localization_data_at_prime : local_ring β :=
+def local_ring.of_is_localization_data_at_prime : is_local_ring β :=
 begin
-  apply local_of_nonunits_ideal,
+  apply is_local_of_nonunits_ideal,
   { -- 0 ≠ 1.
     intros HC,
     rw ←is_ring_hom.map_one f at HC,
@@ -83,8 +93,8 @@ begin
       rw [←sub_eq_add_neg, is_ring_hom.map_sub f, sub_eq_zero, is_ring_hom.map_add f],
       iterate 6 { rw is_ring_hom.map_mul f, },
       iterate 2 { rw mul_assoc (f p₃), },
-      rw [←mul_add (f p₃), ←Hp₃q₃, mul_comm (f q₃ * inv), mul_comm (f q₃), ←mul_assoc _ inv], 
-      rw [←Hp₁q₁, ←mul_assoc (f q₂), mul_comm (f q₂)], 
+      rw [←mul_add (f p₃), ←Hp₃q₃, mul_comm (f q₃ * inv), mul_comm (f q₃), ←mul_assoc _ inv],
+      rw [←Hp₁q₁, ←mul_assoc (f q₂), mul_comm (f q₂)],
       rw [←Hp₂q₂, ←mul_assoc (f q₁)],
       rw [←mul_add (f q₁ * f q₂), mul_assoc _ (x + y) inv, Hinv, mul_one],
     rcases (Hloc.ker_le Hzero) with ⟨⟨⟨u, ⟨v, HvnP⟩⟩, Huv⟩, Helem⟩,
