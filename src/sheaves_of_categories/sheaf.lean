@@ -1,5 +1,5 @@
 /-
-    Sheaf (of categories).
+    Sheaf (of objects in a category).
 
     https://stacks.math.columbia.edu/tag/006S
 -/
@@ -56,7 +56,7 @@ def res_commutes (ℱ : presheaf X C) {U : opens X} (OC : covering U) :
   prod_res ℱ OC ≫ res_left ℱ OC = prod_res ℱ OC ≫ res_right ℱ OC :=
 begin
   unfold res_left,
-    unfold res_right, -- why?
+  unfold res_right, -- why?
   unfold prod_res,
   ext jk,
   -- carefully avoiding non-terminal simp
@@ -74,10 +74,10 @@ end
 def map_to_equalizer (ℱ : presheaf X C) {U : opens X} (OC : covering U) :
   ℱ U ⟶ _ :=
 equalizer.lift
-(ℱ.res_left OC)
-(ℱ.res_right OC)
-(ℱ.prod_res OC)
-(ℱ.res_commutes OC)
+  (ℱ.res_left OC)
+  (ℱ.res_right OC)
+  (ℱ.prod_res OC)
+  (ℱ.res_commutes OC)
 
 -- Sheaf condition.
 
@@ -133,6 +133,14 @@ instance : has_coe_to_fun (sheaf X C) :=
   coe := λ ℱ, topological_space.sheaf.to_presheaf ℱ}
 
 namespace sheaf
+
+def res (ℱ : sheaf X C) {U V : opens X} (HVU : V ⊆ U) : ℱ U ⟶ ℱ V :=
+ℱ.to_presheaf.res HVU
+
+def Hid (ℱ : sheaf X C) (U : opens X) : ℱ.res (set.subset.refl U) = 𝟙 (ℱ U) := ℱ.to_presheaf.Hid U
+
+def Hcomp (ℱ : sheaf X C) {U V W : opens X} (HWV : W ⊆ V) (HVU : V ⊆ U) :
+    ℱ.res (set.subset.trans HWV HVU) = ℱ.res HVU ≫ ℱ.res HWV := ℱ.to_presheaf.Hcomp HWV HVU
 
 def map_to_equalizer (ℱ : sheaf X C) {U : opens X} (OC : covering U) :=
   (ℱ.to_presheaf).map_to_equalizer OC
