@@ -6,7 +6,7 @@ import topology.basic
 import topology.opens
 import to_mathlib.opens
 
-universes u 
+universes u
 
 open topological_space lattice
 
@@ -16,7 +16,7 @@ variables {α : Type u} [topological_space α]
 
 -- Open cover.
 
-structure covering (U : opens α) := 
+structure covering (U : opens α) :=
 {γ    : Type u}
 (Uis  : γ → opens α)
 (Hcov : ⋃ Uis = U)
@@ -29,8 +29,8 @@ variable {α}
 
 -- If ⋃ Ui = U then for all i, Ui ⊆ U.
 
-lemma subset_covering {U : opens α} {OC : covering U} : 
-∀ i, OC.Uis i ⊆ U := 
+lemma subset_covering {U : opens α} {OC : covering U} :
+∀ i, OC.Uis i ⊆ U :=
 λ i x Hx, OC.Hcov ▸ opens_supr_mem OC.Uis i x Hx
 
 -- Make covering from standard definition. Used for instance in compactness.
@@ -38,12 +38,12 @@ lemma subset_covering {U : opens α} {OC : covering U} :
 def opens.from_sets {A : Type*} [topological_space A]
 : set (set A) → set (opens A) := λ C, { x | x.1 ∈ C }
 
-lemma opens.from_sets.eq {A : Type*} [topological_space A] 
+lemma opens.from_sets.eq {A : Type*} [topological_space A]
 (S : set (set A)) (HS : ∀ (t : set A), t ∈ S → is_open t)
 : subtype.val '' (opens.from_sets S) = S :=
 set.ext $ λ x, ⟨
   λ ⟨x', Hx', Hval⟩, Hval ▸ Hx',
-  λ Hx, by simp [HS x Hx]; by exact Hx⟩ 
+  λ Hx, by simp [HS x Hx]; by exact Hx⟩
 
 @[reducible] def covering.from_cover {A : Type*} [topological_space A]
 (U     : opens A)
@@ -53,7 +53,7 @@ set.ext $ λ x, ⟨
 : covering U :=
 { γ := opens.from_sets C,
   Uis := λ x, x,
-  Hcov := 
+  Hcov :=
     begin
       apply subtype.ext.2,
       rw Hcov,
@@ -94,5 +94,25 @@ begin
   simp [opens.from_sets] at *,
   exact Hi,
 end
+
+-- TODO -- should be in mathlib?
+lemma opens.supr_val {X γ : Type*} [topological_space X] (ι : γ → opens X) :
+  (⨆ i, ι i).val = ⨆ i, (ι i).val :=
+@galois_connection.l_supr (opens X) (set X) _ _ _ (subtype.val : opens X → set X)
+    opens.interior opens.gc _
+
+--lemma opens.supr_comap_val {X Y : Type*} [topological_space X] [topological_space Y] {f : X → Y}
+--  (hf : continuous f) {γ : Type*}
+--  (ι : γ → opens Y) :
+--(⨆ (j : γ), hf.comap (ι j)).val = set.Union (λ (j : γ), f ⁻¹' (ι j).val) :=
+--by simp [set.ext_iff, opens.supr_val, continuous.comap]
+
+/-- pullback of a covering is a covering -/
+def covering.comap {X Y : Type*} [topological_space X] [topological_space Y]
+  {f : X → Y} (hf : continuous f) {U : opens Y} (OC : covering U) : covering (hf.comap U) :=
+{ γ := OC.γ,
+  Uis := λ i, hf.comap $ OC.Uis i,
+  Hcov := by simp [subtype.ext, continuous.comap, (subtype.ext.1 OC.Hcov).symm, opens.supr_val]
+}
 
 end covering
