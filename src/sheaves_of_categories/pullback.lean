@@ -19,24 +19,28 @@ def small_category {α : Type v} [preorder α] : small_category α :=
 -- need to beat 100 to have an effect
 local attribute [instance, priority 200] small_category
 
-
 --example (X Y : Type) {f : X → Y}
 --  (U : set X) (V : set Y) : f '' U ⊆ V ↔ U ⊆ f ⁻¹' V := easy
 
-
 /-- The functor induced by ℱ on the opens containing a subset of X -/
-def to_aux_functor (ℱ : presheaf X C) (Y : set X)
+def aux_functor (ℱ : presheaf X C) (Y : set X)
   : {V : opens X // Y ⊆ V} ⥤ C :=
 { obj := λ V, ℱ V,
-        map := λ V₁ V₂ j, ℱ.res j.1.1,
-        map_id' := λ _, ℱ.Hid _,
-        map_comp' := λ _ _ _ _ _, ℱ.Hcomp _ _}
+  map := λ V₁ V₂ j, ℱ.res j.1.1,
+  map_id' := λ _, ℱ.Hid _,
+  map_comp' := λ _ _ _ _ _, ℱ.Hcomp _ _
+}
+
+def aux_functor.hom {ℱ 𝒢 : presheaf X C} (φ : ℱ ⟶ 𝒢) (Y : set X) :
+  aux_functor ℱ Y ⟶ aux_functor 𝒢 Y :=
+{ app := λ V, φ V,
+  naturality' := λ V W i, (morphism.commutes' φ V W i.down.down).symm }
 
 -- I should only need filtered colimits
 variable [limits.has_colimits.{v} C]
 
-def aux_cocone (ℱ : presheaf X C) (Y : set X) : limits.cocone (ℱ.to_aux_functor Y) :=
-limits.colimit.cocone (ℱ.to_aux_functor Y)
+def aux_cocone (ℱ : presheaf X C) (Y : set X) : limits.cocone (ℱ.aux_functor Y) :=
+limits.colimit.cocone (ℱ.aux_functor Y)
 
 def aux_colimit (ℱ : presheaf X C) (Y : set X) : C :=
 (ℱ.aux_cocone Y).X
@@ -50,7 +54,7 @@ lemma res_res {Y₁ Y₂ Y₃ : set X} (h21 : Y₂ ⊆ Y₁) (h32 : Y₃ ⊆ Y�
   res_functor h21 ⋙ res_functor h32 = res_functor (set.subset.trans h32 h21) := rfl
 
 example (ℱ : presheaf X C) {Y₁ Y₂ : set X} (hY : Y₂ ⊆ Y₁) :
-  res_functor hY ⋙ ℱ.to_aux_functor Y₂ = ℱ.to_aux_functor Y₁ := rfl -- :-)
+  res_functor hY ⋙ ℱ.aux_functor Y₂ = ℱ.aux_functor Y₁ := rfl -- :-)
 
 example (Y : set X) : res_functor (set.subset.refl Y) ≅ 𝟭 _ :=
 begin
@@ -90,16 +94,16 @@ limits.colimit (E ⋙ F) ⟶ limits.colimit F
 --(h : E₁ = E₂) : limits.colimit.pre F E₁ = limits.colimit.pre F E₂ := sorry
 
 lemma res_aux (ℱ : presheaf X C) {Y₁ Y₂ : set X} (hY : Y₂ ⊆ Y₁) :
-  res_functor hY ⋙ ℱ.to_aux_functor Y₂ = ℱ.to_aux_functor Y₁ := rfl -- :-)
+  res_functor hY ⋙ ℱ.aux_functor Y₂ = ℱ.aux_functor Y₁ := rfl -- :-)
 
 --set_option pp.proofs true
 --set_option trace.simplify.rewrite true
---set_option profiler true
+set_option profiler true
 def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
 { obj := λ ℱ,
   { val := λ U, ℱ.aux_colimit (f '' U),
     res' := λ U₁ U₂ hU,
-      limits.colimit.pre (ℱ.to_aux_functor _) (res_functor $ set.image_subset _ hU),
+      limits.colimit.pre (ℱ.aux_functor _) (res_functor $ set.image_subset _ hU),
     Hid' := λ U, begin
       ext,
       rw limits.colimit.ι_pre,
@@ -116,13 +120,13 @@ def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
         congr,
         change limits.colimit.pre (res_functor
           (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV) ⋙
-          to_aux_functor ℱ (f '' W.val)) (res_functor (set.image_subset f HVU)),
+          aux_functor ℱ (f '' W.val)) (res_functor (set.image_subset f HVU)),
       end,
       rw limits.colimit.pre_pre,
       conv begin
         to_rhs,
         congr, skip,
-        change limits.colimit.pre (to_aux_functor ℱ (f '' W.val))
+        change limits.colimit.pre (aux_functor ℱ (f '' W.val))
           (res_functor (show f '' W.val ⊆ f '' U.val, from set.subset.trans
           (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV)
           (show f '' V.val ⊆ f '' U.val, from set.image_subset f HVU))),
@@ -130,16 +134,9 @@ def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
       rw limits.colimit.ι_pre,
     end },
   map := λ ℱ 𝒢 φ,
-  { map := λ U, show aux_colimit ℱ (f '' ↑U) ⟶ aux_colimit 𝒢 (f '' ↑U), begin
-      unfold aux_colimit,
-      unfold aux_cocone,
-      show (limits.colimit (to_aux_functor ℱ (f '' ↑U))) ⟶
-        (limits.colimit (to_aux_functor 𝒢 (f '' ↑U))),
-      convert limits.colimit.desc _ _ using 1, -- now need a cocone for ℱ whose vertex is f^*𝒢(U)
-      -- it's ℱ(V) -> 𝒢(V) -> colim_V 𝒢(V)
-      sorry, sorry
-    end,
-    commutes' := sorry },
+  { map := λ U, limits.colimit.desc _
+      ((limits.cocones.precompose (aux_functor.hom φ _)).obj ((aux_cocone 𝒢 (f '' U)))),
+    commutes' := begin sorry end },
   map_id' := sorry,
   map_comp' := sorry }
 
