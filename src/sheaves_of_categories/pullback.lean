@@ -36,6 +36,9 @@ def aux_functor.hom {ℱ 𝒢 : presheaf X C} (φ : ℱ ⟶ 𝒢) (Y : set X) :
 { app := λ V, φ V,
   naturality' := λ V W i, (morphism.commutes' φ V W i.down.down).symm }
 
+lemma aux_functor.hom_eq_id (ℱ : presheaf X C) (Y : set X) :
+  aux_functor.hom (𝟙 ℱ) Y = 𝟙 (aux_functor ℱ Y) := rfl
+
 -- I should only need filtered colimits
 variable [limits.has_colimits.{v} C]
 
@@ -98,46 +101,104 @@ lemma res_aux (ℱ : presheaf X C) {Y₁ Y₂ : set X} (hY : Y₂ ⊆ Y₁) :
 
 --set_option pp.proofs true
 --set_option trace.simplify.rewrite true
-set_option profiler true
-def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
-{ obj := λ ℱ,
-  { val := λ U, ℱ.aux_colimit (f '' U),
-    res' := λ U₁ U₂ hU,
-      limits.colimit.pre (ℱ.aux_functor _) (res_functor $ set.image_subset _ hU),
-    Hid' := λ U, begin
-      ext,
-      rw limits.colimit.ι_pre,
-      erw category.comp_id,
-      cases j, cases U, refl,
+--set_option profiler true
+
+def comap.obj {f : X → Y} (hf : continuous f) (ℱ : presheaf Y C) : presheaf X C :=
+{ val := λ U, ℱ.aux_colimit (f '' U),
+  res' := λ U₁ U₂ hU,
+    limits.colimit.pre (ℱ.aux_functor _) (res_functor $ set.image_subset _ hU),
+  Hid' := λ U, begin
+    ext,
+    rw limits.colimit.ι_pre,
+    erw category.comp_id,
+    cases j, cases U, refl,
+  end,
+  Hcomp' := begin
+    intros,
+    ext,
+    erw limits.colimit.ι_pre,
+    conv begin
+      to_rhs,
+      congr, skip,
+      congr,
+      change limits.colimit.pre (res_functor
+        (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV) ⋙
+        aux_functor ℱ (f '' W.val)) (res_functor (set.image_subset f HVU)),
     end,
-    Hcomp' := begin
-      intros,
-      ext,
-      erw limits.colimit.ι_pre,
-      conv begin
-        to_rhs,
-        congr, skip,
-        congr,
-        change limits.colimit.pre (res_functor
-          (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV) ⋙
-          aux_functor ℱ (f '' W.val)) (res_functor (set.image_subset f HVU)),
-      end,
-      rw limits.colimit.pre_pre,
-      conv begin
-        to_rhs,
-        congr, skip,
-        change limits.colimit.pre (aux_functor ℱ (f '' W.val))
-          (res_functor (show f '' W.val ⊆ f '' U.val, from set.subset.trans
-          (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV)
-          (show f '' V.val ⊆ f '' U.val, from set.image_subset f HVU))),
-      end,
-      rw limits.colimit.ι_pre,
-    end },
+    rw limits.colimit.pre_pre,
+    conv begin
+      to_rhs,
+      congr, skip,
+      change limits.colimit.pre (aux_functor ℱ (f '' W.val))
+        (res_functor (show f '' W.val ⊆ f '' U.val, from set.subset.trans
+        (show f '' W.val ⊆ f '' V.val, from set.image_subset f HWV)
+        (show f '' V.val ⊆ f '' U.val, from set.image_subset f HVU))),
+    end,
+    rw limits.colimit.ι_pre,
+  end }
+
+-- for mathlib
+lemma limits.colimit.desc_eq_id {J : Type v} [category_theory.small_category J]
+  {C : Type u} [𝒞 : category_theory.category.{v} C]
+  (F : J ⥤ C) [limits.has_colimit F] : limits.colimit.desc F (limits.colimit.cocone F) = 𝟙 _ :=
+begin
+  ext j,
+  simp [category.comp_id, limits.colimit.ι_desc],
+end.
+
+--set_option pp.proofs true
+--set_option pp.notation false
+def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
+{ obj := λ ℱ, comap.obj hf ℱ,
   map := λ ℱ 𝒢 φ,
   { map := λ U, limits.colimit.desc _
       ((limits.cocones.precompose (aux_functor.hom φ _)).obj ((aux_cocone 𝒢 (f '' U)))),
-    commutes' := begin sorry end },
-  map_id' := sorry,
-  map_comp' := sorry }
+    commutes' := λ U V HUV, begin
+      show limits.colimit.desc (aux_functor ℱ (f '' ↑U))
+        ((limits.cocones.precompose (aux_functor.hom φ (f '' ↑U))).obj (aux_cocone 𝒢 (f '' ↑U))) ≫
+      (comap.obj hf 𝒢).res' U V HUV =
+    (comap.obj hf ℱ).res' U V HUV ≫
+      limits.colimit.desc (aux_functor ℱ (f '' ↑V))
+        ((limits.cocones.precompose (aux_functor.hom φ (f '' ↑V))).obj (aux_cocone 𝒢 (f '' ↑V))),
+      rw [←limits.colimit.map_desc,←limits.colimit.map_desc],
+      show (limits.colim.map (aux_functor.hom φ (f '' ↑U)) ≫
+         limits.colimit.desc (aux_functor 𝒢 (f '' ↑U)) (aux_cocone 𝒢 (f '' ↑U))) ≫
+      limits.colimit.pre (aux_functor 𝒢 (f '' V.val)) (res_functor (set.image_subset f HUV)) =
+    limits.colimit.pre (aux_functor ℱ (f '' V.val)) (res_functor (set.image_subset f HUV)) ≫
+      limits.colim.map (aux_functor.hom φ (f '' ↑V)) ≫
+        limits.colimit.desc (aux_functor 𝒢 (f '' ↑V)) (aux_cocone 𝒢 (f '' ↑V)),
+      rw [←category.assoc,limits.colimit.pre_map,category.assoc,category.assoc],
+      erw [limits.colimit.desc_eq_id,limits.colimit.desc_eq_id,category.comp_id,category.id_comp],
+      apply congr_fun,
+      apply congr_fun,
+      refl,
+    end },
+  map_id' := begin
+    intro ℱ,
+    ext U V,
+    change limits.colimit.ι (aux_functor ℱ (f '' ↑U)) V ≫
+      limits.colimit.desc (aux_functor ℱ (f '' ↑U))
+        ((limits.cocones.precompose (aux_functor.hom (𝟙 ℱ) (f '' ↑U))).obj (aux_cocone ℱ (f '' ↑U))) =
+    limits.colimit.ι (aux_functor ℱ (f '' ↑U)) V ≫ (morphism.map (𝟙 (comap.obj hf ℱ)) U),
+    erw aux_functor.hom_eq_id ℱ (f '' U),
+    rw limits.colimit.ι_desc,
+    unfold morphism.map,
+    erw category.comp_id,
+    cases V, cases U, cases V_val, dsimp at *, simp at *, refl,
+  end,
+  map_comp' := begin
+    intros ℱ 𝒢 ℋ φ ψ,
+    ext U V,
+    dsimp,
+    unfold_coes,
+    dsimp,
+    rw limits.colimit.ι_desc,
+    delta category_struct.comp,
+    dsimp,
+    sorry,
+    --rw ←category.assoc,
+    --rw limits.colimit.ι_desc,
+
+  end }
 
 end topological_space.presheaf
