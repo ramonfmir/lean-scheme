@@ -580,6 +580,10 @@ ring_equiv.of'
   right_inv := λ s, stalk_of_rings.induction_on s $ λ V HV s,
     by rw [to_stalk_of_rings_res_open_to_stalk, of_stalk_of_rings_res_open_to_stalk]; apply to_stalk_res }
 
+instance to_stalk_of_rings_res_open.hom (F : presheaf_of_rings X) (U : opens X) (x : U) :
+  is_ring_hom (to_stalk_of_rings_res_open F U x) :=
+(presheaf_of_rings.res_open.stalk_of_rings F U x).symm.hom
+
 /- theorem is_local_ring_iff : is_local_ring R ↔ ((0:R) ≠ 1 ∧ ∀ x y : R, is_unit (x + y) → is_unit x ∨ is_unit y) :=
 ⟨λ hr, ⟨hr.1, λ x y hxy, classical.or_iff_not_imp_left.2 $ λ hnx, classical.by_contradiction $ λ hny,
   absurd hxy $ (@local_ring.nonunits_ideal R (local_of_is_local_ring hr)).add_mem hnx hny⟩,
@@ -1056,7 +1060,7 @@ instance Zariski.coinduced.Fext.hom {x : R} (U : opens (Spec (localization.away 
   map_add := by rintros ⟨q, hq⟩ ⟨r, hr⟩; apply subtype.eq; ext p hp;
     exact is_ring_hom.map_add (Zariski.coinduced.stalk_on_basis p U hp) }
 
-def res_D_fs (x : R) : locally_ringed_space.morphism
+def D_f_to_Spec (x : R) : locally_ringed_space.morphism
   ((Spec.locally_ringed_space R).res_open (Spec.DO R x))
   (Spec.locally_ringed_space (localization.away x)) :=
 { f := Zariski.coinduced x,
@@ -1078,19 +1082,54 @@ def res_D_fs (x : R) : locally_ringed_space.morphism
     exact this
   end }
 
-#exit
+def Zariski.induced' (x : R) (p : Spec (localization.away x)) : Spec.DO R x :=
+⟨Zariski.induced localization.of p, λ hxp, p.2.1 $ p.1.eq_top_of_is_unit_mem hxp $
+localization.of_is_unit' _ _ _ ⟨1, pow_one x⟩⟩
+
+theorem Zariski.induced'.continuous (x : R) : continuous (Zariski.induced' x) :=
+continuous_induced_rng $ Zariski.induced.continuous localization.of
+
+def Spec_to_D_f (x : R) : locally_ringed_space.morphism
+  (Spec.locally_ringed_space (localization.away x))
+  ((Spec.locally_ringed_space R).res_open (Spec.DO R x)) :=
+{ f := Zariski.induced' x,
+  Hf := Zariski.induced'.continuous x,
+  fO :=
+  { map := λ U s, (Spec.locally_ringed_space (localization.away x)).O.F.res
+      (opens.comap ((Zariski.induced.locally_ringed_space localization.of).Hf)
+        (topological_space.opens.map_subtype_val U))
+      (opens.comap (Zariski.induced'.continuous x) U)
+      (λ p hpU, ⟨_, hpU, rfl⟩)
+      ((Zariski.induced.locally_ringed_space localization.of).fO.map U.map_subtype_val s),
+    commutes := λ U V HVU, rfl },
+  hom := λ U, @@is_ring_hom.comp _ _ _ ((Zariski.induced.locally_ringed_space localization.of).hom _) _ _ _,
+  Hstalks := λ p s, begin
+    refine quotient.induction_on s (λ g, _),
+    cases g with U hp σ, intro h,
+    change is_unit (to_stalk _ _ _ _ _) at h, dsimp only at h,
+    rw to_stalk_res _ p (opens.comap (((Zariski.induced.locally_ringed_space localization.of).to_morphism).Hf)
+      (topological_space.opens.map_subtype_val U)) _ ⟨_, hp, rfl⟩ at h,
+    erw is_unit_to_stalk_on_basis at h, dsimp only at h,
+    change is_unit (to_stalk _ _ _ _ _), --erw is_unit_to_stalk_on_basis,
+    have := Zariski.induced.stalk_on_basis.hlocal localization.of p _ h,
+    erw ← is_unit_to_stalk_on_basis at this,
+    replace this := is_unit.map' (to_stalk_of_rings_res_open _ _ (Zariski.induced' x p)) this,
+    erw [to_stalk_of_rings_res_open_to_stalk, to_stalk_res] at this, exact this,
+    { rintros q ⟨r, hrU, hrq⟩, rwa ← subtype.eq hrq }
+  end }
+
 namespace projective_line
 
 variables (R)
 
-def inr_aux : polynomial R → localization.away (polynomial.X : polynomial R) :=
+noncomputable def inr_aux : polynomial R → localization.away (polynomial.X : polynomial R) :=
 polynomial.eval₂ (localization.of ∘ polynomial.C) (localization.away.inv_self (polynomial.X))
 
 -- set_option class.instance_max_depth 52 -- not one lower
 instance is_ring_hom_inr_aux : is_ring_hom (inr_aux R) :=
 polynomial.eval₂.is_ring_hom _
 
-def inverse : localization.away (polynomial.X : polynomial R) → localization.away (polynomial.X : polynomial R) :=
+noncomputable def inverse : localization.away (polynomial.X : polynomial R) → localization.away (polynomial.X : polynomial R) :=
 localization.lift'
   (inr_aux R)
   (λ p, ⟨inr_aux R p.1, localization.of p.1,
@@ -1111,6 +1150,9 @@ polynomial.induction_on p
   (λ n r ih, by rw [pow_add, pow_one, ← mul_assoc, localization.coe_mul, is_ring_hom.map_mul (inverse R ∘ inverse R), ih];
     simp only [inverse, function.comp_apply, localization.lift'_coe, localization.lift'_of, inr_aux, polynomial.eval₂_X,
         localization.away.lift'_inv_self]; refl)
+
+theorem inverse_inverse' (p) : inverse R (inverse R p) = p :=
+congr_fun (inverse_inverse R) p
 
 theorem Zariski_induced_inverse (p : Spec (localization.away (polynomial.X : polynomial R))) :
   Zariski.induced (inverse R) (Zariski.induced (inverse R) p) = p :=
@@ -1160,6 +1202,19 @@ localization.inj_Zariski_induced_localization_of (powers polynomial.X)
 theorem inverse_comp_localization_of :
   inverse R ∘ localization.of = inr_aux R :=
 funext $ λ p, by rw [inverse, function.comp_apply, localization.lift'_of]
+
+theorem inl_induced (p : Spec (localization.away (polynomial.X : polynomial R))) :
+  inl R (Zariski.induced (inr_aux R) p) = inr R (Zariski.induced localization.of p) :=
+have h1 : Zariski.induced (inr_aux R) p = Zariski.induced localization.of (Zariski.induced (inverse R) p),
+  from subtype.eq $ ideal.ext $ λ x, show _ ∈ p.1 ↔ _ ∈ p.1, by rw [← inverse_comp_localization_of],
+have h2 : Zariski.induced localization.of p = Zariski.induced (inr_aux R) (Zariski.induced (inverse R) p),
+  from subtype.eq $ ideal.ext $ λ x, show _ ∈ p.1 ↔ _ ∈ p.1, by rw [← inverse_comp_localization_of,
+      function.comp_apply, inverse_inverse'],
+quot.sound $ by rw [h1, h2]; apply r.inv
+
+theorem inr_induced (p : Spec (localization.away (polynomial.X : polynomial R))) :
+  inr R (Zariski.induced (inr_aux R) p) = inl R (Zariski.induced localization.of p) :=
+eq.symm $ quot.sound $ r.inv p
 
 theorem inj_indr : function.injective
   (Zariski.induced (inr_aux R) : Spec (localization.away (polynomial.X : polynomial R)) → Spec (polynomial R)) :=
@@ -1214,7 +1269,6 @@ end
 theorem open_preimagelr : is_open (inl R ⁻¹' set.range (inr R)) :=
 by rw inl_preimage_range_inr; exact D_fs_open _ _
 
-set_option class.instance_max_depth 52
 theorem inr_preimage_range_inl : inr R ⁻¹' set.range (inl R) = (Spec.DO (polynomial R) polynomial.X).1 :=
 begin
   ext p, split,
@@ -1229,7 +1283,12 @@ begin
     rw [← Zariski_induced_inverse R q, ← Zariski_induced_comp, congr_arg_Zariski.{u u} (inverse_comp_localization_of R)],
     split, apply quot.sound, constructor }
 end
-set_option class.instance_max_depth 32
+
+theorem inj_inl : function.injective (inl R) :=
+λ x y h, by rcases exact R _ _ h with h | ⟨s, h1, ⟨⟩⟩ | ⟨s, ⟨⟩, h2⟩; exact sum.inl.inj h
+
+theorem inj_inr : function.injective (inr R) :=
+λ x y h, by rcases exact R _ _ h with h | ⟨s, ⟨⟩, h2⟩ | ⟨s, h1, ⟨⟩⟩; exact sum.inr.inj h
 
 theorem open_preimagerl : is_open (inr R ⁻¹' set.range (inl R)) :=
 by rw inr_preimage_range_inl; exact D_fs_open _ _
@@ -1253,25 +1312,61 @@ protected def covering : covering (⊤ : opens (projective_line R)) :=
     (λ v, set.mem_sUnion.2 ⟨_, ⟨_, ⟨pbool.ff, rfl⟩, rfl⟩, v, rfl⟩)
     (λ v, set.mem_sUnion.2 ⟨_, ⟨_, ⟨pbool.tt, rfl⟩, rfl⟩, v, rfl⟩) }
 
-def soropl : sheaf_of_rings_on_opens (projective_line R) (opl R) :=
+noncomputable def soropl : sheaf_of_rings_on_opens (projective_line R) (opl R) :=
 sheaf_of_rings.pushforward (continuous_inl R) (structure_sheaf (polynomial R))
 
-def soropr : sheaf_of_rings_on_opens (projective_line R) (opr R) :=
+noncomputable def soropr : sheaf_of_rings_on_opens (projective_line R) (opr R) :=
 sheaf_of_rings.pushforward (continuous_inr R) (structure_sheaf (polynomial R))
 
-def sorope1 : sheaf_of_rings_on_opens.morphism
+theorem sorope1.aux (V : opens (projective_line R)) (HV : V ≤ opl R ⊓ opr R) :
+  opens.comap (continuous_inr R) V ⊆
+    topological_space.opens.map_subtype_val
+      (opens.comap (((D_f_to_Spec polynomial.X).to_morphism).Hf)
+         (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
+            (opens.comap (continuous_inl R) V))) :=
+λ p (hp : _ ∈ V), ⟨⟨p, ((set.ext_iff _ _).1 (inr_preimage_range_inl R) p).1 (HV hp).1⟩,
+show inl R (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, _⟩)) ∈ V,
+  by rwa [inl_induced, induced_coinduced],
+rfl⟩
+
+noncomputable def sorope1 : sheaf_of_rings_on_opens.morphism
   (sheaf_of_rings_on_opens.res_subset (soropl R) (opl R ⊓ opr R) lattice.inf_le_left)
   (sheaf_of_rings_on_opens.res_subset (soropr R) (opl R ⊓ opr R) lattice.inf_le_right) :=
 { η :=
-  { map := λ V HV, _ ∘
-      (Zariski.induced.locally_ringed_space (inr_aux R)).1.3.1 (opens.comap (continuous_inl R) V),
-    commutes := by skip },
-  hom := by skip }
-#check (Zariski.induced.locally_ringed_space (localization.of : _ → localization.away (polynomial.X : polynomial R))).1.3.1
-def sorope : sheaf_of_rings_on_opens.equiv
+  { map := λ V HV, (by exact (Spec.locally_ringed_space (polynomial R)).O.F.res _ _ (sorope1.aux R V HV)) ∘
+      (D_f_to_Spec (polynomial.X : polynomial R)).fO.map _ ∘
+      (Zariski.induced.locally_ringed_space (inr_aux R)).fO.map (opens.comap (continuous_inl R) V),
+    commutes := λ V HV W HW HWV s, rfl },
+  hom := λ V HV, @@is_ring_hom.comp _ _ _ (is_ring_hom.comp _ _) _ _ _ }
+
+theorem sorope2.aux (V : opens (projective_line R)) (HV : V ≤ opl R ⊓ opr R) :
+  opens.comap (continuous_inl R) V ⊆
+    topological_space.opens.map_subtype_val
+      (opens.comap (((D_f_to_Spec polynomial.X).to_morphism).Hf)
+         (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
+            (opens.comap (continuous_inr R) V))) :=
+λ p (hp : _ ∈ V), ⟨⟨p, ((set.ext_iff _ _).1 (inl_preimage_range_inr R) p).1 (HV hp).2⟩,
+show inr R (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, _⟩)) ∈ V,
+  by rwa [inr_induced, induced_coinduced],
+rfl⟩
+
+noncomputable def sorope2 : sheaf_of_rings_on_opens.morphism
+  (sheaf_of_rings_on_opens.res_subset (soropr R) (opl R ⊓ opr R) lattice.inf_le_right)
+  (sheaf_of_rings_on_opens.res_subset (soropl R) (opl R ⊓ opr R) lattice.inf_le_left) :=
+{ η :=
+  { map := λ V HV, (by exact (Spec.locally_ringed_space (polynomial R)).O.F.res _ _ (sorope2.aux R V HV)) ∘
+      (D_f_to_Spec (polynomial.X : polynomial R)).fO.map _ ∘
+      (Zariski.induced.locally_ringed_space (inr_aux R)).fO.map (opens.comap (continuous_inr R) V),
+    commutes := λ V HV W HW HWV s, rfl },
+  hom := λ V HV, @@is_ring_hom.comp _ _ _ (is_ring_hom.comp _ _) _ _ _ }
+
+noncomputable def sorope : sheaf_of_rings_on_opens.equiv
   (sheaf_of_rings_on_opens.res_subset (soropl R) (opl R ⊓ opr R) lattice.inf_le_left)
   (sheaf_of_rings_on_opens.res_subset (soropr R) (opl R ⊓ opr R) lattice.inf_le_right) :=
-sorry
+{ to_fun := sorope1 R,
+  inv_fun := (sorope2 R).η,
+  left_inv := λ V HV s, by dsimp only [sorope1, sorope2, (∘)]; sorry,
+  right_inv := sorry }
 
 def sor : sheaf_of_rings (projective_line R) :=
 sheaf_of_rings_on_opens.sheaf_glue (projective_line.covering R).Uis
