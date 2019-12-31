@@ -109,7 +109,7 @@ lemma opens.supr_val {X γ : Type*} [topological_space X] (ι : γ → opens X) 
 
 /-- pullback of a covering is a covering -/
 def covering.comap {X Y : Type*} [topological_space X] [topological_space Y]
-  {f : X → Y} (hf : continuous f) {U : opens Y} (OC : covering U) : covering (hf.comap U) :=
+  {U : opens Y} (OC : covering U) {f : X → Y} (hf : continuous f) : covering (hf.comap U) :=
 { γ := OC.γ,
   Uis := λ i, hf.comap $ OC.Uis i,
   Hcov := by simp [subtype.ext, continuous.comap, (subtype.ext.1 OC.Hcov).symm, opens.supr_val]
