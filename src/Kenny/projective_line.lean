@@ -1436,23 +1436,9 @@ begin
   generalize : sorope2._proof_13 R V HV hp = h4,
   generalize : Zariski.coinduced.Fext._proof_12
     (opens.comap (sorope1._proof_7 R) (opens.comap (sorope1._proof_8 R) V)) _ _ = h1,
+  generalize : sorope1._proof_13 R V HV _ = h9,
   change Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X
     ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩) ∈ _ at h1,
-  change Zariski.coinduced.stalk_on_basis p (opens.comap _ (opens.comap _ V)) h4
-    (Zariski.induced.stalk_on_basis (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩)
-        (Zariski.coinduced.stalk_on_basis
-          (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩))
-          (opens.comap _ (opens.comap _ V))
-          _
-          (Zariski.induced.stalk_on_basis (inr_aux R)
-            (Zariski.coinduced polynomial.X
-              ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩)
-            (s.val
-              (Zariski.induced (inr_aux R)
-                  (Zariski.coinduced polynomial.X
-                    ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩))
-              h1)))) =
-  s.val p hp,
   have : Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X
     ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩) = p,
   { revert h3,
@@ -1472,28 +1458,11 @@ begin
   rw Zariski.induced.stalk_on_basis.stalk_on_basis_of_localization,
   rw Zariski.coinduced.stalk_on_basis.stalk_on_basis_of_localization,
   have h6 : s.1 p hp = stalk_on_basis_of_localization p (eq.rec x this),
-  { revert this h5 h1 hp x, clear h4,
+  { revert this h5 h1 hp x, clear h9 h4,
     generalize : Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X
       ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩) = q,
     intros, subst this, exact h5 },
   rw [h6, rec_eq_to_superset], congr' 1, refine congr_fun _ x,
-  change (Zariski.coinduced.stalk_on_basis.algebraic p
-        (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
-          (opens.comap (continuous_inr R) V))
-        h4 ∘
-      Zariski.induced.stalk_on_basis.algebraic (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩) ∘
-      Zariski.coinduced.stalk_on_basis.algebraic
-        (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩))
-        (opens.comap (sorope1._proof_7 R) (opens.comap (sorope1._proof_8 R) V))
-        (sorope1._proof_13 R V HV
-          (Zariski.coinduced.Fext._proof_12
-              (opens.comap (sorope2._proof_7 R) (opens.comap (sorope2._proof_8 R) V))
-              p
-              h4)) ∘
-      Zariski.induced.stalk_on_basis.algebraic (inr_aux R)
-        (Zariski.coinduced polynomial.X
-            ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩)) =
-    localization.to_superset _,
   have : is_ring_hom ((Zariski.coinduced.stalk_on_basis.algebraic p
         (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
           (opens.comap (continuous_inr R) V))
@@ -1502,11 +1471,7 @@ begin
       Zariski.coinduced.stalk_on_basis.algebraic
         (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩))
         (opens.comap (sorope1._proof_7 R) (opens.comap (sorope1._proof_8 R) V))
-        (sorope1._proof_13 R V HV
-          (Zariski.coinduced.Fext._proof_12
-              (opens.comap (sorope2._proof_7 R) (opens.comap (sorope2._proof_8 R) V))
-              p
-              h4)) ∘
+        h9 ∘
       Zariski.induced.stalk_on_basis.algebraic (inr_aux R)
         (Zariski.coinduced polynomial.X
             ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩))),
@@ -1514,53 +1479,33 @@ begin
   convert (@@is_ring_hom.comp _ _ _ _ _ _ (Zariski.induced.stalk_on_basis.algebraic.hom _ _)),
   convert (@@is_ring_hom.comp _ _ _ _ _ _ (Zariski.coinduced.stalk_on_basis.algebraic.hom _ _ _)),
   convert (Zariski.induced.stalk_on_basis.algebraic.hom _ _),
-  refine @@localization.funext _ _ _
-    (Zariski.coinduced.stalk_on_basis.algebraic p
-        (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
-          (opens.comap (continuous_inr R) V))
-        h4 ∘
-      Zariski.induced.stalk_on_basis.algebraic (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩) ∘
-      Zariski.coinduced.stalk_on_basis.algebraic
-        (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩))
-        (opens.comap (sorope1._proof_7 R) (opens.comap (sorope1._proof_8 R) V))
-        (sorope1._proof_13 R V HV
-          (Zariski.coinduced.Fext._proof_12
-              (opens.comap (sorope2._proof_7 R) (opens.comap (sorope2._proof_8 R) V))
-              p
-              h4)) ∘
-      Zariski.induced.stalk_on_basis.algebraic (inr_aux R)
-        (Zariski.coinduced polynomial.X
-            ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩))
-    (localization.to_superset _)
-    this
-    (localization.to_superset.hom _)
-    (λ r, _),
+  refine @@localization.funext _ _ _ _ _ this (localization.to_superset.hom _) (λ r, _),
   clear this h6 h5 h1 x,
   dsimp only [(∘)],
   simp only [Zariski.induced.stalk_on_basis.algebraic.coe,
       Zariski.coinduced.stalk_on_basis.algebraic.coe,
       localization.to_superset.coe],
   clear this h3 hp,
-  generalize : powers_subset _ = h1,
   refine @@polynomial.funext _ _
     (Zariski.coinduced.stalk_on_basis.algebraic p
         (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
           (opens.comap (continuous_inr R) V))
         h4 ∘
       Zariski.induced.stalk_on_basis.algebraic (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩) ∘
-      localization.to_superset h1 ∘
+      localization.to_superset (powers_subset (of_mem_map_subtype_val h9)) ∘
       inr_aux R)
     localization.of
     (by convert @@is_ring_hom.comp _ _ _ _ _ _ (Zariski.coinduced.stalk_on_basis.algebraic.hom _ _ _);
         convert @@is_ring_hom.comp _ _ _ _ _ _ (Zariski.induced.stalk_on_basis.algebraic.hom _ _);
-        convert @@is_ring_hom.comp _ _ _ _ _ _ (localization.to_superset.hom h1);
+        convert @@is_ring_hom.comp _ _ _ _ _ _ (localization.to_superset.hom _);
         convert projective_line.is_ring_hom_inr_aux R)
     _ r (λ x, _) _,
   { dsimp only [(∘)],
     rw [inr_aux_C, localization.to_superset.of, Zariski.induced.stalk_on_basis.algebraic.of,
       Zariski.coinduced.stalk_on_basis.algebraic.of, inr_aux_C, localization.to_superset.of] },
   { dsimp only [(∘)],
-    rw [inr_aux_X, localization.away.inv_self_eq, ← units.coe_map' (localization.to_superset h1),
+    rw [inr_aux_X, localization.away.inv_self_eq,
+        ← units.coe_map' (localization.to_superset (powers_subset (of_mem_map_subtype_val h9))),
         ← units.coe_map' (Zariski.induced.stalk_on_basis.algebraic (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩)),
         ← units.coe_map' (Zariski.coinduced.stalk_on_basis.algebraic p
           (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
@@ -1606,23 +1551,9 @@ begin
   generalize : sorope1._proof_13 R V HV hp = h4,
   generalize : Zariski.coinduced.Fext._proof_12
     (opens.comap (sorope2._proof_7 R) (opens.comap (sorope2._proof_8 R) V)) _ _ = h1,
+  generalize : sorope2._proof_13 R V HV _ = h9,
   change Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X
     ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩) ∈ _ at h1,
-  change Zariski.coinduced.stalk_on_basis p (opens.comap _ (opens.comap _ V)) h4
-    (Zariski.induced.stalk_on_basis (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩)
-        (Zariski.coinduced.stalk_on_basis
-          (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩))
-          (opens.comap _ (opens.comap _ V))
-          _
-          (Zariski.induced.stalk_on_basis (inr_aux R)
-            (Zariski.coinduced polynomial.X
-              ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩)
-            (s.val
-              (Zariski.induced (inr_aux R)
-                  (Zariski.coinduced polynomial.X
-                    ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩))
-              h1)))) =
-  s.val p hp,
   have : Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X
     ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩) = p,
   { revert h3,
@@ -1642,28 +1573,11 @@ begin
   rw Zariski.induced.stalk_on_basis.stalk_on_basis_of_localization,
   rw Zariski.coinduced.stalk_on_basis.stalk_on_basis_of_localization,
   have h6 : s.1 p hp = stalk_on_basis_of_localization p (eq.rec x this),
-  { revert this h5 h1 hp x, clear h4,
+  { revert this h5 h1 hp x, clear h9 h4,
     generalize : Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X
       ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩) = q,
     intros, subst this, exact h5 },
   rw [h6, rec_eq_to_superset], congr' 1, refine congr_fun _ x,
-  change (Zariski.coinduced.stalk_on_basis.algebraic p
-        (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
-          (opens.comap (continuous_inl R) V))
-        h4 ∘
-      Zariski.induced.stalk_on_basis.algebraic (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩) ∘
-      Zariski.coinduced.stalk_on_basis.algebraic
-        (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩))
-        (opens.comap (sorope2._proof_7 R) (opens.comap (sorope2._proof_8 R) V))
-        (sorope2._proof_13 R V HV
-          (Zariski.coinduced.Fext._proof_12
-              (opens.comap (sorope1._proof_7 R) (opens.comap (sorope1._proof_8 R) V))
-              p
-              h4)) ∘
-      Zariski.induced.stalk_on_basis.algebraic (inr_aux R)
-        (Zariski.coinduced polynomial.X
-            ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩)) =
-    localization.to_superset _,
   have : is_ring_hom ((Zariski.coinduced.stalk_on_basis.algebraic p
         (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
           (opens.comap (continuous_inl R) V))
@@ -1672,11 +1586,7 @@ begin
       Zariski.coinduced.stalk_on_basis.algebraic
         (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩))
         (opens.comap (sorope2._proof_7 R) (opens.comap (sorope2._proof_8 R) V))
-        (sorope2._proof_13 R V HV
-          (Zariski.coinduced.Fext._proof_12
-              (opens.comap (sorope1._proof_7 R) (opens.comap (sorope1._proof_8 R) V))
-              p
-              h4)) ∘
+        h9 ∘
       Zariski.induced.stalk_on_basis.algebraic (inr_aux R)
         (Zariski.coinduced polynomial.X
             ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩))),
@@ -1684,53 +1594,33 @@ begin
   convert (@@is_ring_hom.comp _ _ _ _ _ _ (Zariski.induced.stalk_on_basis.algebraic.hom _ _)),
   convert (@@is_ring_hom.comp _ _ _ _ _ _ (Zariski.coinduced.stalk_on_basis.algebraic.hom _ _ _)),
   convert (Zariski.induced.stalk_on_basis.algebraic.hom _ _),
-  refine @@localization.funext _ _ _
-    (Zariski.coinduced.stalk_on_basis.algebraic p
-        (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
-          (opens.comap (continuous_inl R) V))
-        h4 ∘
-      Zariski.induced.stalk_on_basis.algebraic (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩) ∘
-      Zariski.coinduced.stalk_on_basis.algebraic
-        (Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩))
-        (opens.comap (sorope2._proof_7 R) (opens.comap (sorope2._proof_8 R) V))
-        (sorope2._proof_13 R V HV
-          (Zariski.coinduced.Fext._proof_12
-              (opens.comap (sorope1._proof_7 R) (opens.comap (sorope1._proof_8 R) V))
-              p
-              h4)) ∘
-      Zariski.induced.stalk_on_basis.algebraic (inr_aux R)
-        (Zariski.coinduced polynomial.X
-            ⟨Zariski.induced (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩), h3⟩))
-    (localization.to_superset _)
-    this
-    (localization.to_superset.hom _)
-    (λ r, _),
+  refine @@localization.funext _ _ _ _ _ this (localization.to_superset.hom _) (λ r, _),
   clear this h6 h5 h1 x,
   dsimp only [(∘)],
   simp only [Zariski.induced.stalk_on_basis.algebraic.coe,
       Zariski.coinduced.stalk_on_basis.algebraic.coe,
       localization.to_superset.coe],
   clear this h3 hp,
-  generalize : powers_subset _ = h1,
   refine @@polynomial.funext _ _
     (Zariski.coinduced.stalk_on_basis.algebraic p
         (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
           (opens.comap (continuous_inl R) V))
         h4 ∘
       Zariski.induced.stalk_on_basis.algebraic (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩) ∘
-      localization.to_superset h1 ∘
+      localization.to_superset (powers_subset (of_mem_map_subtype_val h9)) ∘
       inr_aux R)
     localization.of
     (by convert @@is_ring_hom.comp _ _ _ _ _ _ (Zariski.coinduced.stalk_on_basis.algebraic.hom _ _ _);
         convert @@is_ring_hom.comp _ _ _ _ _ _ (Zariski.induced.stalk_on_basis.algebraic.hom _ _);
-        convert @@is_ring_hom.comp _ _ _ _ _ _ (localization.to_superset.hom h1);
+        convert @@is_ring_hom.comp _ _ _ _ _ _ (localization.to_superset.hom _);
         convert projective_line.is_ring_hom_inr_aux R)
     _ r (λ x, _) _,
   { dsimp only [(∘)],
     rw [inr_aux_C, localization.to_superset.of, Zariski.induced.stalk_on_basis.algebraic.of,
       Zariski.coinduced.stalk_on_basis.algebraic.of, inr_aux_C, localization.to_superset.of] },
   { dsimp only [(∘)],
-    rw [inr_aux_X, localization.away.inv_self_eq, ← units.coe_map' (localization.to_superset h1),
+    rw [inr_aux_X, localization.away.inv_self_eq,
+        ← units.coe_map' (localization.to_superset (powers_subset (of_mem_map_subtype_val h9))),
         ← units.coe_map' (Zariski.induced.stalk_on_basis.algebraic (inr_aux R) (Zariski.coinduced polynomial.X ⟨p, h2⟩)),
         ← units.coe_map' (Zariski.coinduced.stalk_on_basis.algebraic p
           (opens.comap (((Zariski.induced.locally_ringed_space (inr_aux R)).to_morphism).Hf)
