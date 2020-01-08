@@ -189,16 +189,43 @@ def comap {f : X → Y} (hf : continuous f) : presheaf Y C ⥤ presheaf X C :=
   map_comp' := begin
     intros ℱ 𝒢 ℋ φ ψ,
     ext U V,
-    dsimp,
-    unfold_coes,
-    dsimp,
+    change
+      limits.colimit.ι (aux_functor ℱ (f '' ↑U)) V ≫
+      limits.colimit.desc
+        (aux_functor ℱ (f '' ↑U))
+        ((limits.cocones.precompose (aux_functor.hom (φ ≫ ψ) (f '' ↑U))).obj (aux_cocone ℋ (f '' ↑U))) =
+      limits.colimit.ι (aux_functor ℱ (f '' ↑U)) V ≫
+      ((limits.colimit.desc (aux_functor ℱ (f '' ↑U)) ((limits.cocones.precompose (aux_functor.hom φ (f '' ↑U))).obj (aux_cocone 𝒢 (f '' ↑U))))
+           ≫
+        (limits.colimit.desc (aux_functor 𝒢 (f '' ↑U))
+          ((limits.cocones.precompose (aux_functor.hom ψ (f '' ↑U))).obj (aux_cocone ℋ (f '' ↑U))))),
     rw limits.colimit.ι_desc,
-    delta category_struct.comp,
     dsimp,
+    rw limits.colimit.ι_desc_assoc,
+    dsimp,
+    unfold aux_functor.hom,
+    dsimp,
+    show (φ V ≫ ψ V) ≫ _ = _,
+    rw category.assoc,
+    rw category.assoc,
+    apply congr_arg,
+    -- goal is 𝒢 (V) → ℋ (V) → colim_V' ℋ (V') = 𝒢 (V) → colim_V' 𝒢 (V') → colim ℋ (V')
+    rw ←limits.colimit.map_desc,
+    delta aux_cocone,
+--    rw aux_cocone.equations._eqn_1 ℋ,
+    rw limits.colimit.desc_eq_id,
+    erw category.comp_id,
+--    delta aux_functor,
+--    dsimp,
+
+--    unfold aux_cocone,
+--    unfold limits.cocones.precompose,
     sorry,
     --rw ←category.assoc,
     --rw limits.colimit.ι_desc,
 
   end }
+
+#print prefix topological_space.presheaf.aux_cocone
 
 end topological_space.presheaf
