@@ -1,20 +1,20 @@
 /-
   Presheaf (of types).
 
-  https://stacks.math.columbia.edu/tag/006D 
+  https://stacks.math.columbia.edu/tag/006D
 -/
 
 import topology.basic
 import topology.opens
 
-universes u v
+universes u
 
 -- Definition of a presheaf.
 
 open topological_space lattice
 
-structure presheaf (α : Type u) [topological_space α] := 
-(F     : opens α → Type v)
+structure presheaf (α : Type u) [topological_space α] :=
+(F     : opens α → Type u)
 (res   : ∀ (U V) (HVU : V ⊆ U), F U → F V)
 (Hid   : ∀ (U), res U U (set.subset.refl U) = id)
 (Hcomp : ∀ (U V W) (HWV : W ⊆ V) (HVU : V ⊆ U),
@@ -25,20 +25,20 @@ namespace presheaf
 variables {α : Type u} [topological_space α]
 
 instance : has_coe_to_fun (presheaf α) :=
-{ F := λ _, opens α → Type v,
+{ F := λ _, opens α → Type u,
   coe := presheaf.F }
 
 -- Simplification lemmas for Hid and Hcomp.
 
 @[simp] lemma Hcomp' (F : presheaf α) :
 ∀ (U V W) (HWV : W ⊆ V) (HVU : V ⊆ U) (s : F U),
-  (F.res U W (set.subset.trans HWV HVU)) s = 
+  (F.res U W (set.subset.trans HWV HVU)) s =
   (F.res V W HWV) ((F.res U V HVU) s) :=
 λ U V W HWV HVU s, by rw F.Hcomp U V W HWV HVU
 
 @[simp] lemma Hid' (F : presheaf α) :
 ∀ (U) (s : F U),
-  (F.res U U (set.subset.refl U)) s = s := 
+  (F.res U U (set.subset.refl U)) s = s :=
 λ U s, by rw F.Hid U; simp
 
 -- Morphism of presheaves.
@@ -48,7 +48,7 @@ structure morphism (F G : presheaf α) :=
 (commutes : ∀ (U V) (HVU : V ⊆ U),
   (G.res U V HVU) ∘ (map U) = (map V) ∘ (F.res U V HVU))
 
-infix `⟶`:80 := morphism 
+infix `⟶`:80 := morphism
 
 section morphism
 
@@ -74,11 +74,11 @@ structure iso (F G : presheaf α) :=
 
 infix `≅`:80 := λ A B, nonempty (iso A B)
 
-end morphism 
+end morphism
 
 -- Equality lemma
 
-lemma presheaf_eq_of_subset_eq (F : presheaf α) (U V : opens α) 
+lemma presheaf_eq_of_subset_eq (F : presheaf α) (U V : opens α)
 : U = V → F U = F V :=
 λ h, by rw h
 

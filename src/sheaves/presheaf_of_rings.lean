@@ -10,17 +10,17 @@ import sheaves.presheaf
 
 open topological_space
 
-universes u v
+universes u
 
 -- Definition of a presheaf of rings.
 
-structure presheaf_of_rings (α : Type u) [topological_space α] 
+structure presheaf_of_rings (α : Type u) [topological_space α]
 extends presheaf α :=
 (Fring           : ∀ (U), comm_ring (F U))
 (res_is_ring_hom : ∀ (U V) (HVU : V ⊆ U), is_ring_hom (res U V HVU))
 
 instance (α : Type u) [topological_space α] : has_coe_to_fun (presheaf_of_rings α) :=
-{ F := λ _, opens α → Type v,
+{ F := λ _, opens α → Type u,
   coe := λ F, (presheaf_of_rings.to_presheaf F).F }
 
 attribute [instance] presheaf_of_rings.Fring
@@ -28,7 +28,7 @@ attribute [instance] presheaf_of_rings.res_is_ring_hom
 
 namespace presheaf_of_rings
 
-variables {α : Type u} {β : Type v} [topological_space α] [topological_space β]
+variables {α : Type u} [topological_space α]
 
 -- Morphism of presheaf of rings.
 
@@ -36,7 +36,7 @@ structure morphism (F G : presheaf_of_rings α)
 extends presheaf.morphism F.to_presheaf G.to_presheaf :=
 (ring_homs : ∀ (U), is_ring_hom (map U))
 
-infix `⟶`:80 := morphism 
+infix `⟶`:80 := morphism
 
 def identity (F : presheaf_of_rings α) : F ⟶ F :=
 { ring_homs := λ U, is_ring_hom.id,
@@ -54,7 +54,7 @@ infix `≅`:80 := λ A B, nonempty (iso A B)
 
 -- Equality lemma
 
-lemma presheaf_of_rings_eq_of_subset_eq (F : presheaf_of_rings α) (U V : opens α) 
+lemma presheaf_of_rings_eq_of_subset_eq (F : presheaf_of_rings α) (U V : opens α)
 : U = V → ring_equiv (F U) (F V) :=
 λ h, by rw h; by apply ring_equiv.refl
 

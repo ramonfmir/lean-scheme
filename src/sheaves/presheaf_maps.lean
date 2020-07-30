@@ -8,12 +8,12 @@ import to_mathlib.opens
 import sheaves.presheaf
 import sheaves.stalk
 
-universes u v w
+universes u
 
 open topological_space
 
 variables {α : Type u} [topological_space α]
-variables {β : Type v} [topological_space β]
+variables {β : Type u} [topological_space β]
 variables {f : α → β} (Hf : continuous f)
 
 -- f induces a functor PSh(α) ⟶ PSh(β).
@@ -69,7 +69,7 @@ structure fmap (F : presheaf α) (G : presheaf β) :=
 
 namespace fmap
 
-variables {γ : Type w} [topological_space γ]
+variables {γ : Type u} [topological_space γ]
 variables {g : β → γ} {Hg : continuous g}
 
 variable {Hf}
